@@ -20,13 +20,23 @@ class AsuraSiteHandler(BaseSiteHandler):
     )
 
     def configure_session(self, scraper, args) -> None:
+        headers = {}
         if "Referer" not in scraper.headers:
-            scraper.headers.update(
-                {
-                    "Referer": "https://asuracomic.net/",
-                    "Origin": "https://asuracomic.net",
-                }
+            headers["Referer"] = "https://asuracomic.net/"
+        if "Origin" not in scraper.headers:
+            headers["Origin"] = "https://asuracomic.net"
+        if "User-Agent" not in scraper.headers:
+            headers["User-Agent"] = (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/122.0.0.0 Safari/537.36"
             )
+        if "Accept" not in scraper.headers:
+            headers["Accept"] = "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8"
+        if "Accept-Language" not in scraper.headers:
+            headers["Accept-Language"] = "en-US,en;q=0.9"
+        if headers:
+            scraper.headers.update(headers)
 
     # -- Helpers -----------------------------------------------------
     def _fetch_html(self, url: str, scraper, make_request) -> str:
@@ -263,6 +273,16 @@ class AsuraSiteHandler(BaseSiteHandler):
         self, url: str, scraper, make_request
     ) -> SiteComicContext:
         html = self._fetch_html(url, scraper, make_request)
+
+        lowered = html.lower()
+        if (
+            "cf-challenge" in lowered
+            or "cloudflare" in lowered and "attention required" in lowered
+            or "just a moment" in lowered
+            or "turnstile" in lowered
+        ):
+            raise RuntimeError("Asura request was blocked (Cloudflare challenge page).")
+
         data = self._parse_chapter_page(html)
         comic = data["comic"] or {}
         if not comic:
@@ -272,6 +292,16 @@ class AsuraSiteHandler(BaseSiteHandler):
         base_url = f"{parsed.scheme}://{parsed.netloc}"
         slug = comic.get("slug") or self._slug_from_url(url)
         title = comic.get("name") or slug
+
+        # If the fallback og:title parsing hit the generic site title, treat this as blocked/redirect.
+        # Otherwise we'll appear to succeed but return empty metadata/chapters.
+        generic_titles = {
+            "asura scans - read manga, manhwa & manhua online",
+            "asurascans - read manga, manhwa & manhua online",
+        }
+        if isinstance(title, str) and title.strip().lower() in generic_titles:
+            raise RuntimeError("Asura returned a generic page (likely blocked/redirected); cannot extract series metadata.")
+
         comic.setdefault("slug", slug)
         comic.setdefault("name", title)
         comic.setdefault("hid", str(comic.get("id") or slug))
