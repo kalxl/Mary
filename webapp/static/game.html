@@ -1,0 +1,1461 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Game • Ary</title>
+    <link rel="icon" href="/static/favicon_io/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon_io/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon_io/favicon-16x16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon_io/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet" />
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script defer src="/static/js/comick-api.js?v=2"></script>
+    <script defer src="/static/js/navbar.js?v=20260212-1"></script>
+    <script defer src="/static/js/game.js?v=20260214-11"></script>
+
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: "DM Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: #f1f5f2;
+        --panel: #161b1f;
+        --panel-alt: #1d2327;
+        --border: rgba(255, 255, 255, 0.05);
+        --muted: #94a39a;
+        --accent: #78f09a;
+        --accent-dark: #45c768;
+        --accent-rgb: 120, 240, 154;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(var(--accent-rgb, 120, 240, 154), 0.55) rgba(255, 255, 255, 0.08);
+      }
+
+      html::-webkit-scrollbar,
+      body::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+      }
+
+      html::-webkit-scrollbar-track,
+      body::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.06);
+        border-radius: 999px;
+      }
+
+      html::-webkit-scrollbar-thumb,
+      body::-webkit-scrollbar-thumb {
+        background: linear-gradient(
+          180deg,
+          rgba(var(--accent-rgb, 120, 240, 154), 0.6),
+          rgba(var(--accent-rgb, 120, 240, 154), 0.22)
+        );
+        border-radius: 999px;
+        border: 2px solid rgba(0, 0, 0, 0.22);
+      }
+
+      html::-webkit-scrollbar-thumb:hover,
+      body::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(
+          180deg,
+          rgba(var(--accent-rgb, 120, 240, 154), 0.74),
+          rgba(var(--accent-rgb, 120, 240, 154), 0.32)
+        );
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: #111;
+        position: relative;
+        overflow-x: hidden;
+      }
+
+      header {
+        display: block;
+        position: relative;
+        z-index: 300;
+      }
+
+      main {
+        padding: 2rem clamp(1rem, 4vw, 4rem) 3rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        position: relative;
+        z-index: 1;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .game-hero {
+        display: flex;
+        flex-direction: column;
+        gap: 0.45rem;
+      }
+
+      .game-hero h1 {
+        margin: 0;
+        font-family: "Outfit", sans-serif;
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin-bottom: 0.25rem;
+        letter-spacing: -0.03em;
+      }
+
+      @media (max-width: 768px) {
+        .game-hero h1 {
+          font-size: 2rem;
+        }
+      }
+
+      .game-hero p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.5;
+        max-width: 72ch;
+      }
+
+      .panel {
+        border-radius: 22px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(8, 10, 12, 0.95));
+        border: 1px solid var(--border);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+        overflow: hidden;
+      }
+
+      #setup-panel.panel {
+        overflow: visible;
+      }
+
+      #setup-panel.mp-mode .setup-card {
+        display: none;
+      }
+
+      #setup-panel.mp-mode #start-game {
+        display: none;
+      }
+
+      #setup-panel.mp-mode .setup-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .panel-inner {
+        padding: 1.1rem;
+      }
+
+      .setup-side {
+        display: grid;
+        gap: 0.65rem;
+      }
+
+      .mp-lobby {
+        display: none;
+        border-radius: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(0, 0, 0, 0.22);
+        padding: 0.85rem;
+        gap: 0.65rem;
+      }
+
+      .mp-lobby.active {
+        display: grid;
+      }
+
+      .mp-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+      }
+
+      .mp-row.stack {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.55rem;
+      }
+
+      .mp-row-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+      }
+
+      .mp-title {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.55rem;
+        font-weight: 1000;
+        letter-spacing: -0.02em;
+      }
+
+      .mp-badge {
+        font-size: 0.72rem;
+        font-weight: 950;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.06);
+        color: rgba(241, 245, 242, 0.86);
+      }
+
+      .mp-icon-btn {
+        width: 26px !important;
+        min-width: 26px !important;
+        max-width: 26px !important;
+        height: 26px !important;
+        min-height: 26px !important;
+        border-radius: 9px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 !important;
+        flex: 0 0 auto;
+        box-sizing: border-box;
+      }
+
+      .mp-icon-btn svg {
+        width: 14px;
+        height: 14px;
+      }
+
+      .mp-status {
+        color: rgba(241, 245, 242, 0.72);
+        font-weight: 800;
+        font-size: 0.9rem;
+      }
+
+      .mp-status-card {
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.03);
+        padding: 0.7rem 0.75rem;
+        display: grid;
+        gap: 0.25rem;
+      }
+
+      .mp-status-hint {
+        color: rgba(241, 245, 242, 0.55);
+        font-size: 0.82rem;
+        font-weight: 800;
+        line-height: 1.4;
+      }
+
+      .mp-players {
+        display: grid;
+        gap: 0.4rem;
+      }
+
+      .mp-players-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.45rem;
+      }
+
+      @media (max-width: 520px) {
+        .mp-players-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .mp-player {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.45rem 0.55rem;
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.03);
+        font-weight: 900;
+      }
+
+      .mp-player .meta {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        gap: 0.05rem;
+      }
+
+      .mp-player .name {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .mp-player .sub {
+        font-size: 0.78rem;
+        font-weight: 800;
+        color: rgba(241, 245, 242, 0.55);
+      }
+
+      .mp-avatar {
+        width: 26px;
+        height: 26px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+        background-size: cover;
+        background-position: center;
+        flex: 0 0 auto;
+      }
+
+      .mp-actions {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.55rem;
+      }
+
+      @media (max-width: 900px) {
+        .mp-actions {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      @media (max-width: 520px) {
+        .mp-actions {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .mp-modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.68);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        padding: 18px;
+      }
+
+      .mp-modal.open {
+        display: flex;
+      }
+
+      .mp-modal-card {
+        width: min(520px, calc(100vw - 36px));
+        border-radius: 22px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: linear-gradient(180deg, rgba(30, 35, 38, 0.96), rgba(10, 12, 14, 0.96));
+        box-shadow: 0 30px 90px rgba(0, 0, 0, 0.7);
+        padding: 16px;
+        display: grid;
+        gap: 0.75rem;
+      }
+
+      .mp-modal-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+      }
+
+      .mp-modal-title .left {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        min-width: 0;
+      }
+
+      .mp-modal-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 14px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(var(--accent-rgb), 0.14);
+        border: 1px solid rgba(var(--accent-rgb), 0.22);
+        color: var(--accent);
+        box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.08) inset;
+        flex: 0 0 auto;
+      }
+
+      .mp-modal-icon svg {
+        width: 18px;
+        height: 18px;
+      }
+
+      .mp-modal-title h3 {
+        margin: 0;
+        font-family: "Outfit", sans-serif;
+        font-weight: 900;
+        letter-spacing: -0.02em;
+      }
+
+      .mp-modal-close {
+        width: 30px;
+        height: 30px;
+        min-width: 30px;
+        min-height: 30px;
+        border-radius: 12px;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .mp-modal-close svg {
+        width: 14px;
+        height: 14px;
+      }
+
+      .mp-modal-actions {
+        display: flex;
+        gap: 0.55rem;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+      }
+
+      .setup-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.7fr);
+        gap: 0.5rem;
+      }
+
+      @media (max-width: 900px) {
+        .setup-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .field-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 0.5rem;
+      }
+
+      .label {
+        font-size: 0.8rem;
+        color: rgba(241, 245, 242, 0.65);
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .input {
+        width: 100%;
+        height: 46px;
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(0, 0, 0, 0.25);
+        color: #f1f5f2;
+        padding: 0 14px;
+        font-size: 0.95rem;
+        font-weight: 700;
+        outline: none;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+      }
+
+      .input:focus {
+        border-color: rgba(var(--accent-rgb), 0.55);
+        box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.12);
+      }
+
+      .chip-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+
+      .chip {
+        appearance: none;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.04);
+        color: rgba(241, 245, 242, 0.88);
+        border-radius: 999px;
+        padding: 0.4rem 0.85rem;
+        font-size: 0.85rem;
+        font-weight: 800;
+        cursor: pointer;
+        transition: transform 0.12s ease, background 0.12s ease, border-color 0.12s ease;
+      }
+
+      .chip:hover {
+        transform: translateY(-1px);
+        border-color: rgba(255, 255, 255, 0.16);
+        box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.10) inset, 0 0 18px rgba(var(--accent-rgb), 0.16);
+      }
+
+      .chip.active {
+        background: rgba(var(--accent-rgb), 0.14);
+        border-color: rgba(var(--accent-rgb), 0.28);
+        color: var(--accent);
+        box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.12) inset;
+      }
+
+      .select-wrap {
+        position: relative;
+      }
+
+      .select-btn {
+        width: 100%;
+        height: 46px;
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(0, 0, 0, 0.25);
+        color: rgba(241, 245, 242, 0.92);
+        padding: 0 14px;
+        font-size: 0.95rem;
+        font-weight: 900;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        cursor: pointer;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.12s ease;
+      }
+
+      .select-btn:hover {
+        transform: translateY(-1px);
+        border-color: rgba(var(--accent-rgb), 0.35);
+        box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.12), 0 0 28px rgba(var(--accent-rgb), 0.18);
+      }
+
+      .select-btn .value {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        min-width: 0;
+      }
+
+      .select-btn svg {
+        width: 18px;
+        height: 18px;
+        flex: 0 0 auto;
+        opacity: 0.9;
+      }
+
+      .select-menu {
+        position: absolute;
+        top: calc(100% + 10px);
+        left: 0;
+        right: 0;
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: linear-gradient(180deg, rgba(30, 35, 38, 0.98), rgba(10, 12, 14, 0.98));
+        box-shadow: 0 18px 50px rgba(0, 0, 0, 0.65);
+        overflow: hidden;
+        display: none;
+        z-index: 50;
+      }
+
+      .select-menu.open {
+        display: block;
+      }
+
+      .select-item {
+        width: 100%;
+        padding: 12px 14px;
+        background: transparent;
+        border: none;
+        color: rgba(241, 245, 242, 0.9);
+        font-weight: 900;
+        cursor: pointer;
+        text-align: left;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      .select-item:last-child {
+        border-bottom: none;
+      }
+
+      .select-item:hover {
+        background: rgba(var(--accent-rgb), 0.10);
+      }
+
+      .select-item .hint {
+        color: rgba(241, 245, 242, 0.6);
+        font-size: 0.82rem;
+        font-weight: 800;
+        white-space: nowrap;
+      }
+
+      .setup-side {
+        display: flex;
+        flex-direction: column;
+        gap: 0.7rem;
+        height: 100%;
+      }
+
+      .setup-side .cta {
+        height: 46px;
+        border-radius: 14px;
+        font-size: 0.95rem;
+      }
+
+      .cta {
+        border: none;
+        border-radius: 16px;
+        width: 100%;
+        height: 52px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.05);
+        color: rgba(241, 245, 242, 0.92);
+        font-weight: 900;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease, box-shadow 0.12s ease;
+      }
+
+      .cta.primary {
+        background: rgba(var(--accent-rgb), 0.18);
+        border-color: rgba(var(--accent-rgb), 0.28);
+        color: var(--accent);
+        box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.12) inset;
+      }
+
+      .cta.primary:hover:enabled {
+        filter: brightness(1.05);
+        transform: translateY(-1px);
+      }
+
+      .cta.secondary {
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        color: rgba(241, 245, 242, 0.9);
+      }
+
+      .cta.secondary:hover:enabled {
+        background: rgba(255, 255, 255, 0.08);
+        transform: translateY(-1px);
+      }
+
+      .cta:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+
+      .setup-card {
+        display: flex;
+        flex-direction: column;
+        gap: 0.9rem;
+      }
+
+      .small-muted {
+        color: var(--muted);
+        font-size: 0.85rem;
+        line-height: 1.5;
+      }
+
+      .game-stage {
+        display: none;
+      }
+
+      .game-stage.active {
+        display: block;
+      }
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        padding: 0.9rem 1rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        background: rgba(0, 0, 0, 0.18);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+      }
+
+      .topbar-left {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        min-width: 0;
+      }
+
+      .topbar-title {
+        font-weight: 900;
+        letter-spacing: -0.01em;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .topbar-sub {
+        font-size: 0.85rem;
+        color: rgba(241, 245, 242, 0.68);
+      }
+
+      .pill-row {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+        flex: 0 0 auto;
+      }
+
+      .pill {
+        border-radius: 999px;
+        padding: 0.25rem 0.75rem;
+        background: rgba(var(--accent-rgb), 0.12);
+        color: #bdf5d1;
+        font-weight: 900;
+        font-size: 0.78rem;
+        letter-spacing: 0.02em;
+        white-space: nowrap;
+        transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease, box-shadow 0.12s ease;
+        font-variant-numeric: tabular-nums;
+      }
+
+      #pill-time {
+        min-width: 72px;
+        text-align: right;
+      }
+
+      .pill.alt {
+        background: rgba(255, 255, 255, 0.06);
+        color: rgba(241, 245, 242, 0.86);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .question-wrap {
+        padding: 1rem;
+        display: grid;
+        grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+        gap: 1rem;
+      }
+
+      #play-panel.cover-mode .question-wrap {
+        padding: 0.85rem;
+        grid-template-columns: 1fr;
+        grid-template-areas:
+          "cover"
+          "prompt";
+        justify-items: center;
+        gap: 0.85rem;
+      }
+
+      #play-panel.cover-mode .cover-box {
+        border-radius: 16px;
+        aspect-ratio: 3 / 4.6;
+        max-width: 180px;
+        margin: 0 auto;
+        grid-area: cover;
+      }
+
+      #play-panel.cover-mode .prompt {
+        grid-area: prompt;
+        width: 100%;
+        max-width: 640px;
+      }
+
+      #play-panel.cover-mode .options {
+        width: 100%;
+      }
+
+      @media (max-width: 900px) {
+        #play-panel.cover-mode .cover-box {
+          max-width: 180px;
+        }
+      }
+
+      #play-panel.cover-mode #question-prompt {
+        font-size: 1.1rem;
+      }
+
+      #play-panel.cover-mode #question-desc {
+        font-size: 0.92rem;
+      }
+
+      .icon-action {
+        width: 26px !important;
+        min-width: 26px !important;
+        max-width: 26px !important;
+        height: 26px !important;
+        min-height: 26px !important;
+        border-radius: 9px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 !important;
+        flex: 0 0 auto;
+        box-sizing: border-box;
+      }
+
+      .icon-action svg {
+        width: 14px;
+        height: 14px;
+      }
+
+      @media (max-width: 520px) {
+        .play-actions {
+          gap: 0.55rem;
+          padding-inline: 10px;
+        }
+        .icon-action {
+          width: 22px !important;
+          min-width: 22px !important;
+          max-width: 22px !important;
+          height: 22px !important;
+          min-height: 22px !important;
+          border-radius: 8px;
+        }
+        .icon-action svg {
+          width: 12px;
+          height: 12px;
+        }
+
+        #play-panel.cover-mode .question-wrap {
+          padding: 0.9rem;
+          gap: 0.85rem;
+        }
+
+        #play-panel.cover-mode .cover-box {
+          max-width: 200px;
+        }
+
+        #play-panel.cover-mode .options {
+          grid-template-columns: 1fr;
+          gap: 0.6rem;
+        }
+
+        #play-panel.cover-mode .opt-btn {
+          padding: 0.85rem 0.85rem;
+          font-size: 0.95rem;
+        }
+      }
+
+      @media (max-width: 900px) {
+        .question-wrap {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 900px) {
+        #play-panel.cover-mode .question-wrap {
+          grid-template-areas:
+            "cover"
+            "prompt";
+          gap: 0.7rem;
+        }
+
+        #play-panel.cover-mode .cover-box {
+          grid-area: cover;
+        }
+
+        #play-panel.cover-mode .prompt {
+          grid-area: prompt;
+        }
+      }
+
+      .cover-box {
+        border-radius: 18px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.02);
+        aspect-ratio: 3 / 4.2;
+        position: relative;
+      }
+
+      .cover-box img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+
+      .prompt {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      .prompt h2 {
+        margin: 0;
+        font-size: 1.2rem;
+        letter-spacing: -0.02em;
+      }
+
+      .prompt p {
+        margin: 0;
+        color: rgba(241, 245, 242, 0.75);
+        line-height: 1.6;
+      }
+
+      .options {
+        margin-top: 0.6rem;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.6rem;
+      }
+
+      #play-panel.bio-mode .cover-box {
+        display: none;
+      }
+
+      #play-panel.title-mode .question-wrap {
+        grid-template-columns: 1fr;
+      }
+
+      #play-panel.title-mode .cover-box {
+        display: none;
+      }
+
+      #play-panel.title-mode .options {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      #play-panel.title-mode .opt-title {
+        display: none;
+      }
+
+      #play-panel.title-mode .opt-cover {
+        background: transparent;
+        border: none;
+      }
+
+      @media (max-width: 520px) {
+        .options {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .opt-btn {
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(0, 0, 0, 0.22);
+        color: rgba(241, 245, 242, 0.92);
+        padding: 0.85rem 0.9rem;
+        font-weight: 900;
+        letter-spacing: -0.01em;
+        cursor: pointer;
+        transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+        text-align: left;
+      }
+
+      .opt-btn.is-cover {
+        padding: 0.55rem;
+      }
+
+      .opt-btn.is-cover .opt-cover {
+        height: 140px;
+      }
+
+      #play-panel.cover-mode .options {
+        gap: 0.5rem;
+      }
+
+      #play-panel.cover-mode .opt-btn {
+        padding: 0.7rem 0.75rem;
+        border-radius: 14px;
+        font-size: 0.9rem;
+      }
+
+      .play-actions {
+        display: flex;
+        justify-content: center;
+        gap: 0.75rem;
+        margin-top: 0.85rem;
+        flex-wrap: nowrap;
+        width: 100%;
+        max-width: 100%;
+        padding-inline: 12px;
+        box-sizing: border-box;
+      }
+
+      @media (max-width: 720px) {
+        #play-panel.title-mode .options {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .opt-btn.is-cover .opt-cover {
+          height: 170px;
+        }
+      }
+
+      .opt-cover {
+        border-radius: 14px;
+        overflow: hidden;
+        aspect-ratio: 3 / 4.1;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        margin-bottom: 0.6rem;
+        position: relative;
+      }
+
+      .opt-cover img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+
+      .opt-title {
+        font-size: 0.92rem;
+        font-weight: 900;
+        line-height: 1.2;
+        overflow: hidden;
+        display: -webkit-box;
+        line-clamp: 2;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+      }
+
+      .opt-btn:hover:enabled {
+        transform: translateY(-1px);
+        border-color: rgba(var(--accent-rgb), 0.3);
+        background: rgba(var(--accent-rgb), 0.08);
+      }
+
+      .opt-btn:disabled {
+        cursor: not-allowed;
+        opacity: 0.75;
+      }
+
+      .opt-btn.correct {
+        border-color: rgba(var(--accent-rgb), 0.7);
+        background: rgba(var(--accent-rgb), 0.18);
+        color: var(--accent);
+      }
+
+      .opt-btn.wrong {
+        border-color: rgba(239, 68, 68, 0.6);
+        background: rgba(239, 68, 68, 0.12);
+        color: rgba(255, 255, 255, 0.9);
+      }
+
+      .results {
+        padding: 1.2rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.9rem;
+        align-items: center;
+        text-align: center;
+      }
+
+      .results h2 {
+        margin: 0;
+        letter-spacing: -0.02em;
+      }
+
+      .results .big {
+        font-size: 2.2rem;
+        font-weight: 900;
+        color: var(--accent);
+        letter-spacing: -0.03em;
+      }
+
+      .results .meta {
+        color: rgba(241, 245, 242, 0.7);
+        max-width: 60ch;
+        line-height: 1.6;
+      }
+
+      .results-actions {
+        display: flex;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .results-actions .cta {
+        min-width: 170px;
+      }
+
+      .toast {
+        position: fixed;
+        right: 22px;
+        top: 92px;
+        transform: none;
+        background: rgba(0, 0, 0, 0.55);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        padding: 0.7rem 0.9rem;
+        border-radius: 14px;
+        font-weight: 900;
+        letter-spacing: -0.01em;
+        opacity: 0;
+        transition: opacity 0.18s ease;
+        pointer-events: none;
+        max-width: min(360px, calc(100vw - 40px));
+        z-index: 500;
+      }
+
+      @media (max-width: 520px) {
+        .toast {
+          top: 84px;
+          right: 14px;
+        }
+      }
+
+      .toast.active {
+        opacity: 1;
+      }
+
+      .toast.good {
+        border-color: rgba(34, 197, 94, 0.35);
+        background: rgba(34, 197, 94, 0.12);
+        color: rgba(220, 252, 231, 0.95);
+      }
+
+      .toast.bad {
+        border-color: rgba(239, 68, 68, 0.35);
+        background: rgba(239, 68, 68, 0.12);
+        color: rgba(254, 226, 226, 0.95);
+      }
+
+      .toast.neutral {
+        border-color: rgba(255, 255, 255, 0.14);
+        background: rgba(255, 255, 255, 0.08);
+        color: rgba(241, 245, 242, 0.92);
+      }
+
+      .countdown-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 600;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.55);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+      }
+
+      .countdown-overlay.active {
+        display: flex;
+      }
+
+      .countdown-bubble {
+        width: min(360px, calc(100vw - 40px));
+        border-radius: 24px;
+        padding: 32px 24px;
+        text-align: center;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(0, 0, 0, 0.35));
+        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
+      }
+
+      .countdown-num {
+        font-family: "Outfit", system-ui, sans-serif;
+        font-weight: 900;
+        font-size: 88px;
+        line-height: 1;
+        letter-spacing: -0.04em;
+        color: rgba(241, 245, 242, 0.98);
+        text-shadow: 0 18px 50px rgba(0, 0, 0, 0.55);
+      }
+
+      .countdown-sub {
+        margin-top: 10px;
+        color: rgba(241, 245, 242, 0.7);
+        font-weight: 800;
+        letter-spacing: -0.01em;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div id="navbar-mount"></div>
+    </header>
+
+    <main>
+      <section class="game-hero">
+        <h1>Ary Game</h1>
+        <p>Search a vibe, pick difficulty, and play a quick quiz. Multiplayer is coming next.</p>
+      </section>
+
+      <div id="mp-settings-modal" class="mp-modal" aria-hidden="true">
+        <div class="mp-modal-card" role="dialog" aria-modal="true" aria-label="Multiplayer settings">
+          <div class="mp-modal-title">
+            <div class="left">
+              <span class="mp-modal-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8"/><path d="M18 16V8"/><path d="M6 16V8"/><path d="M3 16V8"/><path d="M13 7h-2"/><path d="M13 17h-2"/><path d="M16 12h-8"/></svg>
+              </span>
+              <h3>Lobby settings</h3>
+            </div>
+            <button id="mp-settings-x" class="cta secondary mp-modal-close" type="button" aria-label="Close settings" title="Close">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
+            </button>
+          </div>
+
+          <div class="field-row">
+            <div class="label">Search</div>
+            <select id="mp-set-genre" class="input" style="appearance:none;">
+              <option value="random">Random</option>
+              <option value="isekai">Isekai</option>
+              <option value="romance">Romance</option>
+              <option value="murim">Murim</option>
+              <option value="action">Action</option>
+              <option value="fantasy">Fantasy</option>
+              <option value="manhua">Manhua</option>
+            </select>
+          </div>
+
+          <div class="field-row">
+            <div class="label">Difficulty</div>
+            <select id="mp-set-difficulty" class="input" style="appearance:none;">
+              <option value="easy">Easy</option>
+              <option value="normal">Normal</option>
+              <option value="hard">Hard</option>
+              <option value="chaos">Chaos</option>
+            </select>
+          </div>
+
+          <div class="field-row">
+            <div class="label">Game</div>
+            <select id="mp-set-mode" class="input" style="appearance:none;">
+              <option value="cover">Guess from cover</option>
+              <option value="bio">Guess from bio</option>
+              <option value="title">Guess from title</option>
+              <option value="mixed">Mixed</option>
+            </select>
+          </div>
+
+          <div class="field-row">
+            <div class="label">Questions</div>
+            <select id="mp-set-count" class="input" style="appearance:none;">
+              <option value="5">5</option>
+              <option value="10">10</option>
+              <option value="20">20</option>
+              <option value="40">40</option>
+            </select>
+          </div>
+
+          <div class="mp-modal-actions">
+            <button id="mp-settings-save" class="cta primary" type="button">Save</button>
+          </div>
+        </div>
+      </div>
+
+      <section id="setup-panel" class="panel" aria-label="Game setup">
+        <div class="panel-inner">
+          <div class="setup-grid">
+            <div class="setup-card" id="solo-setup-card">
+              <div class="field-row">
+                <div class="label">Search</div>
+                <div class="select-wrap">
+                  <button id="genre-select" type="button" class="select-btn" aria-haspopup="listbox" aria-expanded="false">
+                    <span class="value" id="genre-value">Select a genre…</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+                  </button>
+                  <div id="genre-menu" class="select-menu" role="listbox" aria-label="Genre">
+                    <button type="button" class="select-item" data-genre="random"><span>Random</span><span class="hint">Chaos</span></button>
+                    <button type="button" class="select-item" data-genre="isekai"><span>Isekai</span><span class="hint">Hard</span></button>
+                    <button type="button" class="select-item" data-genre="romance"><span>Romance</span><span class="hint">Easy</span></button>
+                    <button type="button" class="select-item" data-genre="murim"><span>Murim</span><span class="hint">Hard</span></button>
+                    <button type="button" class="select-item" data-genre="action"><span>Action</span><span class="hint">Normal</span></button>
+                    <button type="button" class="select-item" data-genre="fantasy"><span>Fantasy</span><span class="hint">Normal</span></button>
+                    <button type="button" class="select-item" data-genre="manhua"><span>Manhua</span><span class="hint">Hard</span></button>
+                  </div>
+                </div>
+                <div id="setup-hint" class="small-muted">Pick Random or a genre. We’ll pull titles from Comix and build questions.</div>
+              </div>
+
+              <div class="field-row">
+                <div class="label">Difficulty</div>
+                <div class="chip-row" role="tablist" aria-label="Difficulty">
+                  <button type="button" class="chip active" data-difficulty="easy">Easy</button>
+                  <button type="button" class="chip" data-difficulty="normal">Normal</button>
+                  <button type="button" class="chip" data-difficulty="hard">Hard</button>
+                  <button type="button" class="chip" data-difficulty="chaos">Chaos</button>
+                </div>
+              </div>
+
+              <div class="field-row">
+                <div class="label">Game</div>
+                <div class="chip-row" role="tablist" aria-label="Game type">
+                  <button type="button" class="chip active" data-mode="cover">Guess from cover</button>
+                  <button type="button" class="chip" data-mode="bio">Guess from bio</button>
+                  <button type="button" class="chip" data-mode="title">Guess from title</button>
+                  <button type="button" class="chip" data-mode="mixed">Mixed</button>
+                </div>
+              </div>
+
+              <div class="field-row">
+                <div class="label">Questions</div>
+                <div class="chip-row" role="tablist" aria-label="Question count">
+                  <button type="button" class="chip active" data-count="5">5</button>
+                  <button type="button" class="chip" data-count="10">10</button>
+                  <button type="button" class="chip" data-count="20">20</button>
+                  <button type="button" class="chip" data-count="40">40</button>
+                </div>
+              </div>
+
+              <div class="field-row">
+                <div class="label">Auto next</div>
+                <div class="chip-row" role="tablist" aria-label="Auto next">
+                  <button type="button" class="chip active" data-auto-next="yes">Yes</button>
+                  <button type="button" class="chip" data-auto-next="no">No</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="setup-side">
+              <button id="mp-open" class="cta secondary" type="button">
+                <span style="display:inline-flex; align-items:center; gap:0.55rem;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                  Multiplayer
+                </span>
+              </button>
+
+              <div id="mp-lobby" class="mp-lobby" aria-hidden="true">
+                <div class="mp-row stack">
+                  <div class="mp-row-title">
+                    <div class="mp-title">
+                      <span class="mp-badge">Lobby</span>
+                      <span>Multiplayer</span>
+                    </div>
+                    <div style="display:flex; gap:0.5rem; align-items:center;">
+                      <button id="mp-settings" class="cta secondary mp-icon-btn" type="button" title="Settings" aria-label="Settings">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 1v2"/><path d="M12 21v2"/><path d="M4.22 4.22l1.42 1.42"/><path d="M18.36 18.36l1.42 1.42"/><path d="M1 12h2"/><path d="M21 12h2"/><path d="M4.22 19.78l1.42-1.42"/><path d="M18.36 5.64l1.42-1.42"/><circle cx="12" cy="12" r="3"/></svg>
+                      </button>
+                      <button id="mp-leave" class="cta secondary mp-icon-btn" type="button" title="Leave" aria-label="Leave">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="mp-status-card">
+                    <div id="mp-status" class="mp-status">Not connected.</div>
+                    <div class="mp-status-hint">Invite a friend by username. Leader can start once at least 2 players are in.</div>
+                  </div>
+
+                  <div class="field-row">
+                    <div class="label">Invite friend</div>
+                    <input id="mp-opponent" class="input" type="text" placeholder="Opponent username" autocomplete="off" />
+                  </div>
+
+                  <div class="mp-actions">
+                    <button id="mp-invite" class="cta secondary" type="button">Invite</button>
+                    <button id="mp-start" class="cta primary" type="button">Start (Leader)</button>
+                  </div>
+
+                  <div class="field-row">
+                    <div class="label" id="mp-players-label" style="display:none;">Players</div>
+                    <div id="mp-players" class="mp-players mp-players-grid"></div>
+                  </div>
+                </div>
+              </div>
+
+              <button id="start-game" class="cta primary" type="button">
+                <span style="display:inline-flex; align-items:center; gap:0.55rem;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+                  Start
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="play-panel" class="panel game-stage" aria-label="Play">
+        <div class="topbar">
+          <div class="topbar-left">
+            <div id="play-title" class="topbar-title">Loading…</div>
+            <div id="play-sub" class="topbar-sub">Answer fast. No mercy.</div>
+          </div>
+          <div class="pill-row">
+            <div id="pill-progress" class="pill">1 / 5</div>
+            <div id="pill-score" class="pill alt">0 correct</div>
+            <div id="pill-time" class="pill alt">0.0s</div>
+          </div>
+        </div>
+
+        <div class="question-wrap">
+          <div class="cover-box" aria-hidden="true">
+            <img id="question-cover" alt="Cover" loading="lazy" />
+          </div>
+
+          <div class="prompt">
+            <h2 id="question-prompt">Question</h2>
+            <p id="question-desc"></p>
+
+            <div id="options" class="options" role="list"></div>
+
+            <div class="play-actions">
+              <button id="quit-game" class="cta secondary icon-action" type="button" aria-label="Quit">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
+              </button>
+              <button id="next-question" class="cta primary icon-action" type="button" aria-label="Next" disabled>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 5 7 7-7 7"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="results-panel" class="panel game-stage" aria-label="Results">
+        <div class="results">
+          <h2>Results</h2>
+          <div id="results-score" class="big">0 / 5</div>
+          <div id="results-meta" class="meta">Nice run. We’ll add ranked + multiplayer next.</div>
+          <div class="results-actions">
+            <button id="play-again" class="cta primary" type="button">Play again</button>
+            <button id="back-setup" class="cta secondary" type="button">Change settings</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <div id="countdown" class="countdown-overlay" aria-hidden="true">
+      <div class="countdown-bubble">
+        <div id="countdown-num" class="countdown-num">5</div>
+        <div class="countdown-sub">Get ready…</div>
+      </div>
+    </div>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <script>
+      (function () {
+        const navMount = document.getElementById('navbar-mount');
+        if (!navMount) return;
+
+        async function injectNavbar() {
+          try {
+            const res = await fetch('/static/components/navbar.html', { cache: 'no-store' });
+            const html = await res.text();
+            navMount.innerHTML = html;
+            if (typeof window.initNavbar === 'function') window.initNavbar();
+            navMount.querySelectorAll('[data-nav-link="game"]').forEach((el) => el.classList.add('active'));
+          } catch (err) {
+            console.warn('Failed to load navbar:', err);
+          }
+        }
+
+        injectNavbar();
+      })();
+    </script>
+
+    <script>
+      (function(){
+        const list = document.getElementById('mp-players');
+        const label = document.getElementById('mp-players-label');
+        if(!list || !label) return;
+
+        function sync(){
+          try{
+            const hasPlayers = (list.children && list.children.length > 0);
+            label.style.display = hasPlayers ? '' : 'none';
+          }catch(_){ }
+        }
+
+        sync();
+        try{
+          const obs = new MutationObserver(sync);
+          obs.observe(list, { childList: true, subtree: false });
+        }catch(_){ }
+      })();
+    </script>
+  </body>
+</html>

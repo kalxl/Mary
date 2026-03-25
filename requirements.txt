@@ -1,0 +1,12 @@
+beautifulsoup4
+cloudscraper
+lxml
+Pillow
+pypdf
+requests
+pywidevine
+cryptography
+playwright>=1.40.0  # Required for MangaFire VRF generation
+fastapi
+uvicorn[standard]
+aiofiles

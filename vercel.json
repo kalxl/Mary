@@ -1,0 +1,51 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "webapp/server.py",
+      "use": "@vercel/python",
+      "config": { "maxLambdaSize": "15mb", "runtime": "python3.9" }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/browse\\.html$",
+      "status": 308,
+      "headers": { "Location": "/browse" }
+    },
+    {
+      "src": "/series\\.html$",
+      "status": 308,
+      "headers": { "Location": "/series" }
+    },
+    {
+      "src": "/reader\\.html$",
+      "status": 308,
+      "headers": { "Location": "/reader" }
+    },
+    {
+      "src": "/library\\.html$",
+      "status": 308,
+      "headers": { "Location": "/library" }
+    },
+    {
+      "src": "/profile\\.html$",
+      "status": 308,
+      "headers": { "Location": "/profile" }
+    },
+    {
+      "src": "/downloads\\.html$",
+      "status": 308,
+      "headers": { "Location": "/downloads" }
+    },
+    {
+      "src": "/game\\.html$",
+      "status": 308,
+      "headers": { "Location": "/game" }
+    },
+    {
+      "src": "/(.*)",
+      "dest": "webapp/server.py"
+    }
+  ]
+}

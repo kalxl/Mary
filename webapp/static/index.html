@@ -1,0 +1,3516 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ary</title>
+    <link rel="icon" href="/static/favicon_io/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon_io/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon_io/favicon-16x16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon_io/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script defer src="/static/js/comick-api.js?v=2"></script>
+    <script defer src="/static/js/navbar.js?v=20260212-1"></script>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: "Inter", "Space Grotesk", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: #f1f5f2;
+        --panel: #161b1f;
+        --panel-alt: #1d2327;
+        --border: rgba(255, 255, 255, 0.05);
+        --muted: #94a39a;
+        --accent: #78f09a;
+        --accent-dark: #45c768;
+        --accent-rgb: 120, 240, 154;
+        --bg-texture: url("/static/img/green-bg.png");
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: #111;
+        position: relative;
+        overflow-x: hidden;
+      }
+
+      html, body{
+        scrollbar-width: thin;
+        scrollbar-color: rgba(var(--accent-rgb, 120, 240, 154),0.55) rgba(255,255,255,0.08);
+      }
+      html::-webkit-scrollbar, body::-webkit-scrollbar{width:10px;height:10px}
+      html::-webkit-scrollbar-track, body::-webkit-scrollbar-track{background:rgba(255,255,255,0.06);border-radius:999px}
+      html::-webkit-scrollbar-thumb, body::-webkit-scrollbar-thumb{background:linear-gradient(180deg, rgba(var(--accent-rgb, 120, 240, 154),0.60), rgba(var(--accent-rgb, 120, 240, 154),0.22));border-radius:999px;border:2px solid rgba(0,0,0,0.22)}
+      html::-webkit-scrollbar-thumb:hover, body::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg, rgba(var(--accent-rgb, 120, 240, 154),0.74), rgba(var(--accent-rgb, 120, 240, 154),0.32))}
+      body::before {
+        content: none;
+      }
+      body::after {
+        content: none;
+      }
+      header {
+        display: block;
+        position: relative;
+        z-index: 300;
+      }
+      main {
+        padding: 2rem clamp(1rem, 4vw, 4rem) 3rem;
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        position: relative;
+        z-index: 1;
+      }
+      .grid-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 1rem;
+        margin-bottom: 0.8rem;
+      }
+      .header-left {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+      .header-left h3 {
+        margin: 0;
+        font-size: 1.25rem;
+        letter-spacing: -0.01em;
+      }
+      .section-title-with-icon {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .section-title-with-icon svg {
+        width: 18px;
+        height: 18px;
+        stroke: var(--accent);
+        color: var(--accent);
+        flex: 0 0 auto;
+        filter: drop-shadow(0 0 10px rgba(126, 241, 159, 0.45));
+        opacity: 0.95;
+      }
+      .header-left small {
+        color: var(--muted);
+      }
+      .feed-controls {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 999px;
+        padding: 0.2rem 0.6rem;
+        border: 1px solid var(--border);
+      }
+      .feed-controls button {
+        border: none;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: rgba(var(--accent-rgb), 0.12);
+        color: #cafeda;
+        cursor: pointer;
+        font-size: 1rem;
+        transition: background 0.2s ease, opacity 0.2s ease;
+      }
+      .feed-controls button:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+      }
+      .page-indicator {
+        font-size: 0.85rem;
+        color: var(--muted);
+        padding: 0 0.3rem;
+      }
+      .card-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+        gap: 1.25rem;
+      }
+      @media (max-width: 768px) {
+        main {
+          gap: 0.95rem;
+          padding-top: 0.85rem;
+          padding-bottom: 2.25rem;
+        }
+
+        .grid-header {
+          margin-bottom: 0.55rem;
+        }
+
+        #chapters-grid.card-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      .series-card {
+        border-radius: 22px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(8, 10, 12, 0.95));
+        border: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        text-decoration: none;
+        color: inherit;
+        transition: transform 0.2s ease, border 0.2s ease, box-shadow 0.2s ease;
+        padding: 0.95rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      }
+      .series-card:hover {
+        transform: translateY(-6px);
+        border-color: rgba(var(--accent-rgb), 0.45);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.45);
+      }
+      .card-cover {
+        position: relative;
+        border-radius: 16px;
+        overflow: hidden;
+        background: rgba(255, 255, 255, 0.02);
+        aspect-ratio: 3 / 4.2;
+      }
+      .card-cover img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .card-cover::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(180deg, rgba(0, 0, 0, 0) 40%, rgba(5, 7, 6, 0.75));
+      }
+      .card-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+      }
+      .card-pill {
+        border-radius: 999px;
+        padding: 0.25rem 0.75rem;
+        background: rgba(var(--accent-rgb), 0.12);
+        color: #bdf5d1;
+        font-weight: 800;
+        font-size: 0.78rem;
+      }
+      .card-time {
+        color: #9fb0c9;
+        font-size: 0.78rem;
+        white-space: nowrap;
+        font-weight: 800;
+      }
+      .card-body {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+      }
+      .series-card h3 {
+        margin: 0;
+        font-size: 0.95rem;
+        line-height: 1.2;
+        line-clamp: 2;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      .series-card p {
+        margin: 0;
+        font-size: 0.8rem;
+        color: var(--muted);
+        line-clamp: 2;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      .chip-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.3rem;
+      }
+
+      .filter-chips {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .header-left .filter-chips {
+        margin-top: 0.55rem;
+        justify-content: flex-start;
+      }
+
+      .grid-header .filter-chips {
+        margin-left: auto;
+        justify-content: flex-end;
+      }
+
+      .grid-header .filter-chips .filter-chip {
+        white-space: nowrap;
+      }
+
+      .filter-chip {
+        appearance: none;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.05);
+        color: rgba(241, 245, 242, 0.85);
+        border-radius: 10px;
+        padding: 0.38rem 0.85rem;
+        font-size: 0.9rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+      }
+
+      .filter-chip:hover {
+        transform: translateY(-1px);
+        border-color: rgba(255, 255, 255, 0.16);
+      }
+
+      .filter-chip.active {
+        background: rgba(var(--accent-rgb), 0.14);
+        border-color: rgba(var(--accent-rgb), 0.28);
+        color: var(--accent);
+        box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.12) inset;
+      }
+
+      @media (max-width: 768px) {
+        .grid-header.has-chips {
+          flex-direction: column;
+          align-items: stretch !important;
+        }
+
+        .grid-header.has-chips .header-left {
+          width: 100%;
+          justify-content: flex-start;
+          text-align: left;
+        }
+
+        .grid-header.has-chips .header-left > div {
+          width: 100%;
+          text-align: left;
+        }
+
+        .grid-header.has-chips .section-title-with-icon {
+          justify-content: flex-start;
+        }
+
+        .filter-chips {
+          gap: 8px;
+        }
+
+        .filter-chip {
+          border-radius: 9px;
+          padding: 0.22rem 0.52rem;
+          font-size: 0.72rem;
+        }
+
+        .header-left .filter-chips {
+          margin-top: 0.4rem;
+          width: 100%;
+        }
+
+        .grid-header .filter-chips {
+          margin-left: 0;
+          justify-content: flex-start;
+          margin-top: 0.4rem;
+        }
+
+        #trending-grid.trending-strip .trending-card,
+        #library-updates-grid.library-updates-strip .trending-card,
+        #history-row .history-card {
+          flex: 0 0 calc((100% - 1rem) / 2);
+          max-width: calc((100% - 1rem) / 2);
+        }
+      }
+
+      @media (min-width: 769px) {
+        #trending-filters {
+          margin-top: 0;
+        }
+      }
+
+      .series-card,
+      .trending-card,
+      .history-card {
+        content-visibility: auto;
+        contain-intrinsic-size: 260px 360px;
+      }
+
+      #history-row .history-card,
+      #library-updates-grid .trending-card,
+      #trending-grid .trending-card {
+        contain-intrinsic-size: 180px 340px;
+      }
+
+      .skeleton-card {
+        pointer-events: none;
+        user-select: none;
+        opacity: 0.95;
+      }
+
+      .skeleton-cover {
+        position: relative;
+        border-radius: 18px;
+        overflow: hidden;
+        aspect-ratio: 3 / 4.1;
+        background: rgba(255, 255, 255, 0.06);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+      }
+
+      .skeleton-lines {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-top: 10px;
+      }
+
+      .skeleton-line {
+        height: 10px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .skeleton-line.short {
+        width: 70%;
+      }
+
+      .skeleton-line.long {
+        width: 92%;
+      }
+
+      .skeleton-cover::before,
+      .skeleton-line::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          90deg,
+          rgba(255, 255, 255, 0) 0%,
+          rgba(255, 255, 255, 0.12) 50%,
+          rgba(255, 255, 255, 0) 100%
+        );
+        transform: translateX(-100%);
+        animation: shimmer 1.2s ease-in-out infinite;
+      }
+
+      @keyframes shimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+      }
+      .chip {
+        padding: 0.2rem 0.65rem;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+        color: #b5bae0;
+        font-size: 0.72rem;
+      }
+      .chip-muted {
+        background: rgba(149, 161, 187, 0.15);
+        color: #cdd5ec;
+      }
+      #trending-grid.trending-strip {
+        display: flex;
+        gap: 1rem;
+        overflow-x: auto;
+        padding-bottom: 0.2rem;
+        scrollbar-gutter: stable;
+      }
+
+      #trending-grid.trending-strip .skeleton-card {
+        flex: 0 0 160px;
+      }
+      #trending-grid.trending-strip::-webkit-scrollbar {
+        height: 6px;
+      }
+      #trending-grid.trending-strip::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 999px;
+      }
+      #trending-grid.trending-strip {
+        scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+        scrollbar-width: thin;
+      }
+      #library-updates-grid.library-updates-strip {
+        display: flex;
+        gap: 1rem;
+        overflow-x: auto;
+        padding-bottom: 0.2rem;
+        scrollbar-gutter: stable;
+      }
+
+      #library-updates-grid.library-updates-strip > .trending-card {
+        flex: 0 0 160px;
+        max-width: 160px;
+      }
+
+      @media (max-width: 768px) {
+        #library-updates-grid.library-updates-strip > .trending-card {
+          flex: 0 0 calc((100% - 1rem) / 2);
+          max-width: calc((100% - 1rem) / 2);
+        }
+      }
+      #library-updates-grid.library-updates-strip::-webkit-scrollbar {
+        height: 6px;
+      }
+      #library-updates-grid.library-updates-strip::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 999px;
+      }
+      #library-updates-grid.library-updates-strip::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 999px;
+      }
+      #library-updates-grid.library-updates-strip {
+        scrollbar-color: rgba(255, 255, 255, 0.2) rgba(255, 255, 255, 0.08);
+        scrollbar-width: thin;
+      }
+
+      .library-updates-filter {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: auto;
+        margin-top: 6px;
+      }
+
+      .library-updates-filter-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.04);
+        color: rgba(255, 255, 255, 0.88);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+      }
+
+      .library-updates-filter-btn:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 255, 255, 0.12);
+        transform: translateY(-1px);
+      }
+
+      .library-updates-filter-btn:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(120, 240, 154, 0.18);
+      }
+
+      .library-updates-filter-btn svg {
+        width: 16px;
+        height: 16px;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      [data-section="library-updates"] .section-title-with-icon span {
+        white-space: nowrap;
+      }
+
+      .library-updates-filter-menu {
+        position: absolute;
+        top: calc(100% + 10px);
+        right: 0;
+        width: 220px;
+        background: rgba(28, 28, 28, 0.97);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 14px;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.65);
+        backdrop-filter: blur(12px);
+        padding: 10px;
+        display: none;
+        z-index: 40;
+      }
+
+      .library-updates-filter-menu.open {
+        display: block;
+      }
+
+      .library-updates-filter-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 9px 10px;
+        border-radius: 12px;
+        cursor: pointer;
+        user-select: none;
+        transition: background 0.16s ease;
+      }
+
+      .library-updates-filter-item:hover {
+        background: rgba(255, 255, 255, 0.06);
+      }
+
+      .library-updates-filter-label {
+        color: rgba(255, 255, 255, 0.9);
+        font-weight: 700;
+        font-size: 0.95rem;
+      }
+
+      .library-updates-filter-check {
+        width: 22px;
+        height: 22px;
+        border-radius: 7px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        background: rgba(255, 255, 255, 0.04);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+      }
+
+      .library-updates-filter-check svg {
+        width: 14px;
+        height: 14px;
+        stroke: rgba(6, 0, 0, 0);
+        fill: none;
+        stroke-width: 3;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .library-updates-filter-item[aria-checked="true"] .library-updates-filter-check {
+        border-color: rgba(255, 255, 255, 0.22);
+        background: rgba(255, 255, 255, 0.12);
+      }
+
+      .library-updates-filter-item[aria-checked="true"] .library-updates-filter-check svg {
+        stroke: var(--accent);
+      }
+
+      @media (max-width: 768px) {
+        .library-updates-filter-menu {
+          width: 200px;
+          max-width: calc(100vw - 24px);
+          right: 0;
+          left: auto;
+          padding: 8px;
+        }
+        .library-updates-filter-item {
+          padding: 8px 9px;
+        }
+        .library-updates-filter-label {
+          font-size: 0.92rem;
+        }
+      }
+      .trending-card {
+        flex: 0 0 160px;
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+        text-decoration: none;
+        color: inherit;
+      }
+      .trending-card:hover .trending-cover::after {
+        opacity: 0.85;
+      }
+      .trending-cover {
+        position: relative;
+        border-radius: 18px;
+        overflow: hidden;
+        aspect-ratio: 3 / 4.1;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        background: rgba(255, 255, 255, 0.02);
+      }
+      .trending-cover img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .trending-cover::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(180deg, rgba(0, 0, 0, 0) 40%, rgba(5, 7, 6, 0.7));
+        transition: opacity 0.2s ease;
+        opacity: 0.6;
+      }
+      .latest-card .trending-cover::after {
+        opacity: 0.8;
+      }
+      .trending-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.1rem;
+      }
+      .trending-info strong {
+        font-size: 0.86rem;
+        line-height: 1.25;
+      }
+      .latest-info {
+        gap: 0.2rem;
+      }
+      .latest-meta-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.35rem;
+      }
+      .latest-title {
+        margin-top: 0.05rem;
+      }
+      .latest-time {
+        font-size: 0.76rem;
+        color: var(--accent);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        font-weight: 800;
+      }
+      .latest-chapter-pill {
+        position: absolute;
+        right: 8px;
+        bottom: 8px;
+        padding: 0.25rem 0.65rem;
+        border-radius: 999px;
+        background: rgba(4, 9, 6, 0.9);
+        color: var(--accent);
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7);
+      }
+      .trending-chapter {
+        font-size: 0.76rem;
+        color: var(--accent);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        text-shadow: 0 0 8px rgba(var(--accent-rgb), 0.6);
+        font-weight: 800;
+      }
+      .trending-reads {
+        font-size: 0.75rem;
+        color: var(--muted);
+      }
+      .trending-arrow {
+        border: none;
+        width: 38px;
+        height: 38px;
+        border-radius: 999px;
+        display: grid;
+        place-items: center;
+        font-size: 1.2rem;
+        color: var(--accent);
+        background: rgba(11, 15, 20, 0.72);
+        border: 1px solid rgba(var(--accent-rgb), 0.18);
+        cursor: pointer;
+        transition: background 0.2s ease, transform 0.2s ease;
+      }
+      .trending-arrow:hover {
+        background: rgba(var(--accent-rgb), 0.18);
+        transform: translateY(-1px);
+      }
+      .trending-carousel {
+        position: relative;
+      }
+      .trending-arrow-floating {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 2;
+        background: rgba(0, 0, 0, 0.55);
+        backdrop-filter: blur(6px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+      }
+      .trending-arrow-floating.trending-left {
+        left: 8px;
+      }
+      .trending-arrow-floating.trending-right {
+        right: 8px;
+      }
+      @media (max-width: 700px) {
+        .trending-arrow-floating {
+          display: none;
+        }
+      }
+      .section-footer {
+        display: flex;
+        justify-content: center;
+        margin-top: 0.6rem;
+      }
+      .load-more-btn {
+        border: 1px solid rgba(var(--accent-rgb), 0.28);
+        border-radius: 14px;
+        padding: 0.6rem 1.15rem;
+        font-weight: 700;
+        font-size: 0.9rem;
+        background: rgba(var(--accent-rgb), 0.08);
+        color: var(--accent);
+        cursor: pointer;
+        transition: background 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
+      }
+      .load-more-btn:hover:enabled {
+        background: rgba(var(--accent-rgb), 0.14);
+        border-color: rgba(var(--accent-rgb), 0.36);
+      }
+      .load-more-btn:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+      .history-row {
+        display: flex;
+        gap: 1rem;
+        overflow-x: auto;
+        padding-bottom: 12px;
+        scroll-snap-type: x mandatory;
+        scroll-behavior: smooth;
+        scrollbar-gutter: stable;
+        overscroll-behavior-x: contain;
+      }
+      .history-row::-webkit-scrollbar {
+        height: 8px;
+      }
+      .history-row::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 999px;
+      }
+      .history-row::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 999px;
+      }
+      .history-row {
+        scrollbar-color: rgba(255, 255, 255, 0.2) rgba(255, 255, 255, 0.08);
+        scrollbar-width: thin;
+      }
+      .history-card {
+        flex: 0 0 160px;
+        display: flex;
+        flex-direction: column;
+        gap: 0.45rem;
+        text-decoration: none;
+        color: inherit;
+        scroll-snap-align: start;
+      }
+      .history-cover {
+        position: relative;
+        border-radius: 18px;
+        overflow: hidden;
+        aspect-ratio: 3 / 4.1;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .history-cover img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .history-cover::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(180deg, rgba(0, 0, 0, 0) 40%, rgba(5, 7, 6, 0.7));
+        transition: opacity 0.2s ease;
+        opacity: 0.6;
+        pointer-events: none;
+      }
+      .history-card:hover .history-cover::after {
+        opacity: 0.85;
+      }
+      .history-card-footer {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+        min-width: 0;
+      }
+      .history-meta-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        min-width: 0;
+      }
+      .history-meta-row .history-meta-chapter-left {
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+        color: var(--accent);
+        opacity: 0.95;
+        flex: 0 0 auto;
+        white-space: nowrap;
+      }
+      .history-title {
+        font-size: 0.95rem;
+        font-weight: 600;
+        line-height: 1.3;
+        min-width: 0;
+        overflow: hidden;
+        display: -webkit-box;
+        line-clamp: 2;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+      }
+      .history-meta {
+        flex: 0 0 auto;
+        text-align: right;
+        font-size: 0.78rem;
+        color: var(--muted);
+        line-height: 1.25;
+        padding-top: 2px;
+        white-space: nowrap;
+      }
+      .history-meta .history-meta-chapter {
+        color: #cfe7dc;
+        font-weight: 700;
+      }
+      .history-meta .history-meta-date {
+        opacity: 0.85;
+      }
+      .history-delete-btn {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        width: 32px;
+        height: 32px;
+        border-radius: 999px;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.8);
+        color: #f1f5f2;
+        cursor: pointer;
+        padding: 0;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.55);
+      }
+      .history-delete-btn svg {
+        width: 16px;
+        height: 16px;
+      }
+      .history-control {
+        border: none;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.08);
+        color: #f1f5f2;
+        cursor: pointer;
+      }
+      .history-controls-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        margin-top: 0.75rem;
+      }
+      .history-arrow-group {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+      .loading-state {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 3rem 1rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.75rem;
+        color: var(--muted);
+      }
+      .loading-spinner {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        border: 3px solid rgba(var(--accent-rgb), 0.25);
+        border-top-color: var(--accent);
+        animation: spin 0.9s linear infinite;
+      }
+
+      @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+
+      .hero-section {
+        position: relative;
+        border-radius: 0;
+        overflow: visible;
+        box-shadow: none;
+        height: clamp(380px, 52vh, 560px);
+        width: 100vw;
+        max-width: 100vw;
+        margin-left: calc(50% - 50vw);
+        margin-right: calc(50% - 50vw);
+        background: #111;
+      }
+
+      .hero-section::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: radial-gradient(
+          circle at 50% 40%,
+          rgba(0, 0, 0, 0) 0%,
+          rgba(17, 17, 17, 0.22) 55%,
+          rgba(17, 17, 17, 0.52) 100%
+        );
+        z-index: 1;
+        mix-blend-mode: normal;
+      }
+
+      .hero-skeleton {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1.6rem;
+        z-index: 2;
+      }
+
+      .hero-skeleton-stage {
+        position: relative;
+        height: 100%;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.45rem;
+        padding: 1.25rem 0;
+      }
+
+      .hero-skeleton-card {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        width: clamp(170px, 22vw, 280px);
+        height: auto;
+        aspect-ratio: 3 / 4.2;
+        border-radius: 18px;
+        overflow: hidden;
+        background: rgba(0,0,0,0.25);
+        box-shadow:
+          0 30px 80px rgba(0, 0, 0, 0.72),
+          0 0 0 1px rgba(255, 255, 255, 0.08);
+        transform-origin: center;
+      }
+
+      .hero-skeleton-card .skeleton-cover {
+        position: absolute;
+        inset: 0;
+        border-radius: 0;
+      }
+
+      .hero-skeleton-card .hero-card-content {
+        position: relative;
+        z-index: 1;
+        padding: 1rem 1rem 1.05rem;
+      }
+
+      .hero-skeleton-card .skeleton-lines {
+        margin-top: 0;
+      }
+
+      .hero-skeleton-card .skeleton-line {
+        height: 12px;
+      }
+
+      .hero-skeleton-card .skeleton-line.title {
+        height: 16px;
+        width: 72%;
+      }
+
+      .hero-skeleton-card.hero-main {
+        width: clamp(165px, 20vw, 255px);
+        aspect-ratio: 3 / 4.2;
+        transform: none;
+        z-index: 3;
+      }
+
+      .hero-skeleton-card.hero-peek {
+        width: clamp(135px, 15vw, 185px);
+        aspect-ratio: 3 / 4.6;
+        opacity: 0.7;
+        filter: saturate(0.8) brightness(0.86);
+        transform: scale(0.9);
+        z-index: 1;
+      }
+
+      .hero-skeleton-card.hero-far {
+        width: clamp(135px, 15vw, 185px);
+        aspect-ratio: 3 / 4.6;
+        opacity: 0.7;
+        filter: saturate(0.8) brightness(0.86);
+        transform: scale(0.9);
+        z-index: 0;
+      }
+
+      .hero-slide {
+        display: none;
+        position: absolute;
+        inset: 0;
+        padding: 1.6rem;
+        z-index: 2;
+        align-items: center;
+        text-decoration: none;
+        color: inherit;
+        isolation: isolate;
+      }
+
+      .hero-slide::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image: var(--bg-image);
+        background-size: cover;
+        background-position: center;
+        filter: blur(42px) brightness(0.85) saturate(0.8);
+        opacity: 0.35;
+        mix-blend-mode: normal;
+        transform: scale(1.1);
+        z-index: 0;
+      }
+
+      .hero-slide::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: none;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        z-index: 1;
+      }
+
+      .hero-slide.active {
+        display: block;
+      }
+
+      .hero-cover,
+      .hero-info {
+        position: relative;
+        z-index: 2;
+      }
+
+      .hero-stage {
+        position: relative;
+        z-index: 2;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.45rem;
+        padding: 1.25rem 0;
+      }
+
+      .hero-card {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        width: clamp(170px, 22vw, 280px);
+        height: auto;
+        aspect-ratio: 3 / 4.2;
+        border-radius: 18px;
+        overflow: hidden;
+        text-decoration: none;
+        color: inherit;
+        background: rgba(0,0,0,0.25);
+        box-shadow:
+          0 30px 80px rgba(0, 0, 0, 0.72),
+          0 0 0 1px rgba(255, 255, 255, 0.08);
+        transform-origin: center;
+        transition: transform 0.25s ease, filter 0.25s ease, opacity 0.25s ease;
+      }
+
+      .hero-card.hero-main {
+        width: clamp(165px, 20vw, 255px);
+        height: auto;
+        aspect-ratio: 3 / 4.2;
+        transform: none;
+        z-index: 3;
+      }
+
+      .hero-card.hero-peek {
+        width: clamp(135px, 15vw, 185px);
+        height: auto;
+        aspect-ratio: 3 / 4.6;
+        opacity: 0.7;
+        filter: saturate(0.8) brightness(0.86);
+        transform: scale(0.9);
+        z-index: 1;
+      }
+
+      .hero-card.hero-far {
+        width: clamp(135px, 15vw, 185px);
+        height: auto;
+        aspect-ratio: 3 / 4.6;
+        opacity: 0.7;
+        filter: saturate(0.8) brightness(0.86);
+        transform: scale(0.9);
+        z-index: 0;
+      }
+
+      @media (max-width: 1024px) {
+        .hero-stage {
+          gap: 0;
+        }
+
+        .hero-card.hero-peek {
+          display: none;
+        }
+
+        .hero-card.hero-far {
+          display: none;
+        }
+
+        .hero-skeleton-card.hero-peek,
+        .hero-skeleton-card.hero-far {
+          display: none;
+        }
+      }
+
+      .hero-card::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image: var(--hero-cover);
+        background-size: cover;
+        background-position: center;
+        filter: none;
+        transform: scale(1.02);
+      }
+
+      .hero-card::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          180deg,
+          rgba(0,0,0,0.10) 0%,
+          rgba(0,0,0,0.18) 35%,
+          rgba(0,0,0,0.78) 100%
+        );
+      }
+
+      .hero-rating-badge {
+        position: absolute;
+        top: 14px;
+        left: 14px;
+        z-index: 4;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.35rem 0.55rem;
+        border-radius: 999px;
+        background: rgba(0, 0, 0, 0.70);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        color: #fef3c7;
+        font-weight: 700;
+        font-size: 0.82rem;
+        letter-spacing: 0.01em;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        box-shadow: 0 12px 34px rgba(0, 0, 0, 0.45);
+      }
+
+      .hero-rating-badge svg {
+        width: 14px;
+        height: 14px;
+        color: #fbbf24;
+        flex: 0 0 auto;
+      }
+
+      .hero-card-content {
+        position: relative;
+        z-index: 4;
+        padding: 1rem 1rem 1.05rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+      }
+
+      .hero-card-title {
+        font-size: 1.05rem;
+        font-weight: 800;
+        margin: 0;
+        line-height: 1.2;
+        text-shadow: 0 14px 32px rgba(0, 0, 0, 0.65);
+      }
+
+      .hero-card-sub {
+        margin: 0;
+        color: rgba(255, 255, 255, 0.78);
+        font-size: 0.85rem;
+        line-height: 1.5;
+        text-shadow: 0 14px 32px rgba(0, 0, 0, 0.75);
+      }
+
+      .hero-cover img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center 20%;
+        border-radius: 16px;
+        box-shadow: 0 18px 42px rgba(0, 0, 0, 0.6);
+        filter: none;
+      }
+
+      .hero-info .btn.primary {
+        box-shadow: none;
+        filter: none;
+        text-shadow: none;
+      }
+
+      @media (min-width: 769px) {
+        .hero-slide {
+          padding-left: 3.8rem;
+        }
+      }
+
+      .hero-info h2 {
+        font-size: 1.8rem;
+        margin: 0 0 0.5rem;
+      }
+
+      .hero-info p {
+        color: var(--muted);
+        margin: 0 0 1rem;
+        line-height: 1.6;
+      }
+
+      .hero-dots {
+        position: absolute;
+        bottom: 1rem;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .hero-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        cursor: pointer;
+        transition: background 0.3s ease;
+      }
+
+      .hero-dot.active {
+        background: var(--accent);
+      }
+
+      .btn.primary {
+        background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+        color: #0f1512;
+        box-shadow: 0 12px 24px rgba(126, 241, 159, 0.25);
+        text-decoration: none;
+        padding: 0.5rem 1.2rem;
+        border-radius: 999px;
+        font-weight: 600;
+        display: inline-block;
+      }
+
+      /* Mobile Styles */
+      @media (max-width: 768px) {
+        .hero-section {
+          height: auto; /* Allow container to size to content */
+          min-height: 0;
+          border-radius: 0;
+          background: transparent;
+          border: none;
+          box-shadow: none;
+          overflow: visible;
+          margin-top: -0.5rem;
+          margin-bottom: 1.35rem;
+          padding-bottom: 1rem;
+        }
+
+        .hero-stage {
+          position: relative;
+          justify-content: center;
+          overflow: visible;
+          padding: 1rem 0;
+          gap: 0;
+          height: clamp(235px, 74vw, 370px);
+        }
+
+        .hero-card.hero-peek {
+          display: block;
+        }
+
+        .hero-card.hero-main {
+          position: absolute;
+          left: 50%;
+          top: 0;
+          width: min(56vw, 230px);
+          height: auto;
+          aspect-ratio: 3 / 4.15;
+          transform: translateX(-50%) scale(0.88);
+          z-index: 3;
+        }
+
+        .hero-stage .hero-card.hero-peek {
+          position: absolute;
+          top: 0.4rem;
+          width: min(46vw, 210px);
+          aspect-ratio: 3 / 4.35;
+          opacity: 0.55;
+          filter: saturate(0.7) brightness(0.82);
+          z-index: 1;
+        }
+
+        .hero-stage .hero-card.hero-peek:first-child {
+          left: 50%;
+          transform: translateX(-135%) scale(0.74);
+        }
+
+        .hero-stage .hero-card.hero-peek:last-child {
+          left: 50%;
+          transform: translateX(35%) scale(0.74);
+        }
+
+        .hero-stage .hero-card.hero-peek .hero-card-content {
+          display: none;
+        }
+
+        .hero-skeleton {
+          position: relative;
+          padding: 1rem;
+        }
+
+        .hero-skeleton-stage {
+          padding: 1rem 0;
+          gap: 0;
+          height: clamp(235px, 74vw, 370px);
+        }
+
+        .hero-skeleton-card.hero-main {
+          position: absolute;
+          left: 50%;
+          top: 0;
+          width: min(56vw, 230px);
+          aspect-ratio: 3 / 4.15;
+          transform: translateX(-50%) scale(0.88);
+        }
+
+        .hero-skeleton-card.hero-peek {
+          display: block;
+          position: absolute;
+          top: 0.4rem;
+          width: min(46vw, 210px);
+          aspect-ratio: 3 / 4.35;
+          opacity: 0.55;
+          filter: saturate(0.7) brightness(0.82);
+          z-index: 1;
+        }
+
+        .hero-skeleton-card.hero-peek.left {
+          left: 50%;
+          transform: translateX(-135%) scale(0.74);
+        }
+
+        .hero-skeleton-card.hero-peek.right {
+          left: 50%;
+          transform: translateX(35%) scale(0.74);
+        }
+
+        .hero-skeleton-card.hero-far {
+          display: none;
+        }
+
+        .hero-skeleton-card.hero-peek .hero-card-content {
+          display: none;
+        }
+
+        .hero-slide {
+          position: relative; /* Remove absolute positioning */
+          display: none; /* Hide non-active slides */
+          padding: 1rem;
+          border-radius: 0;
+          overflow: hidden;
+        }
+
+        .hero-slide.active {
+          display: block;
+        }
+
+        .hero-slide::before {
+          filter: blur(14px) brightness(0.45);
+          opacity: 0.75;
+        }
+
+        .hero-slide::after {
+          background: none;
+          backdrop-filter: none;
+          -webkit-backdrop-filter: none;
+        }
+
+        .hero-info h2 {
+          font-size: 1.1rem;
+          text-align: left;
+        }
+
+        .hero-info p {
+          font-size: 0.8rem;
+          text-align: left;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+
+        .hero-info .btn.primary {
+          display: none;
+        }
+
+        .chip-row {
+          display: flex;
+          justify-content: flex-start;
+          margin-bottom: 0.5rem !important; /* Override inline style */
+        }
+
+        .chip-row .chip {
+          font-size: 0.65rem; /* Smaller font for mobile */
+          padding: 0.15rem 0.5rem;
+        }
+
+        .hero-dots {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div id="navbar-mount"></div>
+    </header>
+
+    <main>
+      <section id="hero-section" class="hero-section" aria-roledescription="carousel" aria-label="Top Rated Comics"></section>
+      <p id="search-note" style="color:#8f94c7; margin:1rem 0 0;" hidden></p>
+
+      <section data-section="library-updates" hidden>
+        <div class="grid-header" style="align-items:center;">
+          <div class="header-left">
+            <div>
+              <h3 class="section-title-with-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                </svg>
+                <span>New chapters from library</span>
+              </h3>
+              <small>Latest updates from series you've bookmarked</small>
+            </div>
+          </div>
+          <div class="library-updates-filter" id="library-updates-filter" aria-label="Filter library updates">
+            <button type="button" class="library-updates-filter-btn" id="library-updates-filter-btn" aria-haspopup="menu" aria-expanded="false" aria-label="Filter">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="5" r="1.6" />
+                <circle cx="12" cy="12" r="1.6" />
+                <circle cx="12" cy="19" r="1.6" />
+              </svg>
+            </button>
+            <div class="library-updates-filter-menu" id="library-updates-filter-menu" role="menu" aria-label="Library updates filter"></div>
+          </div>
+        </div>
+        <div class="trending-carousel">
+          <button type="button" class="trending-arrow trending-arrow-floating trending-left" data-library-updates-arrows data-dir="prev">‹</button>
+          <div id="library-updates-grid" class="card-grid library-updates-strip" aria-live="polite"></div>
+          <button type="button" class="trending-arrow trending-arrow-floating trending-right" data-library-updates-arrows data-dir="next">›</button>
+        </div>
+      </section>
+
+      <section data-section="history" hidden>
+        <div class="grid-header" style="align-items:center;">
+          <div class="header-left">
+            <div>
+              <h3 class="section-title-with-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+                  <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+                </svg>
+                <span>Reading history</span>
+              </h3>
+              <small>Your latest reading chapters</small>
+            </div>
+          </div>
+          <div>
+            <button type="button" id="history-clear" class="library-updates-filter-btn" aria-label="Clear reading history">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <polyline points="3 6 5 6 21 6" />
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                <path d="M10 11v6" />
+                <path d="M14 11v6" />
+                <path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="trending-carousel">
+          <button type="button" class="trending-arrow trending-arrow-floating trending-left" data-history-arrows data-dir="prev">‹</button>
+          <div id="history-row" class="history-row" aria-live="polite"></div>
+          <button type="button" class="trending-arrow trending-arrow-floating trending-right" data-history-arrows data-dir="next">›</button>
+        </div>
+      </section>
+
+      <section data-feed-section="chapters">
+        <div class="grid-header has-chips">
+          <div class="header-left">
+            <div>
+              <h3 class="section-title-with-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+                  <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+                </svg>
+                <span>Latest chapter drops</span>
+              </h3>
+              <small>Fresh updates straight from Comick</small>
+            </div>
+          </div>
+          <div class="filter-chips" id="latest-filters" aria-label="Latest filters">
+            <button type="button" class="filter-chip active" data-latest-filter="hot">Hot</button>
+            <button type="button" class="filter-chip" data-latest-filter="new">New</button>
+          </div>
+        </div>
+        <div id="chapters-grid" class="card-grid" aria-live="polite"></div>
+        <div class="section-footer">
+          <button type="button" id="chapters-load-more" class="load-more-btn">Load more...</button>
+        </div>
+      </section>
+
+      <section data-feed-section="trending">
+        <div class="grid-header has-chips" style="align-items:center;">
+          <div class="header-left">
+            <div>
+              <h3 class="section-title-with-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+                <span>Rating</span>
+              </h3>
+              <small>Highest rated titles on Comick</small>
+            </div>
+          </div>
+          <div class="filter-chips" id="trending-filters" aria-label="Rating filters">
+            <button type="button" class="filter-chip active" data-rating-filter="all">All</button>
+            <button type="button" class="filter-chip" data-rating-filter="manhwa">manhwa</button>
+            <button type="button" class="filter-chip" data-rating-filter="manga">manga</button>
+            <button type="button" class="filter-chip" data-rating-filter="manhua">manhua</button>
+          </div>
+        </div>
+        <div class="trending-carousel">
+          <button type="button" class="trending-arrow trending-arrow-floating trending-left" data-trending-arrows data-dir="prev">‹</button>
+          <div id="trending-grid" class="card-grid" aria-live="polite"></div>
+          <button type="button" class="trending-arrow trending-arrow-floating trending-right" data-trending-arrows data-dir="next">›</button>
+        </div>
+      </section>
+
+      <section data-section="comics" hidden>
+        <div class="grid-header">
+          <div class="header-left">
+            <div>
+              <h3>Comics catalog</h3>
+              <small>Advance search</small>
+            </div>
+          </div>
+        </div>
+        <div id="comics-grid" class="card-grid" aria-live="polite"></div>
+      </section>
+
+    </main>
+
+    <script>
+      const trendingGrid = document.getElementById("trending-grid");
+      const chaptersGrid = document.getElementById("chapters-grid");
+      const historyRow = document.getElementById("history-row");
+      const historySection = document.querySelector('[data-section="history"]');
+      const searchNote = document.getElementById("search-note");
+      const navMount = document.getElementById("navbar-mount");
+      const historyArrows = document.querySelectorAll('[data-history-arrows]');
+      const historyClear = document.getElementById("history-clear");
+      const chaptersLoadMoreBtn = document.getElementById("chapters-load-more");
+      const trendingArrows = document.querySelectorAll('[data-trending-arrows]');
+      const heroSection = document.getElementById('hero-section');
+      const libraryUpdatesSection = document.querySelector('[data-section="library-updates"]');
+      const libraryUpdatesGrid = document.getElementById("library-updates-grid");
+      const libraryUpdatesArrows = document.querySelectorAll('[data-library-updates-arrows]');
+      const latestFilterRow = document.getElementById("latest-filters");
+      const trendingFilterRow = document.getElementById("trending-filters");
+
+      let libraryUpdatesFilterBound = false;
+
+      const LIBRARY_UPDATES_FILTER_KEY = 'aryLibraryUpdatesFilterV1';
+
+      const LIBRARY_UPDATES_FILTERS = [
+        { key: 'all', label: 'All' },
+        { key: 'reading', label: 'Reading', status: 'reading' },
+        { key: 'plan_to_read', label: 'Plan to Read', status: 'plan to read' },
+        { key: 'completed', label: 'Completed', status: 'completed' },
+        { key: 'on_hold', label: 'On Hold', status: 'on hold' },
+        { key: 'dropped', label: 'Dropped', status: 'dropped' },
+      ];
+
+      function readLibraryUpdatesFilter() {
+        try {
+          const raw = localStorage.getItem(LIBRARY_UPDATES_FILTER_KEY);
+          const parsed = JSON.parse(raw || 'null');
+          if (Array.isArray(parsed) && parsed.length) {
+            return parsed.map((v) => String(v || '').trim().toLowerCase()).filter(Boolean);
+          }
+        } catch (_) {}
+        return ['all'];
+      }
+
+      function writeLibraryUpdatesFilter(selected) {
+        try {
+          localStorage.setItem(LIBRARY_UPDATES_FILTER_KEY, JSON.stringify(selected));
+        } catch (_) {}
+      }
+
+      function normalizeLibraryStatus(value) {
+        return String(value || '').trim().toLowerCase();
+      }
+
+      function getLibraryUpdatesAllowedStatuses(selectedKeys) {
+        const keys = Array.isArray(selectedKeys) ? selectedKeys : ['all'];
+        if (keys.includes('all') || !keys.length) return null;
+        const allowed = new Set();
+        for (const key of keys) {
+          const def = LIBRARY_UPDATES_FILTERS.find((d) => d.key === key);
+          if (def?.status) allowed.add(def.status);
+        }
+        return allowed.size ? allowed : null;
+      }
+
+      function setLibraryUpdatesFilterMenuOpen(open) {
+        const libraryUpdatesFilterBtn = document.getElementById('library-updates-filter-btn');
+        const libraryUpdatesFilterMenu = document.getElementById('library-updates-filter-menu');
+        if (!libraryUpdatesFilterBtn || !libraryUpdatesFilterMenu) return;
+        libraryUpdatesFilterMenu.classList.toggle('open', !!open);
+        libraryUpdatesFilterBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      }
+
+      function renderLibraryUpdatesFilterMenu(selectedKeys) {
+        const libraryUpdatesFilterMenu = document.getElementById('library-updates-filter-menu');
+        if (!libraryUpdatesFilterMenu) return;
+        const selected = new Set((selectedKeys || []).map((k) => String(k || '').toLowerCase()));
+        if (!selected.size) selected.add('all');
+
+        libraryUpdatesFilterMenu.innerHTML = LIBRARY_UPDATES_FILTERS.map((item) => {
+          const checked = selected.has(item.key);
+          return `
+            <div class="library-updates-filter-item" role="menuitemcheckbox" tabindex="0" data-filter-key="${item.key}" aria-checked="${checked ? 'true' : 'false'}">
+              <span class="library-updates-filter-label">${item.label}</span>
+              <span class="library-updates-filter-check" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+              </span>
+            </div>
+          `;
+        }).join('');
+      }
+
+      function setupLibraryUpdatesFilterMenu() {
+        const libraryUpdatesFilterBtn = document.getElementById('library-updates-filter-btn');
+        const libraryUpdatesFilterMenu = document.getElementById('library-updates-filter-menu');
+        if (!libraryUpdatesFilterBtn || !libraryUpdatesFilterMenu) return;
+
+        let selected = readLibraryUpdatesFilter();
+        if (!selected.length) selected = ['all'];
+
+        renderLibraryUpdatesFilterMenu(selected);
+
+        if (libraryUpdatesFilterBound) {
+          return;
+        }
+        libraryUpdatesFilterBound = true;
+
+        const ensureRules = (keys) => {
+          const set = new Set((keys || []).map((k) => String(k || '').toLowerCase()).filter(Boolean));
+          if (!set.size) set.add('all');
+          if (set.has('all')) {
+            return ['all'];
+          }
+          return Array.from(set);
+        };
+
+        const updateSelected = (next) => {
+          selected = ensureRules(next);
+          writeLibraryUpdatesFilter(selected);
+          renderLibraryUpdatesFilterMenu(selected);
+          loadLibraryUpdates().catch(() => {});
+        };
+
+        libraryUpdatesFilterBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const isOpen = libraryUpdatesFilterMenu.classList.contains('open');
+          setLibraryUpdatesFilterMenuOpen(!isOpen);
+        });
+
+        libraryUpdatesFilterMenu.addEventListener('click', (e) => {
+          const item = e.target.closest('.library-updates-filter-item');
+          if (!item) return;
+          e.preventDefault();
+          e.stopPropagation();
+
+          const key = String(item.getAttribute('data-filter-key') || '').toLowerCase();
+          if (!key) return;
+
+          const set = new Set(selected);
+          if (key === 'all') {
+            updateSelected(['all']);
+            return;
+          }
+
+          set.delete('all');
+          if (set.has(key)) set.delete(key);
+          else set.add(key);
+          updateSelected(Array.from(set));
+        });
+
+        libraryUpdatesFilterMenu.addEventListener('keydown', (e) => {
+          if (e.key !== 'Enter' && e.key !== ' ') return;
+          const item = e.target.closest('.library-updates-filter-item');
+          if (!item) return;
+          e.preventDefault();
+          item.click();
+        });
+
+        document.addEventListener('click', () => {
+          setLibraryUpdatesFilterMenuOpen(false);
+        });
+
+        window.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') setLibraryUpdatesFilterMenuOpen(false);
+        });
+      }
+
+      const CHAPTERS_PER_PAGE = 18;
+      const TRENDING_LIMIT = 12;
+      const LIBRARY_UPDATES_LIMIT = 18;
+      const MAX_LIBRARY_UPDATES_PAGES = 10;
+      let searchMode = false;
+      let currentSearchQuery = "";
+      let chaptersPage = 1;
+      let chaptersLoading = false;
+      let chaptersLastBatchCount = CHAPTERS_PER_PAGE;
+      let latestMode = "hot"; // hot | new
+      let ratingFilter = "all"; // all | manhwa | manga | manhua
+      let trendingLoading = false;
+      let pendingLatestMode = null;
+      let pendingRatingFilter = null;
+      let heroItems = [];
+      let currentHeroIndex = 0;
+      let heroInterval;
+      let remoteHistoryItems = null;
+      let remoteHistoryLoaded = false;
+      let homeRestoredFromCache = false;
+      let homeAuthListenerBound = false;
+      let libraryUpdatesLoading = false;
+
+      window.addEventListener("DOMContentLoaded", init);
+
+      async function init() {
+        const params = new URLSearchParams(window.location.search);
+        const query = params.get("q") || "";
+
+        homeRestoredFromCache = !query && restoreHomeFromCache(getHomeCacheKey());
+
+        await injectNavbar("home");
+
+        bindAuthRefreshHandlers();
+        if (typeof window.configureNavbarSearch === "function") {
+          window.configureNavbarSearch({
+            onSubmit: (query) => {
+              const destination = `/browse?title=${encodeURIComponent(query)}`;
+              if (window.location.pathname === "/browse" || window.location.pathname === "/browse.html") {
+                const titleInput = document.getElementById("filter-title");
+                if (titleInput) {
+                  titleInput.value = query;
+                }
+                return;
+              }
+              window.location.href = destination;
+            },
+          });
+        }
+        const navInput = document.getElementById("search-input");
+        if (query && navInput) navInput.value = query;
+        setupHistoryControls();
+        setupChapterControls();
+        setupTrendingArrows();
+        setupLibraryUpdatesArrows();
+        setupFilterChips();
+
+        await renderHistorySection();
+
+        if (query) {
+          runSearch(query, false);
+        } else {
+          chaptersPage = 1;
+          await Promise.allSettled([loadHeroSection(), loadChapters(), loadTrending()]);
+          loadLibraryUpdates().catch((err) => console.warn("loadLibraryUpdates init failed", err));
+          try { saveHomeToCache(getHomeCacheKey()); } catch (_) {}
+        }
+      }
+
+      function bindAuthRefreshHandlers() {
+        if (homeAuthListenerBound) return;
+        homeAuthListenerBound = true;
+
+        try {
+          const getClient = typeof getSupabaseClient === "function" ? getSupabaseClient : null;
+          const client = getClient ? getClient() : null;
+          if (client?.auth?.onAuthStateChange) {
+            client.auth.onAuthStateChange(() => {
+              remoteHistoryLoaded = false;
+              remoteHistoryItems = null;
+              renderHistorySection().catch(() => {});
+              loadLibraryUpdates().catch(() => {});
+              if (!searchMode) {
+                chaptersPage = 1;
+                loadChapters({ append: false });
+                loadTrending();
+              }
+            });
+          }
+        } catch (_) {}
+
+        // When navigating back to Home via browser back/forward cache, force a refresh.
+        window.addEventListener('pageshow', (e) => {
+          if (!e?.persisted) return;
+          remoteHistoryLoaded = false;
+          remoteHistoryItems = null;
+          renderHistorySection().catch(() => {});
+          loadLibraryUpdates().catch(() => {});
+          if (!searchMode) {
+            chaptersPage = 1;
+            loadChapters({ append: false });
+            loadTrending();
+          }
+        });
+
+        // If history is written in another tab/window (or restored after initial render), refresh.
+        window.addEventListener('storage', (e) => {
+          try {
+            if (!e) return;
+            if (e.key !== 'readerHistory') return;
+            remoteHistoryLoaded = false;
+            remoteHistoryItems = null;
+            renderHistorySection().catch(() => {});
+          } catch (_) {}
+        });
+
+        // When returning to the tab, refresh history (helps with mobile/PWA resume cases).
+        document.addEventListener('visibilitychange', () => {
+          try {
+            if (document.visibilityState !== 'visible') return;
+            remoteHistoryLoaded = false;
+            remoteHistoryItems = null;
+            renderHistorySection().catch(() => {});
+            if (!searchMode) {
+              chaptersPage = 1;
+              loadChapters({ append: false });
+              loadTrending();
+            }
+          } catch (_) {}
+        });
+      }
+
+      function getHomeCacheKey() {
+        return "home-cache:v1";
+      }
+
+      function restoreHomeFromCache(key) {
+        try {
+          const raw = sessionStorage.getItem(key);
+          if (!raw) return false;
+          const data = JSON.parse(raw);
+          if (!data) return false;
+
+          if (heroSection && data.heroHtml != null) heroSection.innerHTML = String(data.heroHtml);
+          if (chaptersGrid && data.chaptersHtml != null) chaptersGrid.innerHTML = String(data.chaptersHtml);
+          if (trendingGrid && data.trendingHtml != null) trendingGrid.innerHTML = String(data.trendingHtml);
+          if (libraryUpdatesGrid && data.libraryUpdatesHtml != null) libraryUpdatesGrid.innerHTML = String(data.libraryUpdatesHtml);
+          if (historyRow && data.historyHtml != null) historyRow.innerHTML = String(data.historyHtml);
+
+          if (historySection && typeof data.historyHidden === "boolean") historySection.hidden = data.historyHidden;
+          if (libraryUpdatesSection && typeof data.libraryUpdatesHidden === "boolean") libraryUpdatesSection.hidden = data.libraryUpdatesHidden;
+
+          if (typeof data.latestMode === "string") latestMode = data.latestMode;
+          if (typeof data.ratingFilter === "string") ratingFilter = data.ratingFilter;
+          if (typeof data.chaptersPage === "number") chaptersPage = data.chaptersPage;
+
+          try {
+            setupFilterChips();
+          } catch (_) {}
+
+          return true;
+        } catch (_) {
+          return false;
+        }
+      }
+
+      function saveHomeToCache(key) {
+        try {
+          const data = {
+            heroHtml: heroSection ? heroSection.innerHTML : "",
+            chaptersHtml: chaptersGrid ? chaptersGrid.innerHTML : "",
+            trendingHtml: trendingGrid ? trendingGrid.innerHTML : "",
+            libraryUpdatesHtml: libraryUpdatesGrid ? libraryUpdatesGrid.innerHTML : "",
+            historyHtml: historyRow ? historyRow.innerHTML : "",
+            historyHidden: historySection ? Boolean(historySection.hidden) : false,
+            libraryUpdatesHidden: libraryUpdatesSection ? Boolean(libraryUpdatesSection.hidden) : false,
+            latestMode,
+            ratingFilter,
+            chaptersPage,
+            updatedAt: Date.now(),
+          };
+          sessionStorage.setItem(key, JSON.stringify(data));
+        } catch (_) {}
+      }
+
+      function setupHistoryControls() {
+        historyArrows?.forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const direction = btn.dataset.dir === "next" ? 1 : -1;
+            const cardWidth = historyRow?.querySelector(".trending-card")?.offsetWidth || 180;
+            historyRow?.scrollBy({ left: direction * cardWidth * 2.5, behavior: "smooth" });
+          });
+        });
+        historyClear?.addEventListener("click", clearHistory);
+        historyRow?.addEventListener("click", handleHistoryRowClick);
+      }
+
+      function setupChapterControls() {
+        chaptersLoadMoreBtn?.addEventListener("click", () => {
+          if (searchMode || chaptersLoading) return;
+          chaptersPage += 1;
+          loadChapters({ append: true });
+        });
+        updateChapterControls();
+      }
+
+      function setupTrendingArrows() {
+        if (!trendingArrows?.length || !trendingGrid) return;
+        trendingArrows.forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const direction = btn.dataset.dir === "next" ? 1 : -1;
+            const cardWidth = trendingGrid.querySelector(".trending-card")?.offsetWidth || 180;
+            trendingGrid.scrollBy({ left: direction * cardWidth * 2.5, behavior: "smooth" });
+          });
+        });
+      }
+
+      function setupLibraryUpdatesArrows() {
+        if (!libraryUpdatesArrows?.length || !libraryUpdatesGrid) return;
+        libraryUpdatesArrows.forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const direction = btn.dataset.dir === "next" ? 1 : -1;
+            const cardWidth = libraryUpdatesGrid.querySelector(".trending-card")?.offsetWidth || 180;
+            libraryUpdatesGrid.scrollBy({ left: direction * cardWidth * 2.5, behavior: "smooth" });
+          });
+        });
+      }
+
+      async function loadChapters(options = {}) {
+        const { append = false } = options;
+        if (!chaptersGrid || chaptersLoading) return;
+        chaptersLoading = true;
+        if (!append) {
+          if (!homeRestoredFromCache) chaptersGrid.innerHTML = renderLatestSkeletonsHtml(12);
+          chaptersPage = Math.max(1, chaptersPage);
+        }
+        updateChapterControls();
+        try {
+          const orderParam = latestMode === 'new' ? 'new' : 'hot';
+          const chapterParams = {
+            page: chaptersPage,
+            lang: "en",
+            accept_erotic_content: "false",
+          };
+          if (orderParam) chapterParams.order = orderParam;
+          const data = await fetchComickJson("/chapter", {
+            ...chapterParams,
+          });
+          const rawList = Array.isArray(data) ? data : [];
+          const seenChapterKeys = new Set();
+          const list = [];
+
+          for (const entry of rawList) {
+            const normalized = normalizeChapterCard(entry);
+            if (!normalized) continue;
+            const baseKey = normalized.series_hid || normalized.slug || normalized.id;
+            const chapLabel = normalized.chapterLabel || "";
+            if (!baseKey) continue;
+            const key = `${String(baseKey)}|${chapLabel}`;
+            if (seenChapterKeys.has(key)) continue;
+            seenChapterKeys.add(key);
+            list.push(normalized);
+            if (list.length >= CHAPTERS_PER_PAGE) break;
+          }
+
+          const rawPageCount = Math.min(rawList.length, CHAPTERS_PER_PAGE);
+          chaptersLastBatchCount = rawPageCount;
+          if (!append && !list.length) {
+            chaptersGrid.innerHTML = `<div class="series-card" style="grid-column: 1 / -1; text-align:center; color:#9aa0c9;">No chapters right now.</div>`;
+          } else {
+            renderCards(chaptersGrid, list, { append });
+          }
+        } catch (err) {
+          if (append) {
+            chaptersPage = Math.max(1, chaptersPage - 1);
+          }
+          chaptersGrid.innerHTML = `<div class="series-card" style="grid-column: 1 / -1; color:#ef476f;">${err}</div>`;
+        }
+        chaptersLoading = false;
+        updateChapterControls();
+
+        try { saveHomeToCache(getHomeCacheKey()); } catch (_) {}
+
+        if (pendingLatestMode && pendingLatestMode !== latestMode) {
+          const next = pendingLatestMode;
+          pendingLatestMode = null;
+          setLatestMode(next);
+        } else {
+          pendingLatestMode = null;
+        }
+      }
+
+      async function loadTrending() {
+        if (trendingLoading) return;
+        trendingLoading = true;
+        if (!homeRestoredFromCache) trendingGrid.innerHTML = renderTrendingSkeletonsHtml(10);
+        trendingGrid.classList.add("trending-strip");
+        setTrendingArrowsVisibility(true);
+        try {
+          const countryMap = {
+            manga: "jp",
+            manhwa: "kr",
+            manhua: "cn",
+          };
+          const params = {
+            page: 1,
+            limit: TRENDING_LIMIT,
+            sort: "rating",
+          };
+          const countryCode = countryMap[ratingFilter];
+          if (countryCode) params.country = [countryCode];
+
+          const data = await fetchComickJson("/v1.0/search", params);
+          const rawList = Array.isArray(data) ? data : [];
+          const items = rawList
+            .map((entry) => normalizeComicCard(entry))
+            .filter(Boolean)
+            .slice(0, TRENDING_LIMIT);
+          renderTrending(items);
+        } catch (err) {
+          trendingGrid.innerHTML = `<div class="series-card" style="grid-column: 1 / -1; color:#ef476f;">${err}</div>`;
+        }
+
+        trendingLoading = false;
+
+        try { saveHomeToCache(getHomeCacheKey()); } catch (_) {}
+
+        if (pendingRatingFilter && pendingRatingFilter !== ratingFilter) {
+          const next = pendingRatingFilter;
+          pendingRatingFilter = null;
+          setRatingFilter(next);
+        } else {
+          pendingRatingFilter = null;
+        }
+      }
+
+      function setupFilterChips() {
+        setupLibraryUpdatesFilterMenu();
+        latestFilterRow?.querySelectorAll("[data-latest-filter]")?.forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const key = btn.getAttribute('data-latest-filter') || 'all';
+            setLatestMode(key);
+          });
+        });
+
+        trendingFilterRow?.querySelectorAll("[data-rating-filter]")?.forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const key = (btn.getAttribute("data-rating-filter") || "all").toLowerCase();
+            setRatingFilter(key);
+          });
+        });
+
+        setLatestMode(latestMode, { silent: true });
+        setRatingFilter(ratingFilter, { silent: true });
+      }
+
+      function setLatestMode(mode, { silent = false } = {}) {
+        latestMode = mode === 'new' ? 'new' : 'hot';
+        latestFilterRow?.querySelectorAll(".filter-chip")?.forEach((chip) => {
+          const key = chip.getAttribute("data-latest-filter");
+          chip.classList.toggle("active", key === latestMode);
+        });
+        if (!silent) {
+          if (chaptersLoading) {
+            pendingLatestMode = latestMode;
+            return;
+          }
+          chaptersPage = 1;
+          loadChapters({ append: false });
+        }
+      }
+
+      function setRatingFilter(key, { silent = false } = {}) {
+        const normalized = (key || "all").toLowerCase();
+        ratingFilter = normalized === "manhwa" ? "manhwa" : normalized === "manga" ? "manga" : normalized === "manhua" ? "manhua" : "all";
+        trendingFilterRow?.querySelectorAll(".filter-chip")?.forEach((chip) => {
+          const chipKey = (chip.getAttribute("data-rating-filter") || "all").toLowerCase();
+          chip.classList.toggle("active", chipKey === ratingFilter);
+        });
+        if (!silent) {
+          if (trendingLoading) {
+            pendingRatingFilter = ratingFilter;
+            return;
+          }
+          loadTrending();
+        }
+      }
+
+      function renderHistorySkeletonsHtml(count = 8) {
+        const n = Math.max(1, Math.min(14, Number(count) || 8));
+        return Array.from({ length: n })
+          .map(
+            () => `
+              <div class="trending-card latest-card history-card skeleton-card">
+                <div class="trending-cover history-cover skeleton-cover"></div>
+                <div class="skeleton-lines">
+                  <div class="skeleton-line short"></div>
+                  <div class="skeleton-line long"></div>
+                </div>
+              </div>
+            `
+          )
+          .join("");
+      }
+
+      function renderHeroSkeleton() {
+        if (!heroSection) return;
+        heroSection.innerHTML = `
+          <div class="hero-skeleton" aria-hidden="true">
+            <div class="hero-skeleton-stage">
+              <div class="hero-skeleton-card hero-far">
+                <div class="skeleton-cover"></div>
+              </div>
+              <div class="hero-skeleton-card hero-peek left">
+                <div class="skeleton-cover"></div>
+                <div class="hero-card-content">
+                  <div class="skeleton-lines">
+                    <div class="skeleton-line title"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="hero-skeleton-card hero-main">
+                <div class="skeleton-cover"></div>
+                <div class="hero-card-content">
+                  <div class="skeleton-lines">
+                    <div class="skeleton-line title"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="hero-skeleton-card hero-peek right">
+                <div class="skeleton-cover"></div>
+                <div class="hero-card-content">
+                  <div class="skeleton-lines">
+                    <div class="skeleton-line title"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="hero-skeleton-card hero-far">
+                <div class="skeleton-cover"></div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      function getTrendingPoolsForTimeframe(tf) {
+        if (tf === "week") return ["7", "recentRank", "rank"];
+        if (tf === "month") return ["30", "7", "recentRank", "rank"];
+        return ["recentRank", "rank", "7", "30"]; // today
+      }
+
+      function getTopPoolEntries(payload, poolKey) {
+        if (!payload || typeof payload !== "object") return null;
+        if (poolKey === "rank") return payload.rank;
+        if (poolKey === "recentRank") return payload.recentRank || payload.recent_rank;
+
+        // Comick /top?type=trending returns week/month pools under payload.trending["7"], payload.trending["30"].
+        const trendingObj = payload.trending;
+        if (trendingObj && typeof trendingObj === "object") {
+          const direct = trendingObj[poolKey];
+          if (Array.isArray(direct)) return direct;
+          const numeric = trendingObj[String(poolKey)];
+          if (Array.isArray(numeric)) return numeric;
+        }
+
+        // Backwards compatibility if Comick ever returns these at the top-level.
+        const topLevel = payload[poolKey];
+        if (Array.isArray(topLevel)) return topLevel;
+        return null;
+      }
+
+      function renderTrendingSkeletonsHtml(count = 10) {
+        const n = Math.max(1, Math.min(14, Number(count) || 10));
+        return Array.from({ length: n })
+          .map(
+            () => `
+              <div class="trending-card skeleton-card">
+                <div class="skeleton-cover"></div>
+                <div class="skeleton-lines">
+                  <div class="skeleton-line short"></div>
+                  <div class="skeleton-line long"></div>
+                </div>
+              </div>
+            `
+          )
+          .join("");
+      }
+
+      function renderLatestSkeletonsHtml(count = 12) {
+        const n = Math.max(1, Math.min(24, Number(count) || 12));
+        return Array.from({ length: n })
+          .map(
+            () => `
+              <div class="trending-card latest-card skeleton-card">
+                <div class="skeleton-cover"></div>
+                <div class="skeleton-lines">
+                  <div class="skeleton-line short"></div>
+                  <div class="skeleton-line long"></div>
+                </div>
+              </div>
+            `
+          )
+          .join("");
+      }
+
+      function setLibraryUpdatesArrowsVisibility(hidden) {
+        if (!libraryUpdatesArrows?.length) return;
+        libraryUpdatesArrows.forEach((btn) => {
+          btn.hidden = hidden;
+        });
+      }
+
+      async function loadLibraryUpdates() {
+        if (!libraryUpdatesGrid || !libraryUpdatesSection) return;
+        if (libraryUpdatesLoading) return;
+        libraryUpdatesLoading = true;
+        let hadCachedContent = false;
+        try {
+          // Default: show the section immediately, then refine state after we know login/library
+          libraryUpdatesSection.hidden = false;
+          libraryUpdatesGrid.classList.add("library-updates-strip");
+          if (!homeRestoredFromCache) libraryUpdatesGrid.innerHTML = renderLatestSkeletonsHtml(10);
+          setLibraryUpdatesArrowsVisibility(true);
+
+          hadCachedContent = Boolean(libraryUpdatesGrid.innerHTML && libraryUpdatesGrid.innerHTML.trim().length);
+
+          const getClient = typeof getSupabaseClient === "function" ? getSupabaseClient : null;
+          if (!getClient) {
+            return;
+          }
+          const client = getClient();
+          if (!client) {
+            return;
+          }
+
+          if (!homeRestoredFromCache) libraryUpdatesGrid.innerHTML = renderLatestSkeletonsHtml(10);
+
+          let user = null;
+          let seriesData = null;
+          let seriesError = null;
+
+          const attempts = 3;
+          for (let attempt = 0; attempt < attempts; attempt++) {
+            const auth = await client.auth.getUser();
+            user = auth?.data?.user || null;
+            const authError = auth?.error || null;
+
+            if (authError || !user) {
+              if (attempt < attempts - 1) {
+                await new Promise((r) => setTimeout(r, 650 * (attempt + 1)));
+                continue;
+              }
+              // Not signed in OR session not ready. If we *likely* have a session (recent user id),
+              // show a loading spinner instead of the signed-out empty state to avoid flicker.
+              let hasLikelySession = false;
+              try {
+                hasLikelySession = Boolean(localStorage.getItem("aryLastUserId"));
+              } catch (_) {
+                hasLikelySession = false;
+              }
+
+              libraryUpdatesSection.hidden = false;
+              libraryUpdatesGrid.classList.add("library-updates-strip");
+              libraryUpdatesGrid.innerHTML = hasLikelySession
+                ? `
+                  <div style="flex: 1; min-width: 220px; display: flex; align-items: center; justify-content: center; padding: 1.25rem 0;">
+                    <div class="loading-state" style="padding: 1.25rem 1rem;">
+                      <div class="loading-spinner" aria-hidden="true"></div>
+                      <div>Loading updates…</div>
+                    </div>
+                  </div>
+                `
+                : `
+                  <div style="flex: 1; min-width: 260px; display: flex; align-items: center; justify-content: center; padding: 1.25rem 0;">
+                    <div style="text-align: center; max-width: 520px; padding: 0.5rem 1rem;">
+                      <div style="color: #ffffff; font-weight: 800;">Sign in to see updates</div>
+                      <div style="color: rgba(255,255,255,0.65); font-size: 0.95rem; margin-top: 0.25rem;">Add bookmarks to your library and they will show up here.</div>
+                    </div>
+                  </div>
+                `;
+              setLibraryUpdatesArrowsVisibility(true);
+
+              if (hasLikelySession) {
+                setTimeout(() => {
+                  loadLibraryUpdates().catch(() => {});
+                }, 900);
+              }
+              return;
+            }
+
+            const res = await client
+              .from("library_entries")
+              .select("series_hid, status")
+              .eq("user_id", user.id);
+            seriesData = res?.data;
+            seriesError = res?.error;
+
+            if (seriesError) {
+              if (attempt < attempts - 1) {
+                await new Promise((r) => setTimeout(r, 650 * (attempt + 1)));
+                continue;
+              }
+              break;
+            }
+            break;
+          }
+
+          if (seriesError) {
+            console.warn("loadLibraryUpdates supabase error", seriesError.message || seriesError);
+            // If we already had cached content, keep it and avoid error flicker.
+            if (hadCachedContent) return;
+            libraryUpdatesSection.hidden = false;
+            libraryUpdatesGrid.classList.add("library-updates-strip");
+            libraryUpdatesGrid.innerHTML = `
+              <div class="trending-card latest-card" style="flex: 0 0 160px; max-width: 160px;">
+                <div class="trending-cover" style="background: rgba(255,255,255,0.04);"></div>
+                <div class="trending-info latest-info" style="padding-top: 0.35rem;">
+                  <div style="color: #e5e7eb; font-weight: 800;">Unable to load updates</div>
+                  <div style="color: #9aa0c9; font-size: 0.9rem; margin-top: 0.25rem;">Retrying…</div>
+                </div>
+              </div>
+            `;
+            setLibraryUpdatesArrowsVisibility(true);
+            // Best-effort delayed retry (avoid user needing to refresh).
+            setTimeout(() => {
+              loadLibraryUpdates().catch(() => {});
+            }, 1500);
+            return;
+          }
+
+          const data = seriesData;
+          const selectedKeys = readLibraryUpdatesFilter();
+          const allowedStatuses = getLibraryUpdatesAllowedStatuses(selectedKeys);
+          const filteredRows = (Array.isArray(data) ? data : []).filter((row) => {
+            const hid = row?.series_hid;
+            if (!hid) return false;
+            if (!allowedStatuses) return true;
+            const st = normalizeLibraryStatus(row?.status);
+            return allowedStatuses.has(st);
+          });
+          const seriesIds = Array.from(new Set(filteredRows.map((row) => row.series_hid).filter(Boolean)));
+          if (!seriesIds.length) {
+            // User signed in but no series in library: show centered message without card placeholder
+            libraryUpdatesSection.hidden = false;
+            libraryUpdatesGrid.classList.add("library-updates-strip");
+            libraryUpdatesGrid.innerHTML = `
+              <div style="flex: 1; min-width: 260px; display: flex; align-items: center; justify-content: center; padding: 1.25rem 0;">
+                <div style="text-align: center; max-width: 520px; padding: 0.5rem 1rem;">
+                  <div style="color: #ffffff; font-weight: 800;">No series matching your filter</div>
+                  <div style="color: rgba(255,255,255,0.65); font-size: 0.95rem; margin-top: 0.25rem;">Adjust the filter and try again.</div>
+                </div>
+              </div>
+            `;
+            setLibraryUpdatesArrowsVisibility(true);
+            return;
+          }
+
+          // For each library series, track the latest chapter (by numeric chapter + time)
+          const bestBySeries = new Map();
+
+          for (let page = 1; page <= MAX_LIBRARY_UPDATES_PAGES; page++) {
+            const chaptersPayload = await fetchComickJson("/chapter", {
+              page,
+              order: "new",
+              lang: "en",
+              accept_erotic_content: "false",
+            });
+            const rawList = Array.isArray(chaptersPayload) ? chaptersPayload : [];
+            if (!rawList.length) break;
+
+            const normalized = rawList
+              .map(normalizeChapterCard)
+              .filter((item) => item && item.series_hid && seriesIds.includes(item.series_hid));
+
+            for (const item of normalized) {
+              const key = String(item.series_hid);
+              if (!key) continue;
+              const prev = bestBySeries.get(key);
+              if (!prev) {
+                bestBySeries.set(key, item);
+                continue;
+              }
+
+              const prevChap = typeof prev.chapterNumber === "number" ? prev.chapterNumber : -Infinity;
+              const currChap = typeof item.chapterNumber === "number" ? item.chapterNumber : -Infinity;
+              if (currChap > prevChap) {
+                bestBySeries.set(key, item);
+              } else if (currChap === prevChap) {
+                const prevTime = Date.parse(prev.releasedAt || 0) || 0;
+                const currTime = Date.parse(item.releasedAt || 0) || 0;
+                if (currTime >= prevTime) {
+                  bestBySeries.set(key, item);
+                }
+              }
+            }
+          }
+
+          const allItems = Array.from(bestBySeries.values());
+          if (!allItems.length) {
+            // No matching chapters found: show section with "no new chapters" message
+            libraryUpdatesSection.hidden = false;
+            libraryUpdatesGrid.classList.add("library-updates-strip");
+            libraryUpdatesGrid.innerHTML = `
+              <div class="trending-card latest-card" style="flex: 0 0 160px; max-width: 160px;">
+                <div class="trending-cover" style="background: rgba(255,255,255,0.04);"></div>
+                <div class="trending-info latest-info" style="padding-top: 0.35rem;">
+                  <div style="color: #e5e7eb; font-weight: 800;">No new chapters yet</div>
+                  <div style="color: #9aa0c9; font-size: 0.9rem; margin-top: 0.25rem;">When your bookmarked series get new chapters, they will appear here.</div>
+                </div>
+              </div>
+            `;
+            setLibraryUpdatesArrowsVisibility(true);
+            return;
+          }
+
+          const sorted = allItems.sort(
+            (a, b) => (Date.parse(b.releasedAt || 0) || 0) - (Date.parse(a.releasedAt || 0) || 0)
+          );
+          const limited = sorted.slice(0, LIBRARY_UPDATES_LIMIT);
+
+          libraryUpdatesSection.hidden = false;
+          libraryUpdatesGrid.classList.add("library-updates-strip");
+          renderLatestCards(libraryUpdatesGrid, limited);
+          setLibraryUpdatesArrowsVisibility(false);
+        } catch (err) {
+          console.warn("loadLibraryUpdates failed", err);
+          libraryUpdatesSection.hidden = false;
+          libraryUpdatesGrid.classList.add("library-updates-strip");
+          // Keep strip layout to avoid vertical/big card reflow.
+          if (!hadCachedContent) {
+            libraryUpdatesGrid.innerHTML = `
+              <div class="trending-card latest-card" style="flex: 0 0 160px; max-width: 160px;">
+                <div class="trending-cover" style="background: rgba(255,255,255,0.04);"></div>
+                <div class="trending-info latest-info" style="padding-top: 0.35rem;">
+                  <div style="color: #e5e7eb; font-weight: 800;">Unable to load updates</div>
+                  <div style="color: #9aa0c9; font-size: 0.9rem; margin-top: 0.25rem;">Try again in a moment.</div>
+                </div>
+              </div>
+            `;
+          }
+          setLibraryUpdatesArrowsVisibility(true);
+        } finally {
+          try { saveHomeToCache(getHomeCacheKey()); } catch (_) {}
+          libraryUpdatesLoading = false;
+        }
+      }
+
+      function renderLatestCards(gridEl, items) {
+        if (!gridEl) return;
+        if (!items.length) {
+          gridEl.innerHTML = `<div class="series-card" style="grid-column: 1 / -1; text-align:center; color:#9aa0c9;">No recent chapters.</div>`;
+          return;
+        }
+        const cardsHtml = items
+          .map((item) => {
+            const safeTitle = truncateText(item.title || "Untitled", 60);
+            const slug = item.slug || item.id || "";
+            const cover = item.cover_url || "https://placehold.co/400x600?text=No+Cover";
+            const chapterLabel = item.chapterLabel ? truncateText(item.chapterLabel, 18) : "";
+            const quickReleaseLabel = formatCompactRelativeTime(item.releasedAt);
+            const latestChapterLabel = chapterLabel || "New";
+            return `
+              <a class="trending-card latest-card" href="/series?slug=${encodeURIComponent(slug)}">
+                <div class="trending-cover">
+                  <img src="${cover}" alt="${safeTitle}" loading="lazy" decoding="async" width="400" height="560" />
+                </div>
+                <div class="trending-info latest-info">
+                  <div class="latest-meta-row">
+                    <span class="trending-chapter">${truncateText(latestChapterLabel, 18)}</span>
+                    ${quickReleaseLabel ? `<span class="latest-time">${quickReleaseLabel}</span>` : ""}
+                  </div>
+                  <strong class="latest-title">${safeTitle}</strong>
+                </div>
+              </a>
+            `;
+          })
+          .join("");
+        gridEl.innerHTML = cardsHtml;
+      }
+
+      async function runSearch(query, updateUrl = true) {
+        if (!query) {
+          resetSearch();
+          return;
+        }
+        searchMode = true;
+        currentSearchQuery = query;
+        if (updateUrl) updateUrlParams({ q: query });
+        searchNote.hidden = false;
+        searchNote.textContent = `Showing search results for "${query}"`;
+        chaptersGrid.innerHTML = `<div class="series-card" style="grid-column: 1 / -1; text-align:center; color:#8f94c7;">Search results listed above.</div>`;
+        try {
+          const data = await fetchComickJson("/v1.0/search", { q: query, page: 1, limit: 18 });
+          const normalized = Array.isArray(data) ? data.map(normalizeComicCard).filter(Boolean) : [];
+          renderTrending(normalized, { asSearch: true });
+        } catch (err) {
+          trendingGrid.innerHTML = `<div class="series-card" style="grid-column: 1 / -1; color:#ef476f;">${err}</div>`;
+        }
+      }
+
+      function resetSearch(updateUrl = true) {
+        searchMode = false;
+        currentSearchQuery = "";
+        chaptersPage = 1;
+        if (updateUrl) updateUrlParams({ q: null });
+        searchNote.hidden = true;
+        updateChapterControls();
+        loadChapters();
+        loadTrending();
+      }
+
+      function updateChapterControls() {
+        if (!chaptersLoadMoreBtn) return;
+        if (searchMode) {
+          chaptersLoadMoreBtn.disabled = true;
+          chaptersLoadMoreBtn.textContent = "Search mode";
+          return;
+        }
+        if (chaptersLoading) {
+          chaptersLoadMoreBtn.disabled = true;
+          chaptersLoadMoreBtn.textContent = "Loading…";
+          return;
+        }
+        if (chaptersLastBatchCount < CHAPTERS_PER_PAGE) {
+          chaptersLoadMoreBtn.disabled = true;
+          chaptersLoadMoreBtn.textContent = "No more chapters";
+          return;
+        }
+        chaptersLoadMoreBtn.disabled = false;
+        chaptersLoadMoreBtn.textContent = "Load more";
+      }
+
+      function renderCards(gridEl, items, options = {}) {
+        const { append = false } = options;
+        if (!items.length) {
+          if (!append) {
+            gridEl.innerHTML = `<div class="series-card" style="grid-column: 1 / -1; text-align:center; color:#9aa0c9;">No results.</div>`;
+          }
+          return;
+        }
+        const isChaptersGrid = gridEl === chaptersGrid;
+        const cardsHtml = items
+          .map((item) => {
+            const safeTitle = truncateText(item.title || "Untitled", 60);
+            const safeDesc = item.description ? truncateText(item.description, 90) : "";
+            const slug = item.slug || item.id || "";
+            const cover = item.cover_url || "https://placehold.co/400x600?text=No+Cover";
+            const tags = item.tags || [];
+            const chapterLabel = item.chapterLabel ? truncateText(item.chapterLabel, 18) : "";
+            const quickReleaseLabel = formatCompactRelativeTime(item.releasedAt);
+            if (isChaptersGrid) {
+              const latestChapterLabel = chapterLabel || "New";
+              return `
+                <a class="trending-card latest-card" href="/series?slug=${encodeURIComponent(slug)}">
+                  <div class="trending-cover">
+                    <img src="${cover}" alt="${safeTitle}" />
+                  </div>
+                  <div class="trending-info latest-info">
+                    <div class="latest-meta-row">
+                      <span class="trending-chapter">${truncateText(latestChapterLabel, 18)}</span>
+                      ${quickReleaseLabel ? `<span class="latest-time">${quickReleaseLabel}</span>` : ""}
+                    </div>
+                    <strong class="latest-title">${safeTitle}</strong>
+                  </div>
+                </a>
+              `;
+            }
+            return `
+              <a class="series-card" href="/series?slug=${encodeURIComponent(slug)}">
+                <div class="card-cover">
+                  <img src="${cover}" alt="${safeTitle}" />
+                </div>
+                <div class="card-meta">
+                  ${chapterLabel ? `<span class="card-pill">${chapterLabel}</span>` : `<span class="card-pill">New</span>`}
+                  ${quickReleaseLabel ? `<span class="card-time">${quickReleaseLabel}</span>` : ""}
+                </div>
+                <div class="card-body">
+                  <h3>${safeTitle}</h3>
+                  ${safeDesc ? `<p>${safeDesc}</p>` : ""}
+                </div>
+                <div class="chip-row">
+                  ${tags.slice(0, 2).map((tag) => `<span class="chip">${truncateText(tag, 14)}</span>`).join("")}
+                </div>
+              </a>
+            `;
+          })
+          .join("");
+        if (!cardsHtml) return;
+        if (append) {
+          gridEl.insertAdjacentHTML("beforeend", cardsHtml);
+        } else {
+          gridEl.innerHTML = cardsHtml;
+        }
+      }
+
+      function renderTrending(items, options = {}) {
+        const { asSearch = false } = options;
+        if (!trendingGrid) return;
+        if (asSearch) {
+          trendingGrid.classList.remove("trending-strip");
+          renderCards(trendingGrid, items);
+          setTrendingArrowsVisibility(true);
+          return;
+        }
+        if (!items.length) {
+          trendingGrid.classList.remove("trending-strip");
+          trendingGrid.innerHTML = `<div class="series-card" style="grid-column: 1 / -1; text-align:center; color:#9aa0c9;">No results.</div>`;
+          setTrendingArrowsVisibility(true);
+          return;
+        }
+        trendingGrid.classList.add("trending-strip");
+        trendingGrid.innerHTML = items
+          .map((item) => {
+            const safeTitle = truncateText(item.title || "Untitled", 45);
+            const slug = item.slug || item.id || "";
+            const cover = item.cover_url || "https://placehold.co/400x600?text=No+Cover";
+            const chapterLabel = item.chapterLabel
+              ? truncateText(item.chapterLabel, 18)
+              : item.lastChapter
+                ? `Ch. ${item.lastChapter}`
+                : "Trending";
+            const readsLabel = item.followers
+              ? `${formatCount(item.followers)} follows`
+              : item.rating
+                ? `${item.rating.toFixed(1)} rating`
+                : "";
+            return `
+              <a class="trending-card" href="/series?slug=${encodeURIComponent(slug)}">
+                <div class="trending-cover">
+                  <img src="${cover}" alt="${safeTitle}" />
+                </div>
+                <div class="trending-info">
+                  <span class="trending-chapter">${chapterLabel}</span>
+                  <strong>${safeTitle}</strong>
+                  ${readsLabel ? `<span class="trending-reads">${readsLabel}</span>` : ""}
+                </div>
+              </a>
+            `;
+          })
+          .join("");
+        setTrendingArrowsVisibility(false);
+      }
+
+      function truncateText(text, limit) {
+        if (!text) return "";
+        return text.length > limit ? `${text.slice(0, limit - 1)}…` : text;
+      }
+
+      function formatCount(value) {
+        if (!value || Number.isNaN(Number(value))) return "";
+        const num = Number(value);
+        if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(1).replace(/\.0$/, "")}M`;
+        if (num >= 1_000) return `${(num / 1_000).toFixed(1).replace(/\.0$/, "")}k`;
+        return `${num}`;
+      }
+
+      function setTrendingArrowsVisibility(hidden) {
+        if (!trendingArrows?.length) return;
+        trendingArrows.forEach((btn) => {
+          btn.hidden = hidden;
+        });
+      }
+
+      function formatReleaseTime(timestamp) {
+        if (!timestamp) return "";
+        const date = new Date(timestamp);
+        if (Number.isNaN(date.getTime())) return "";
+        const diffSeconds = Math.floor((Date.now() - date.getTime()) / 1000);
+        const pastSeconds = Math.max(0, diffSeconds);
+        let relative = "";
+        if (pastSeconds < 60) relative = `${pastSeconds}s ago`;
+        else if (pastSeconds < 3600) relative = `${Math.floor(pastSeconds / 60)}m ago`;
+        else if (pastSeconds < 86400) relative = `${Math.floor(pastSeconds / 3600)}h ago`;
+        else if (pastSeconds < 86400 * 30) relative = `${Math.floor(pastSeconds / 86400)}d ago`;
+        const absolute = date.toLocaleString(undefined, {
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+        return relative ? `${relative} • ${absolute}` : absolute;
+      }
+
+      function formatCompactRelativeTime(timestamp) {
+        if (!timestamp) return "";
+        const date = new Date(timestamp);
+        if (Number.isNaN(date.getTime())) return "";
+        const diffSeconds = Math.floor((Date.now() - date.getTime()) / 1000);
+        const pastSeconds = Math.max(0, diffSeconds);
+
+        if (pastSeconds < 60) return `${pastSeconds}s`;
+        if (pastSeconds < 3600) return `${Math.floor(pastSeconds / 60)}m`;
+        if (pastSeconds < 86400) return `${Math.floor(pastSeconds / 3600)}h`;
+
+        const days = Math.floor(pastSeconds / 86400);
+        if (days < 30) return `${days}d`;
+        if (days < 365) return `${Math.floor(days / 30)}mo`;
+        return `${Math.floor(days / 365)}y`;
+      }
+
+      function formatRelativeTime(timestamp) {
+        return formatReleaseTime(timestamp);
+      }
+
+      async function fetchComickJson(path, params = {}) {
+        const url = new URL("/api/comick/raw", window.location.origin);
+        url.searchParams.set("path", path);
+        Object.entries(params).forEach(([key, value]) => {
+          if (value === undefined || value === null) return;
+          if (Array.isArray(value)) {
+            value.forEach((entry) => url.searchParams.append(key, entry));
+          } else {
+            url.searchParams.set(key, value);
+          }
+        });
+
+        const res = await fetch(url.toString(), {
+          headers: { "Accept": "application/json" },
+        });
+        if (!res.ok) {
+          throw new Error(`Comick API error: ${res.status}`);
+        }
+        return res.json();
+      }
+
+      function buildComickUrl(path, params = {}) {
+        const base = path.startsWith("http") ? path : `https://api.comick.dev${path}`;
+        const url = new URL(base);
+        Object.entries(params).forEach(([key, value]) => {
+          if (value === undefined || value === null) return;
+          if (Array.isArray(value)) {
+            value.forEach((entry) => url.searchParams.append(key, entry));
+          } else {
+            url.searchParams.set(key, value);
+          }
+        });
+        return url.toString();
+      }
+
+
+      async function loadHeroSection() {
+        if (!heroSection) return;
+        if (!homeRestoredFromCache) renderHeroSkeleton();
+        try {
+          const topRated = await fetchComickJson("/v1.0/search", { page: 1, limit: 6, sort: "rating" });
+          const list = Array.isArray(topRated) ? topRated : [];
+          const slugs = list.map((item) => item?.slug).filter(Boolean).slice(0, 5);
+
+          if (!slugs.length) {
+            heroSection.innerHTML = "";
+            return;
+          }
+
+          const detailPromises = slugs.map((slug) => fetchComickJson(`/comic/${slug}`));
+          const detailedItems = await Promise.all(detailPromises);
+
+          heroItems = detailedItems.map(normalizeDetailedComic).filter(Boolean);
+          renderHero();
+
+          startHeroAutoRotate();
+          try { saveHomeToCache(getHomeCacheKey()); } catch (_) {}
+        } catch (err) {
+          console.warn('Failed to load hero section', err);
+          if (!homeRestoredFromCache) heroSection.innerHTML = '';
+        }
+      }
+
+      function startHeroAutoRotate() {
+        if (heroInterval) clearInterval(heroInterval);
+        heroInterval = setInterval(() => {
+          if (heroItems.length === 0) return;
+          currentHeroIndex = (currentHeroIndex + 1) % heroItems.length;
+          updateHeroSlider();
+        }, 5000);
+      }
+
+      function renderHero() {
+        if (!heroItems.length) {
+          heroSection.innerHTML = '';
+          return;
+        }
+        const dots = `<div class="hero-dots">${heroItems.map((_, index) => `<div class="hero-dot ${index === currentHeroIndex ? 'active' : ''}" data-slide="${index}"></div>`).join('')}</div>`;
+        heroSection.innerHTML = `<div class="hero-slide active">${renderHeroStageHtml()}</div>${dots}`;
+
+        heroSection.querySelectorAll('.hero-dot').forEach(dot => {
+          dot.addEventListener('click', () => {
+            const slideIndex = parseInt(dot.dataset.slide, 10);
+            if (Number.isNaN(slideIndex)) return;
+            currentHeroIndex = slideIndex;
+            updateHeroSlider();
+            startHeroAutoRotate();
+          });
+        });
+      }
+
+      function updateHeroSlider() {
+        if (!heroSection) return;
+        const slide = heroSection.querySelector('.hero-slide');
+        if (slide) slide.innerHTML = renderHeroStageHtml();
+        heroSection.querySelectorAll('.hero-dot').forEach((dot, index) => {
+          dot.classList.toggle('active', index === currentHeroIndex);
+        });
+      }
+
+      function renderHeroCard(item, variant) {
+        if (!item) return '';
+        const safeTitle = truncateText(item.title || 'Untitled', 48);
+        const safeDesc = item.description ? truncateText(item.description, 95) : "";
+        const cover = item.cover_url || "https://placehold.co/400x600?text=No+Cover";
+        const rating = typeof item.rating === 'number' && Number.isFinite(item.rating) ? item.rating : null;
+        const href = `/series?slug=${encodeURIComponent(item.slug || '')}`;
+        return `
+          <a href="${href}" class="hero-card ${variant}" style="--hero-cover: url('${cover}')">
+            ${rating != null ? `
+              <div class="hero-rating-badge">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+                <span>${rating.toFixed(1)}</span>
+              </div>
+            ` : ''}
+            <div class="hero-card-content">
+              <h2 class="hero-card-title">${safeTitle}</h2>
+            </div>
+          </a>
+        `;
+      }
+
+      function renderHeroStageHtml() {
+        if (!heroItems.length) return '';
+        const total = heroItems.length;
+        const prevIndex = (currentHeroIndex - 1 + total) % total;
+        const nextIndex = (currentHeroIndex + 1) % total;
+        const prev = heroItems[prevIndex];
+        const current = heroItems[currentHeroIndex];
+        const next = heroItems[nextIndex];
+
+        const isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+        if (isMobile || total < 5) {
+          return `
+            <div class="hero-stage">
+              ${renderHeroCard(prev, 'hero-peek')}
+              ${renderHeroCard(current, 'hero-main')}
+              ${renderHeroCard(next, 'hero-peek')}
+            </div>
+          `;
+        }
+
+        const prev2Index = (currentHeroIndex - 2 + total) % total;
+        const next2Index = (currentHeroIndex + 2) % total;
+        const prev2 = heroItems[prev2Index];
+        const next2 = heroItems[next2Index];
+
+        return `
+          <div class="hero-stage">
+            ${renderHeroCard(prev2, 'hero-far')}
+            ${renderHeroCard(prev, 'hero-peek')}
+            ${renderHeroCard(current, 'hero-main')}
+            ${renderHeroCard(next, 'hero-peek')}
+            ${renderHeroCard(next2, 'hero-far')}
+          </div>
+        `;
+      }
+
+
+      function getCoverUrl(coverArt) {
+        if (!coverArt || !coverArt.b2key) return null;
+        const fileName = coverArt.b2key;
+        return `https://meo.comick.pictures/${fileName}`;
+      }
+
+      function normalizeDetailedComic(detailedEntry) {
+        if (!detailedEntry || !detailedEntry.comic) return null;
+        return normalizeComicCard(detailedEntry.comic);
+      }
+
+      function normalizeComicCard(entry) {
+        if (!entry || typeof entry !== "object") return null;
+        const coverArt = entry.md_covers && entry.md_covers[0];
+        const cover_url = getCoverUrl(coverArt);
+        const tags = (entry.md_genres || []).map((g) => g.name).filter(Boolean);
+        return {
+          id: entry.id,
+          slug: entry.slug,
+          title: entry.title || "Untitled",
+          description: entry.desc,
+          cover_url,
+          tags,
+          lastChapter: entry.last_chapter,
+          rating: entry.rating ? Number(entry.rating) : null,
+          followers: entry.user_follow_count || 0,
+        };
+      }
+
+      function normalizeChapterCard(entry) {
+        if (!entry || typeof entry !== "object") return null;
+        const manga = entry.md_comics || {};
+        const comicCard = normalizeComicCard(manga);
+        if (!comicCard) return null;
+        const releasedAt =
+          entry.created_at ||
+          entry.createdAt ||
+          entry.updated_at ||
+          entry.updatedAt ||
+          entry.publish_at ||
+          entry.published_at;
+        const seriesKey =
+          manga.hid ||
+          manga.id ||
+          manga.slug ||
+          comicCard.slug ||
+          comicCard.id;
+        return {
+          ...comicCard,
+          id: entry.hid || comicCard.id,
+          slug: comicCard.slug,
+          series_hid: seriesKey ? String(seriesKey) : "",
+          chapterLabel: entry.chap ? `Ch. ${entry.chap}` : "",
+          description: entry.title || comicCard.description,
+          releasedAt,
+        };
+      }
+
+      async function injectNavbar(activeKey) {
+        try {
+          const res = await fetch("/static/components/navbar.html");
+          const html = await res.text();
+          navMount.innerHTML = html;
+          initNavbar();
+          navMount.querySelectorAll(`[data-nav-link="${activeKey}"]`).forEach((el) =>
+            el.classList.add("active")
+          );
+        } catch (err) {
+          navMount.innerHTML =
+            '<div style="padding:1rem; border-radius:16px; background:rgba(5,5,15,0.5);">Failed to load navigation</div>';
+        }
+      }
+
+      function updateControls(key) {
+        const controls = document.querySelector(`[data-feed-controls="${key}"]`);
+        if (!controls) return;
+        const prevBtn = controls.querySelector('[data-dir="prev"]');
+        const nextBtn = controls.querySelector('[data-dir="next"]');
+        const indicator = controls.querySelector(".page-indicator");
+        const state = feedState[key];
+        const config = feedConfigs[key];
+
+        if (!config?.supportsPaging) {
+          prevBtn.disabled = true;
+          nextBtn.disabled = true;
+          indicator.textContent = "Page 1";
+          return;
+        }
+
+        const pageNumber = state.page;
+        prevBtn.disabled = state.page <= 1;
+        nextBtn.disabled = false;
+        indicator.textContent = `Page ${pageNumber}`;
+        if (searchMode) {
+          prevBtn.disabled = true;
+          nextBtn.disabled = true;
+        }
+      }
+
+      async function loadRemoteHistoryItems() {
+        if (remoteHistoryLoaded) return remoteHistoryItems || [];
+        remoteHistoryItems = [];
+        try {
+          const getClient = typeof getSupabaseClient === "function" ? getSupabaseClient : null;
+          if (!getClient) {
+            // Client not ready yet; don't cache an empty result.
+            remoteHistoryLoaded = false;
+            return [];
+          }
+          const client = getClient();
+          if (!client) {
+            remoteHistoryLoaded = false;
+            return [];
+          }
+
+          // We have a client, so this counts as a real attempt.
+          remoteHistoryLoaded = true;
+          const { data: authData, error: authError } = await client.auth.getUser();
+          const user = authData && authData.user;
+          if (authError || !user) {
+            // Session may still be initializing; allow retry.
+            remoteHistoryLoaded = false;
+            remoteHistoryItems = [];
+            return [];
+          }
+
+          const { data, error } = await client
+            .from("reading_history")
+            .select(
+              "series_id,series_slug,series_title,cover_url,chapter_id,chapter_number,chapter_label,source,source_slug,reader_url,viewed_at"
+            )
+            .eq("user_id", user.id)
+            .order("viewed_at", { ascending: false })
+            .limit(500);
+          if (error || !Array.isArray(data)) {
+            // Don't cache an empty result on errors (RLS/transient) so we can retry later.
+            remoteHistoryLoaded = false;
+            remoteHistoryItems = [];
+            return [];
+          }
+
+          remoteHistoryItems = data.map((r) => ({
+            title: r.series_title,
+            chapterId: r.chapter_id,
+            chapterLabel: r.chapter_label,
+            chapterNumber: r.chapter_number,
+            seriesId: r.series_id,
+            seriesSlug: r.series_slug,
+            cover: r.cover_url,
+            source: r.source,
+            sourceSlug: r.source_slug,
+            viewedAt: r.viewed_at,
+            readerUrl: r.reader_url,
+          }));
+        } catch (err) {
+          console.warn("Failed to load remote reading history", err);
+          remoteHistoryItems = [];
+          // Allow retry on transient failures.
+          remoteHistoryLoaded = false;
+        }
+        return remoteHistoryItems || [];
+      }
+
+      async function getHistoryItems() {
+        const remote = await loadRemoteHistoryItems();
+        let local = [];
+        try {
+          const stored = localStorage.getItem("readerHistory");
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            local = Array.isArray(parsed) ? parsed : [];
+          }
+        } catch (err) {
+          console.warn("Failed to parse history", err);
+          local = [];
+        }
+
+        // Fallback for logged-out users: if readerHistory is empty but we have
+        // readingProgress (written by the reader), synthesize history items.
+        if (!local.length) {
+          try {
+            let seriesCache = null;
+            try {
+              const rawSeriesCache = localStorage.getItem('seriesCache');
+              seriesCache = rawSeriesCache ? JSON.parse(rawSeriesCache) : null;
+            } catch (_) {
+              seriesCache = null;
+            }
+
+            function extractMetaFromCache(cacheData) {
+              try {
+                if (!cacheData || typeof cacheData !== 'object') return null;
+                // series.html stores payloads with a `title` object containing cover_url/title.
+                const t = cacheData.title || cacheData.comic || cacheData;
+                const title = (t && (t.title || t.name)) ? String(t.title || t.name) : '';
+                const cover = (t && t.cover_url) ? String(t.cover_url) : (cacheData.cover_url ? String(cacheData.cover_url) : '');
+                return { title, cover };
+              } catch (_) {
+                return null;
+              }
+            }
+
+            function lookupSeriesMeta(source, slug, seriesKey) {
+              try {
+                if (!seriesCache || typeof seriesCache !== 'object') return null;
+
+                const candidates = [];
+                const s = String(source || '').trim();
+                const sl = String(slug || '').trim();
+                const sk = String(seriesKey || '').trim();
+
+                if (s && sl) candidates.push(`${s}-${sl}`);
+                if (sl) {
+                  candidates.push(`comick-${sl}`);
+                  candidates.push(`comix-${sl}`);
+                  candidates.push(`asura-${sl}`);
+                  candidates.push(`mangataro-${sl}`);
+                }
+                // As a last resort, search keys that end with `-<slug>`.
+                if (sl) {
+                  for (const k of Object.keys(seriesCache)) {
+                    try {
+                      if (k && String(k).endsWith(`-${sl}`)) candidates.push(k);
+                    } catch (_) {}
+                  }
+                }
+                // Also try seriesKey as a slug-ish hint.
+                if (sk && sk.length > 1) {
+                  for (const prefix of ['comick-', 'comix-', 'asura-', 'mangataro-']) {
+                    candidates.push(`${prefix}${sk}`);
+                  }
+                }
+
+                let best = null;
+                let bestTs = 0;
+                for (const key of candidates) {
+                  const entry = seriesCache[key];
+                  if (!entry || typeof entry !== 'object') continue;
+                  const ts = Number(entry.timestamp) || 0;
+                  if (!entry.data) continue;
+                  if (!best || ts >= bestTs) {
+                    best = entry.data;
+                    bestTs = ts;
+                  }
+                }
+                const meta = extractMetaFromCache(best);
+                if (!meta) return null;
+                if (!meta.title && !meta.cover) return null;
+                return meta;
+              } catch (_) {
+                return null;
+              }
+            }
+
+            const rawProgress = localStorage.getItem('readingProgress');
+            const progress = rawProgress ? JSON.parse(rawProgress) : {};
+            if (progress && typeof progress === 'object') {
+              const synthesized = [];
+              for (const [seriesKey, entry] of Object.entries(progress)) {
+                if (!entry || typeof entry !== 'object') continue;
+                const lastNum =
+                  (typeof entry.lastVisitedNumber === 'number' ? entry.lastVisitedNumber : null) ??
+                  (typeof entry.lastRead === 'number' ? entry.lastRead : null);
+                const hasSomething =
+                  (typeof lastNum === 'number' && lastNum > 0) ||
+                  Boolean(entry.lastReaderUrl) ||
+                  Boolean(entry.lastChapterId);
+                if (!hasSomething) continue;
+
+                const slugOrKey = String(entry.lastSourceSlug || seriesKey || '').trim();
+                const cacheMeta = lookupSeriesMeta(entry.lastSource, entry.lastSourceSlug, seriesKey);
+                const titleGuess = cacheMeta?.title
+                  ? String(cacheMeta.title)
+                  : slugOrKey
+                  ? slugOrKey
+                      .replace(/^comix-/, '')
+                      .replace(/[-_]+/g, ' ')
+                      .replace(/\b\w/g, (m) => m.toUpperCase())
+                      .trim()
+                  : 'Untitled';
+                const coverGuess = cacheMeta?.cover ? String(cacheMeta.cover) : null;
+
+                synthesized.push({
+                  title: titleGuess,
+                  chapterId: entry.lastChapterId || null,
+                  chapterLabel: lastNum != null ? String(lastNum) : (entry.lastChapterId || '?'),
+                  chapterNumber: lastNum != null ? lastNum : null,
+                  seriesId: seriesKey,
+                  seriesSlug: entry.lastSourceSlug || '',
+                  cover: coverGuess,
+                  source: entry.lastSource || null,
+                  sourceSlug: entry.lastSourceSlug || '',
+                  viewedAt: entry.updatedAt || null,
+                  readerUrl: entry.lastReaderUrl || null,
+                  _preferReaderUrl: true,
+                });
+              }
+              local = synthesized;
+            }
+          } catch (_) {
+            // ignore
+          }
+        }
+
+        const merged = [];
+        if (Array.isArray(remote) && remote.length) merged.push(...remote);
+        if (Array.isArray(local) && local.length) merged.push(...local);
+        return merged;
+      }
+
+      async function renderHistorySection() {
+        if (!historySection || !historyRow) return;
+        historySection.hidden = false;
+        if (!homeRestoredFromCache) historyRow.innerHTML = renderHistorySkeletonsHtml(8);
+        const items = dedupeHistory(await getHistoryItems());
+        if (!items.length) {
+          historySection.hidden = true;
+          try { saveHomeToCache(getHomeCacheKey()); } catch (_) {}
+          return;
+        }
+        historySection.hidden = false;
+        historyRow.innerHTML = items
+          .map((item) => {
+            const targetHref = buildSeriesLink(item);
+            const rawChapterLabel = item.chapterLabel || (item.chapterNumber ? `${formatChapterDisplay(item.chapterNumber)}` : "?");
+            const normalizedChapterLabel = (() => {
+              const label = String(rawChapterLabel || "").trim();
+              if (!label) return "?";
+              if (label === "?") return label;
+              if (/^ch\.?\s*/i.test(label)) return label;
+              return `Ch. ${label}`;
+            })();
+            const viewed = formatCompactRelativeTime(item.viewedAt);
+            const key = getHistoryKey(item);
+            const safeKey = String(key || "").replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+            const cover = (item.cover || "https://placehold.co/240x360?text=No+Cover").replace(/'/g, "%27");
+            return `
+              <a class="trending-card latest-card history-card" data-history-key="${safeKey}" href="${targetHref}">
+                <div class="trending-cover history-cover">
+                  <img src="${cover}" alt="${String(item.title || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')}" loading="lazy" />
+                  <button type="button" class="history-delete-btn" data-history-delete aria-label="Remove from history">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="3 6 5 6 21 6" />
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                      <path d="M10 11v6" />
+                      <path d="M14 11v6" />
+                      <path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
+                    </svg>
+                  </button>
+                </div>
+                <div class="trending-info latest-info history-card-footer">
+                  <div class="latest-meta-row history-meta-row">
+                    <span class="trending-chapter history-meta-chapter-left">${truncateText(normalizedChapterLabel, 18)}</span>
+                    ${viewed ? `<span class="latest-time">${String(viewed || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')}</span>` : ""}
+                  </div>
+                  <strong class="latest-title history-title">${String(item.title || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')}</strong>
+                </div>
+              </a>
+            `;
+          })
+          .join("");
+      }
+
+      function getHistoryKey(entry) {
+        return entry.seriesId || entry.seriesSlug || entry.title || "";
+      }
+
+      function dedupeHistory(items) {
+        const latestBySeries = new Map();
+
+        function getEntryChapterScore(entry) {
+          try {
+            if (!entry) return null;
+            const raw =
+              entry.chapterNumber != null
+                ? entry.chapterNumber
+                : (entry.chapterLabel != null ? entry.chapterLabel : null);
+            const n = parseFloat(raw);
+            return Number.isFinite(n) ? n : null;
+          } catch (_) {
+            return null;
+          }
+        }
+
+        function getEntryViewedTime(entry) {
+          try {
+            const t = Date.parse(entry?.viewedAt || 0);
+            return Number.isFinite(t) ? t : 0;
+          } catch (_) {
+            return 0;
+          }
+        }
+
+        for (const entry of items) {
+          const key = getHistoryKey(entry);
+          if (!key) continue;
+          const prev = latestBySeries.get(key);
+
+          if (!prev) {
+            latestBySeries.set(key, entry);
+            continue;
+          }
+
+          const prevChap = getEntryChapterScore(prev);
+          const currChap = getEntryChapterScore(entry);
+
+          const prevTime = getEntryViewedTime(prev);
+          const currTime = getEntryViewedTime(entry);
+
+          // Prefer the most recently viewed chapter.
+          if (currTime > prevTime) {
+            latestBySeries.set(key, entry);
+            continue;
+          }
+          if (currTime < prevTime) {
+            continue;
+          }
+
+          // If timestamps tie or are missing, fall back to chapter score.
+          if (typeof currChap === 'number' && typeof prevChap === 'number') {
+            if (currChap >= prevChap) {
+              latestBySeries.set(key, entry);
+            }
+          } else if (typeof currChap === 'number' && typeof prevChap !== 'number') {
+            latestBySeries.set(key, entry);
+          }
+        }
+
+        return Array.from(latestBySeries.values()).sort((a, b) => {
+          const at = getEntryViewedTime(a);
+          const bt = getEntryViewedTime(b);
+          if (bt !== at) return bt - at;
+          const aChap = getEntryChapterScore(a);
+          const bChap = getEntryChapterScore(b);
+          if (typeof aChap === 'number' && typeof bChap === 'number' && aChap !== bChap) {
+            return bChap - aChap;
+          }
+          return 0;
+        });
+      }
+
+      function buildSeriesLink(entry) {
+        if (entry && entry._preferReaderUrl && entry.readerUrl) {
+          return entry.readerUrl;
+        }
+        if (entry.seriesSlug) {
+          return `/series?slug=${encodeURIComponent(entry.seriesSlug)}`;
+        }
+        if (entry.seriesId) {
+          return `/series?id=${encodeURIComponent(entry.seriesId)}`;
+        }
+        return `/browse?title=${encodeURIComponent(entry.title || "")}`;
+      }
+
+      function formatChapterDisplay(value) {
+        const num = parseFloat(value);
+        if (!Number.isFinite(num)) return value;
+        return Number.isInteger(num) ? `${num}` : num.toFixed(1).replace(/\.0$/, "");
+      }
+
+      function handleHistoryRowClick(event) {
+        const deleteButton = event.target.closest("[data-history-delete]");
+        if (!deleteButton) return;
+        event.preventDefault();
+        event.stopPropagation();
+        const card = deleteButton.closest(".history-card");
+        if (!card) return;
+        const key = card.dataset.historyKey;
+        if (!key) return;
+        removeHistoryEntryByKey(key);
+      }
+
+      async function removeHistoryEntryByKey(key) {
+        if (!key) return;
+        try {
+          const items = await getHistoryItems();
+          const target = items.find((entry) => getHistoryKey(entry) === key) || null;
+          const getClient = typeof getSupabaseClient === "function" ? getSupabaseClient : null;
+          const client = getClient ? getClient() : null;
+          const { data: authData } = client ? await client.auth.getUser() : { data: null };
+          const user = authData && authData.user;
+
+          if (client && user && target) {
+            let q = client.from("reading_history").delete().eq("user_id", user.id);
+            if (target.seriesId != null && String(target.seriesId)) {
+              q = q.eq("series_id", String(target.seriesId));
+            } else if (target.seriesSlug) {
+              q = q.eq("series_slug", String(target.seriesSlug));
+            } else if (target.title) {
+              q = q.eq("series_title", String(target.title));
+            }
+            const { error } = await q;
+            if (error) {
+              console.warn("Failed to delete reading history item", error);
+            }
+            remoteHistoryLoaded = false;
+            remoteHistoryItems = null;
+          } else {
+            const filtered = items.filter((entry) => getHistoryKey(entry) !== key);
+            localStorage.setItem("readerHistory", JSON.stringify(filtered));
+          }
+        } catch (err) {
+          console.warn("Failed to remove history item", err);
+        }
+        await renderHistorySection();
+      }
+
+      async function clearHistory() {
+        try {
+          const getClient = typeof getSupabaseClient === "function" ? getSupabaseClient : null;
+          const client = getClient ? getClient() : null;
+          const { data: authData } = client ? await client.auth.getUser() : { data: null };
+          const user = authData && authData.user;
+          if (client && user) {
+            const { error } = await client.from("reading_history").delete().eq("user_id", user.id);
+            if (error) {
+              console.warn("Failed to clear remote history", error);
+            }
+            remoteHistoryLoaded = false;
+            remoteHistoryItems = null;
+          } else {
+            localStorage.removeItem("readerHistory");
+          }
+        } catch (err) {
+          console.warn("Failed to clear history", err);
+        }
+        await renderHistorySection();
+      }
+
+      function updateUrlParams(updates) {
+        const params = new URLSearchParams(window.location.search);
+        Object.entries(updates).forEach(([key, value]) => {
+          if (value === null) {
+            params.delete(key);
+          } else {
+            params.set(key, value);
+          }
+        });
+        const queryString = params.toString();
+        const newUrl = queryString ? `${window.location.pathname}?${queryString}` : window.location.pathname;
+        history.replaceState({}, "", newUrl);
+      }
+
+      // Navbar search is configured via /static/js/navbar.js
+    </script>
+  </body>
+</html>

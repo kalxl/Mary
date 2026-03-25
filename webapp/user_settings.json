@@ -1,0 +1,9 @@
+{
+  "slugs": {
+    "asura": {},
+    "mangataro": {}
+  },
+  "cookies": {
+    "mangataro": "access_token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJtYW5nYXRhcm8ub3JnIiwiYXVkIjoibWFuZ2F0YXJvLm9yZyIsImlhdCI6MTc2OTg1NDI2OSwiZXhwIjoxNzcyNDQ2MjY5LCJkYXRhIjp7ImlkIjoiMjc4MDkiLCJlbWFpbCI6InNleW5vcmExMjM0QGdtYWlsLmNvbSIsInVzZXJuYW1lIjoic2V5bm9yYTEyMzQiLCJyb2xlIjowfX0.7yeYE4CguF7v6nNdL_pPMlZvrZqhNfW_2nZvWhZwh7E; cf_clearance=VBbmoaF77m4jOJVl4_.g75yZtrjGYNMldj7BAsgAUzs-1769854192-1.2.1.1-uVwmyZBkw2dWh00WoEwlkUYdwS1D2Sz3dxyIlAoJ2FFA98y7byqZZqd7BlgCszDup4NEdQ2M0mAgVGoRC2MRbj8eAEtQ4EbSA.LR_sbBfl8X7E89F0lmOj4lijDqbqNBlWFZ8BnEeIDPTNDFnkR8VW3bVy0kS8jb6F9KfdxrFjm71YyVJUnTLbiQCME4hqJGBqwrplHRaokUbVT6qToHyDHDeCbhlmwU8gH8y2EYpeo; PHPSESSID=t8anjhfh7n5f9vsck902p7lo3v; refresh_token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJtYW5nYXRhcm8ub3JnIiwiYXVkIjoibWFuZ2F0YXJvLm9yZyIsImlhdCI6MTc2OTg1NDI2OSwiZXhwIjoxNzc3NjMwMjY5LCJkYXRhIjp7ImlkIjoiMjc4MDkiLCJ0eXBlIjoicmVmcmVzaCJ9fQ.rt6BDn2BXYn0AkaBdvfBwPM6gx_RxbyX-cGqSGhdMqY; user_bg_mode=default; user_theme=orange"
+  }
+}

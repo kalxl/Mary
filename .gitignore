@@ -1,0 +1,5 @@
+.venv/
+__pycache__/
+*.pyc
+sites/__pycache__/
+.vercel

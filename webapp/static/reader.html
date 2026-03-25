@@ -1,0 +1,3602 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reader • Ary</title>
+    <link rel="icon" href="/static/favicon_io/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon_io/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon_io/favicon-16x16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon_io/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script defer src="/static/js/navbar.js?v=20260209-1"></script>
+    <script defer src="/static/js/offline.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --bg: #0a0e0b;
+        --surface: #131816;
+        --surface-hover: #1a1e1c;
+        --border: #252925;
+        --text-primary: #e8eae8;
+        --text-secondary: #9aa39a;
+        --text-muted: #667066;
+        --accent: #78f09a;
+        --accent-dark: #45c768;
+        --accent-rgb: 120, 240, 154;
+        --accent-glow: rgba(var(--accent-rgb), 0.2);
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--text-primary);
+        font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+        line-height: 1.6;
+        min-height: 100vh;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      html, body{
+        scrollbar-width: thin;
+        scrollbar-color: rgba(var(--accent-rgb),0.55) rgba(255,255,255,0.08);
+      }
+      html::-webkit-scrollbar, body::-webkit-scrollbar{width:10px;height:10px}
+      html::-webkit-scrollbar-track, body::-webkit-scrollbar-track{background:rgba(255,255,255,0.06);border-radius:999px}
+      html::-webkit-scrollbar-thumb, body::-webkit-scrollbar-thumb{background:linear-gradient(180deg, rgba(var(--accent-rgb),0.60), rgba(var(--accent-rgb),0.22));border-radius:999px;border:2px solid rgba(0,0,0,0.22)}
+      html::-webkit-scrollbar-thumb:hover, body::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg, rgba(var(--accent-rgb),0.74), rgba(var(--accent-rgb),0.32))}
+
+      /* Top navigation bar */
+      .top-bar {
+        position: relative;
+        z-index: 100;
+        background: var(--bg);
+        border-bottom: 1px solid var(--border);
+        backdrop-filter: blur(20px);
+        transition: transform 0.3s ease-in-out;
+      }
+
+      .header-stack {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: var(--bg);
+        transition: transform 0.3s ease-in-out;
+      }
+
+      .header-stack-hidden {
+        transform: translateY(-100%);
+      }
+
+      .header-stack.resume-visible {
+        transform: translateY(0) !important;
+      }
+
+      .top-bar-content {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 1rem 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between; /* This will position the items correctly */
+        gap: 1.5rem;
+      }
+
+      .top-bar-left, .top-bar-right {
+        display: flex;
+        align-items: center;
+        flex: 1;
+      }
+
+      .top-bar-right {
+        justify-content: flex-end;
+      }
+
+      .top-bar-center {
+        display: flex;
+        justify-content: center;
+      }
+
+      .series-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex: 1;
+        min-width: 0;
+      }
+
+      .series-thumb {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        object-fit: cover;
+        background: var(--surface);
+        flex-shrink: 0;
+      }
+
+      .series-text {
+        min-width: 0;
+        flex: 1;
+      }
+
+      .series-title {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .series-subtitle {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+      }
+
+      .chapter-nav {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-shrink: 0;
+      }
+
+      .nav-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text-secondary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 1rem;
+        padding: 0;
+      }
+
+      .nav-btn svg {
+        width: 18px;
+        height: 18px;
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        fill: none;
+      }
+
+      .nav-btn:hover:not(:disabled) {
+        background: var(--surface-hover);
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+
+      .nav-btn:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+      }
+
+      .chapter-select {
+        min-width: 140px;
+        max-width: 200px;
+        height: 36px;
+        padding: 0 2.5rem 0 0.75rem;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text-primary);
+        font-family: inherit;
+        font-size: 0.85rem;
+        font-weight: 500;
+        cursor: pointer;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239a9aa3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: calc(100% - 0.75rem) center;
+        transition: all 0.2s;
+      }
+
+      .chapter-select:hover {
+        border-color: var(--text-muted);
+      }
+
+      .settings-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text-secondary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 1.1rem;
+        padding: 0;
+      }
+
+      .settings-btn svg {
+        width: 18px;
+        height: 18px;
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        fill: none;
+      }
+
+      .settings-btn:hover {
+        background: var(--surface-hover);
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+
+      .download-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text-secondary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        padding: 0;
+      }
+
+      .download-btn svg {
+        width: 18px;
+        height: 18px;
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        fill: none;
+      }
+
+      .download-btn:hover:not(:disabled) {
+        background: var(--surface-hover);
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+
+      .download-btn {
+        margin-right: 8px;
+      }
+
+      .download-btn:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+
+      .refresh-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text-secondary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        padding: 0;
+      }
+
+      .refresh-btn svg {
+        width: 18px;
+        height: 18px;
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        fill: none;
+      }
+
+      .refresh-btn:hover {
+        background: var(--surface-hover);
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+
+      /* Control bar below top bar */
+      .control-bar {
+        background: var(--bg);
+        border-bottom: 1px solid var(--border);
+      }
+
+      .control-bar-content {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0.75rem 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+      }
+
+      .control-bar-center {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      .control-bar-left {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+      }
+
+      .control-label {
+        font-size: 0.8rem; /* Adjusted size */
+        color: var(--text-secondary);
+        font-weight: 500;
+      }
+
+      .control-select {
+        min-width: 120px; /* Made smaller */
+        max-width: 220px;
+        height: 32px;
+        padding: 0 1.75rem 0 0.75rem;
+        border-radius: 8px; /* Match other buttons */
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text-primary);
+        font-family: inherit;
+        font-size: 0.8rem;
+        font-weight: 500;
+        cursor: pointer;
+        appearance: none;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%239a9aa3' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: calc(100% - 0.6rem) center;
+        transition: all 0.2s;
+      }
+
+      .control-select:hover {
+        border-color: var(--text-muted);
+      }
+
+      .control-group {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .resume-reading {
+        background: var(--bg);
+        border-bottom: 1px solid var(--border);
+        backdrop-filter: blur(20px);
+      }
+
+      .resume-reading-content {
+        padding: 0;
+      }
+
+      .resume-reading-card {
+        width: 100%;
+        max-width: 1400px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        border-radius: 0;
+        border-top: 0;
+        border-left: 0;
+        border-right: 0;
+        border-bottom: 0;
+        background: linear-gradient(90deg, rgba(var(--accent-rgb), 0.10), rgba(255,255,255,0.03));
+        box-shadow: none;
+        padding: 0.5rem 1.5rem;
+        cursor: pointer;
+        transition: transform 0.15s ease, border-color 0.2s ease, background 0.2s ease;
+        user-select: none;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .resume-reading-card:hover {
+        transform: translateY(-1px);
+        border-color: rgba(var(--accent-rgb), 0.6);
+        background: linear-gradient(90deg, rgba(var(--accent-rgb), 0.14), rgba(255,255,255,0.04));
+      }
+
+      .resume-reading-expiry {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 3px;
+        width: 0%;
+        background: linear-gradient(90deg, rgba(var(--accent-rgb), 0.20), rgba(var(--accent-rgb), 0.95));
+        opacity: 0.95;
+        pointer-events: none;
+      }
+
+      .resume-reading-left {
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+        min-width: 0;
+      }
+
+      .resume-reading-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 12px;
+        display: grid;
+        place-items: center;
+        flex: 0 0 auto;
+        background: rgba(var(--accent-rgb), 0.12);
+        border: 1px solid rgba(var(--accent-rgb), 0.25);
+      }
+
+      .resume-reading-icon svg {
+        width: 18px;
+        height: 18px;
+        stroke: rgb(var(--accent-rgb));
+        stroke-width: 2.4;
+        fill: none;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .resume-reading-text {
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.1rem;
+      }
+
+      .resume-reading-title {
+        font-weight: 700;
+        font-size: 0.95rem;
+        color: var(--text-primary);
+        line-height: 1.2;
+      }
+
+      .resume-reading-subtitle {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .resume-reading-right {
+        flex: 0 0 auto;
+        font-weight: 800;
+        font-size: 0.95rem;
+        color: rgb(var(--accent-rgb));
+      }
+
+      /* Main content area */
+      .reader-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 0 1rem 0;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+
+      .status-message {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: var(--text-secondary);
+      }
+
+      .page-container {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        flex: 1 0 auto;
+      }
+
+      .page-container img {
+        width: 100%;
+        display: block;
+        image-rendering: -webkit-optimize-contrast;
+      }
+
+      /* Bottom navigation */
+      .bottom-nav {
+        max-width: 1000px;
+        margin: 3rem auto 2rem;
+        padding: 0 1rem;
+        display: flex;
+        justify-content: center;
+      }
+
+      .bottom-nav-inner {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.5rem;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+      }
+
+      /* Mid-page navigation - appears above content */
+      .mid-nav {
+        max-width: 1000px;
+        margin: 1.5rem auto 1rem;
+        padding: 0 1rem;
+        display: flex;
+        justify-content: center;
+      }
+
+      .mid-nav-inner {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.5rem;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+      }
+
+      /* Footer navigation */
+      .footer-nav {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        background-color: var(--border);
+        border: 1px solid var(--border);
+        border-radius: 0; /* Sharp corners */
+        overflow: hidden;
+        margin-top: 0;
+      }
+
+      .footer-nav-item {
+        display: flex;
+        flex-direction: column; /* Stack icon and text */
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 1.25rem;
+        background-color: var(--surface);
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: background-color 0.2s;
+        text-align: center;
+      }
+
+      .footer-nav-item:hover {
+        background-color: var(--surface-hover);
+      }
+
+      .footer-nav-item:hover svg {
+        stroke: var(--accent);
+      }
+
+      .footer-nav-item.center svg {
+        stroke: var(--accent);
+      }
+
+      .footer-nav-item svg {
+        width: 20px;
+        height: 20px;
+        stroke: var(--text-secondary);
+        stroke-width: 2;
+      }
+
+      .footer-nav-label {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text-primary);
+      }
+
+      .footer-nav-value {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+      }
+
+      /* Fixed bottom bar for mobile */
+      .mobile-bottom-bar {
+        display: none;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: var(--bg);
+        border-top: 1px solid var(--border);
+        backdrop-filter: blur(20px);
+        z-index: 100;
+      }
+
+      .mobile-bottom-content {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.75rem 1rem;
+        gap: 0.75rem;
+      }
+
+      /* Progress indicator */
+      .progress-bar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 0%; /* Controlled by JS */
+        height: 4px;
+        background: linear-gradient(90deg, var(--accent-dark), var(--accent));
+        z-index: 9000; /* Below loading overlay */
+        transition: width 0.1s ease;
+        box-shadow: 0 0 10px var(--accent-glow);
+      }
+
+      .minimal-progress {
+        position: fixed;
+        left: 50%;
+        bottom: 110px;
+        transform: translateX(-50%);
+        z-index: 8800;
+        font-size: 0.85rem;
+        font-weight: 800;
+        color: #000;
+        letter-spacing: 0.02em;
+        user-select: none;
+        pointer-events: none;
+        text-shadow: 0 1px 2px rgba(255, 255, 255, 0.25);
+      }
+
+      @media (max-width: 768px) {
+        .minimal-progress {
+          bottom: calc(110px + env(safe-area-inset-bottom));
+          font-size: 0.8rem;
+        }
+      }
+
+      .ui-progress-bar {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(15, 20, 18, 0.9);
+        backdrop-filter: blur(16px);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 12px 16px;
+        z-index: 9000; /* Below loading overlay */
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        min-width: 240px;
+        transition: opacity 0.3s, transform 0.3s;
+      }
+
+      .ui-bar-content {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .ui-bar-text {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: var(--text-primary);
+        font-size: 0.9em;
+        font-weight: 600;
+      }
+
+      .ui-bar-percentage {
+        color: var(--accent);
+        font-size: 1.1em;
+      }
+
+      .ui-bar-track {
+        width: 100%;
+        height: 6px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 3px;
+        overflow: hidden;
+      }
+
+      .ui-bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--accent-dark), var(--accent));
+        border-radius: 3px;
+        transition: width 0.1s ease;
+        box-shadow: 0 0 8px var(--accent-glow);
+        width: 0%; /* Controlled by JS */
+      }
+
+      /* Scroll-to-top button */
+      .scroll-top-btn {
+        position: fixed;
+        right: 1.25rem;
+        bottom: 1.5rem;
+        width: 32px;
+        height: 32px;
+        border-radius: 999px;
+        border: 1px solid var(--accent);
+        background: var(--accent);
+        color: #020617;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+        z-index: 9050; /* Above most UI, below loading overlay */
+        transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+        opacity: 0.9;
+      }
+
+      .scroll-top-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.8);
+      }
+
+      .scroll-top-btn svg {
+        width: 16px;
+        height: 16px;
+        stroke: #022c22;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        fill: none;
+      }
+
+      /* Settings panel */
+      .settings-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.55);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        z-index: 9200;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+        overscroll-behavior: contain;
+      }
+
+      .settings-panel {
+        position: relative;
+        width: min(460px, 100%);
+        max-height: min(720px, calc(100vh - 2rem));
+        overflow: hidden;
+        background: rgba(15, 20, 18, 0.88);
+        border: 1px solid rgba(var(--accent-rgb), 0.18);
+        border-radius: 16px;
+        box-shadow: 0 18px 60px rgba(0, 0, 0, 0.55);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        display: flex;
+        flex-direction: column;
+      }
+
+      .settings-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1rem 1.1rem;
+        border-bottom: 1px solid rgba(var(--accent-rgb), 0.12);
+      }
+
+      .settings-title {
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+        min-width: 0;
+      }
+
+      .settings-title strong {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .settings-title span {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .settings-close {
+        border: 1px solid rgba(var(--accent-rgb), 0.18);
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--text-primary);
+        border-radius: 10px;
+        width: 36px;
+        height: 36px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .settings-close:hover {
+        border-color: rgba(var(--accent-rgb), 0.35);
+        background: rgba(var(--accent-rgb), 0.1);
+      }
+
+      .settings-body {
+        padding: 0.25rem 1.1rem 1rem;
+        overflow: auto;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+      }
+
+      .settings-help {
+        margin-top: 0.9rem;
+        padding: 0.85rem 0.9rem;
+        border-radius: 14px;
+        border: 1px solid rgba(var(--accent-rgb), 0.14);
+        background: rgba(255, 255, 255, 0.03);
+        color: var(--text-secondary);
+      }
+
+      .settings-help strong {
+        display: block;
+        margin-bottom: 0.45rem;
+        font-size: 0.85rem;
+        color: var(--text-primary);
+      }
+
+      .settings-help p {
+        margin: 0 0 0.5rem;
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        line-height: 1.35;
+      }
+
+      .settings-help ul {
+        margin: 0;
+        padding-left: 1.1rem;
+        display: grid;
+        gap: 0.25rem;
+        font-size: 0.8rem;
+      }
+
+      .settings-help code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        font-size: 0.78rem;
+        padding: 0.08rem 0.35rem;
+        border-radius: 8px;
+        background: rgba(var(--accent-rgb), 0.12);
+        border: 1px solid rgba(var(--accent-rgb), 0.18);
+        color: var(--text-primary);
+      }
+
+      .setting-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      .setting-inline-controls {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .setting-select-disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+
+      .setting-item:last-child {
+        border-bottom: none;
+      }
+
+      .setting-label {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+      }
+
+      .toggle-btn {
+        padding: 0.35rem 0.9rem;
+        border-radius: 6px;
+        border: 1px solid rgba(var(--accent-rgb), 0.18);
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text-secondary);
+        font-size: 0.75rem;
+        cursor: pointer;
+        transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+      }
+
+      .toggle-btn.active {
+        background: rgba(var(--accent-rgb), 0.16);
+        border-color: rgba(var(--accent-rgb), 0.45);
+        color: var(--text-primary);
+      }
+
+      .setting-select {
+        padding: 0.35rem 2rem 0.35rem 0.75rem;
+        border-radius: 6px;
+        border: 1px solid rgba(var(--accent-rgb), 0.18);
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text-primary);
+        font-size: 0.8rem;
+        font-weight: 500;
+        cursor: pointer;
+        appearance: none;
+        color-scheme: dark;
+        background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%239a9aa3' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: calc(100% - 0.5rem) center;
+      }
+
+      .setting-select option {
+        background: #121614;
+        color: var(--text-primary);
+      }
+
+      .range-green {
+        appearance: none;
+        -webkit-appearance: none;
+        width: 150px;
+        height: 18px;
+        background: transparent;
+      }
+
+      .range-green:focus {
+        outline: none;
+      }
+
+      .range-green::-webkit-slider-runnable-track {
+        height: 6px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, rgba(var(--accent-rgb), 0.75), rgba(var(--accent-rgb), 0.18));
+        box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb), 0.18);
+      }
+
+      .range-green::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 16px;
+        height: 16px;
+        margin-top: -5px;
+        border-radius: 999px;
+        background: var(--accent);
+        box-shadow:
+          0 0 0 3px rgba(var(--accent-rgb), 0.18),
+          0 10px 25px rgba(0, 0, 0, 0.45);
+        border: 1px solid rgba(2, 44, 34, 0.6);
+      }
+
+      .range-green::-moz-range-track {
+        height: 6px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, rgba(var(--accent-rgb), 0.75), rgba(var(--accent-rgb), 0.18));
+        box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb), 0.18);
+      }
+
+      .range-green::-moz-range-thumb {
+        width: 16px;
+        height: 16px;
+        border-radius: 999px;
+        background: var(--accent);
+        border: 1px solid rgba(2, 44, 34, 0.6);
+        box-shadow:
+          0 0 0 3px rgba(var(--accent-rgb), 0.18),
+          0 10px 25px rgba(0, 0, 0, 0.45);
+      }
+
+      /* Home button */
+      .home-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: all 0.2s;
+      }
+
+      .home-link svg {
+        width: 16px;
+        height: 16px;
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        fill: none;
+      }
+
+      .home-link:hover {
+        background: var(--surface-hover);
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+
+      @media (min-width: 481px) {
+        .home-link {
+          height: 32px;
+          padding: 0 1rem;
+        }
+      }
+
+      @media (min-width: 900px) {
+        .control-bar-center {
+          flex-wrap: nowrap;
+        }
+
+        .control-bar-center .control-group {
+          flex-shrink: 1;
+        }
+
+        #group-select {
+          max-width: 150px;
+        }
+      }
+
+      /* Responsive design */
+      @media (max-width: 768px) {
+        .top-bar-content {
+          padding: 0.75rem 1rem;
+          gap: 0.5rem;
+        }
+
+        .series-thumb {
+          width: 32px;
+          height: 32px;
+        }
+
+        .series-title {
+          font-size: 0.85rem;
+        }
+
+        .series-subtitle {
+          font-size: 0.7rem;
+        }
+
+        .nav-btn {
+          width: 32px;
+          height: 32px;
+        }
+
+        .nav-btn svg {
+          width: 16px;
+          height: 16px;
+        }
+
+        .settings-btn {
+          width: 32px;
+          height: 32px;
+        }
+
+        .settings-btn svg {
+          width: 16px;
+          height: 16px;
+        }
+
+        .download-btn {
+          width: 32px;
+          height: 32px;
+        }
+
+        .download-btn svg {
+          width: 16px;
+          height: 16px;
+        }
+
+        .download-btn {
+          margin-right: 6px;
+        }
+
+        .chapter-select {
+          min-width: 90px;
+          max-width: 110px;
+          font-size: 0.75rem;
+          height: 32px;
+          padding: 0 2rem 0 0.5rem;
+        }
+
+        .control-bar-content {
+          padding: 0.5rem 1rem;
+          gap: 0.5rem;
+          justify-content: space-between;
+        }
+
+        .control-select {
+          min-width: 0;
+          max-width: 100%;
+          font-size: 0.75rem;
+          height: 30px;
+        }
+
+        .control-label {
+          font-size: 0.75rem;
+        }
+
+        .control-bar-center {
+          flex-wrap: nowrap;
+          flex: 1 1 auto;
+          gap: 0.5rem;
+        }
+
+        .control-bar-center .control-group {
+          flex: 0 1 auto;
+          min-width: 0;
+        }
+
+        .control-bar-center .control-group:last-child .control-label {
+          display: none;
+        }
+
+        .home-link span {
+          display: none;
+        }
+
+        #group-select,
+        #source-select {
+          width: auto;
+          max-width: 120px;
+        }
+
+        .control-bar-left,
+        .control-bar-right {
+          display: none;
+        }
+
+        .control-bar-center {
+          justify-content: flex-start;
+        }
+
+        .reader-container {
+          padding: 0;
+        }
+
+        .bottom-nav {
+          width: 100%;
+          max-height: calc(100vh - 2rem);
+        }
+      }
+
+      @media (max-width: 480px) {
+        .control-bar-center {
+          gap: 0.5rem;
+        }
+
+        .home-link {
+          padding: 0;
+          width: 30px; /* Make it a small square */
+          height: 30px;
+          justify-content: center;
+        }
+
+        .refresh-btn {
+          width: 30px;
+          height: 30px;
+          border-radius: 8px;
+          background: var(--surface);
+          border: 1px solid var(--border);
+        }
+
+        .home-link span {
+          display: none; /* Hide text */
+        }
+
+        .control-select {
+          min-width: 80px;
+        }
+      }
+
+      /* Loading state */
+      .loading-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(10, 14, 11, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        backdrop-filter: blur(8px);
+      }
+
+      .loading-spinner {
+        width: 48px;
+        height: 48px;
+        border: 4px solid var(--accent-glow);
+        border-top-color: var(--accent);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+      }
+
+      .loading {
+        animation: pulse 1.5s ease-in-out infinite;
+      }
+
+      .page-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--page-gap, 0px);
+      }
+
+      .page-container.page-mode {
+        flex-direction: row;
+        align-items: center;
+        gap: 0;
+        width: 100vw;
+        max-width: 100vw;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .page-container.page-mode img {
+        flex: 0 0 100vw;
+        width: auto;
+        max-width: 100%;
+        height: auto;
+        max-height: calc(100vh - 160px);
+        object-fit: contain;
+        margin: 0 auto;
+        scroll-snap-align: start;
+        scroll-snap-stop: always;
+      }
+
+      body.reading-mode-page .reader-container {
+        max-width: none;
+        padding-left: 0;
+        padding-right: 0;
+      }
+
+      .page-container img {
+        width: var(--page-img-width, 100%);
+        max-width: var(--page-img-max-width, 100%);
+      }
+
+      .page-container.width-mode-original img {
+        width: auto;
+        max-width: none;
+      }
+
+      .page-container.width-mode-max img {
+        width: 100%;
+        max-width: 900px;
+      }
+
+      .mode-toggle {
+        display: inline-flex;
+        gap: 10px;
+      }
+
+      .mode-btn {
+        width: 54px;
+        height: 46px;
+        border-radius: 12px;
+        border: 1px solid rgba(var(--accent-rgb), 0.18);
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text-secondary);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: transform 0.15s ease, filter 0.15s ease, background 0.15s ease;
+      }
+
+      .mode-btn svg {
+        width: 20px;
+        height: 20px;
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        fill: none;
+      }
+
+      .mode-btn.active {
+        background: linear-gradient(135deg, rgba(var(--accent-rgb), 0.14), rgba(var(--accent-rgb), 0.22));
+        border-color: rgba(var(--accent-rgb), 0.35);
+        color: var(--accent);
+        filter: drop-shadow(0 0 14px rgba(var(--accent-rgb), 0.18));
+      }
+
+      .mode-btn:hover {
+        transform: translateY(-1px);
+        filter: brightness(1.06);
+      }
+
+      /* Hide elements when needed */
+      [hidden] {
+        display: none !important;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay" hidden>
+      <div class="loading-spinner"></div>
+    </div>
+    <!-- Top Reading Progress Bar -->
+    <div class="progress-bar" id="progress-bar"></div>
+
+    <div class="minimal-progress" id="minimal-progress" hidden>0/0</div>
+
+    <!-- Scroll-to-top button -->
+    <button class="scroll-top-btn" id="scroll-top-btn" aria-label="Scroll to top">
+      <svg viewBox="0 0 24 24">
+        <polyline points="6 15 12 9 18 15"></polyline>
+      </svg>
+    </button>
+
+    <div class="header-stack" id="header-stack">
+      <!-- Top navigation bar -->
+      <div class="top-bar">
+        <div class="top-bar-content">
+          <div class="top-bar-left">
+            <div class="series-info">
+              <a id="series-link-thumb" href="#">
+                <img id="series-thumb" class="series-thumb" src="" alt="" hidden />
+              </a>
+            </div>
+          </div>
+
+          <div class="top-bar-center">
+            <div class="chapter-nav">
+              <button class="nav-btn" id="prev-btn" aria-label="Previous chapter" disabled>
+                <svg viewBox="0 0 24 24">
+                  <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+              </button>
+              <select class="chapter-select" id="chapter-select" aria-label="Select chapter">
+                <option>Loading...</option>
+              </select>
+              <button class="nav-btn" id="next-btn" aria-label="Next" disabled>
+                <svg viewBox="0 0 24 24">
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="top-bar-right">
+            <button class="download-btn" id="download-btn" aria-label="Download chapter for offline" hidden>
+              <svg viewBox="0 0 24 24">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+            </button>
+            <button class="settings-btn" id="settings-btn" aria-label="Settings">
+              <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M12 1v3m0 16v3M4.22 4.22l2.12 2.13m11.32 11.32l2.12 2.13M1 12h3m16 0h3M4.22 19.78l2.13-2.12m11.32-11.32l2.13-2.12"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Control bar -->
+      <div class="control-bar">
+        <div class="control-bar-content">
+          <div class="control-bar-left"></div>
+
+          <div class="control-bar-center">
+            <a href="/" class="home-link">
+              <svg viewBox="0 0 24 24">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+              </svg>
+              <span>Home</span>
+            </a>
+
+            <div class="control-group">
+              <span class="control-label">Source:</span>
+              <select class="control-select" id="source-select">
+                <option value="asura">Asura</option>
+                <option value="comix">Comix</option>
+                <option value="mangataro">Mangataro</option>
+              </select>
+            </div>
+
+            <div class="control-group">
+              <span class="control-label">Group:</span>
+              <select class="control-select" id="group-select">
+                <option value="">All groups</option>
+              </select>
+              <button class="refresh-btn" id="refresh-btn" type="button" aria-label="Refresh chapters">
+                <svg viewBox="0 0 24 24">
+                  <path d="M21 12a9 9 0 1 1-3.12-6.74"></path>
+                  <polyline points="21 3 21 9 15 9"></polyline>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="control-bar-right"></div>
+        </div>
+      </div>
+
+      <div id="resume-reading" class="resume-reading" hidden>
+        <div class="resume-reading-content">
+          <div id="resume-reading-card" class="resume-reading-card" role="button" tabindex="0" aria-label="Resume reading">
+            <div id="resume-reading-expiry" class="resume-reading-expiry" aria-hidden="true"></div>
+            <div class="resume-reading-left">
+              <div class="resume-reading-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="4" x2="12" y2="14"></line>
+                </svg>
+              </div>
+              <div class="resume-reading-text">
+                <div class="resume-reading-title">Resume Reading</div>
+                <div id="resume-reading-subtitle" class="resume-reading-subtitle"></div>
+              </div>
+            </div>
+            <div id="resume-reading-percent" class="resume-reading-right"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Floating UI Progress Bar -->
+    <div class="ui-progress-bar" id="ui-progress-bar">
+      <div class="ui-bar-content">
+        <div class="ui-bar-text">
+          <span>Reading Progress</span>
+          <span class="ui-bar-percentage" id="ui-percentage">0%</span>
+        </div>
+        <div class="ui-bar-track">
+          <div class="ui-bar-fill" id="ui-bar-fill"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main content -->
+    <div class="reader-container">
+
+      <div id="status-message" class="status-message">Loading chapter...</div>
+      <div id="page-container" class="page-container" hidden></div>
+
+      <!-- Three-panel bottom navigation -->
+      <div class="footer-nav" id="footer-nav">
+        <div class="footer-nav-item" id="footer-prev">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          <div class="footer-nav-label">Previous</div>
+          <div class="footer-nav-value" id="footer-prev-chapter"></div>
+        </div>
+        <div class="footer-nav-item center" id="footer-info">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+          <div class="footer-nav-label">Manga Info</div>
+          <div class="footer-nav-value" id="footer-manga-title"></div>
+        </div>
+        <div class="footer-nav-item" id="footer-next">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          <div class="footer-nav-label">Next</div>
+          <div class="footer-nav-value" id="footer-next-chapter"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-overlay" id="settings-overlay" hidden>
+      <div class="settings-panel" id="settings-panel">
+        <div class="settings-header">
+          <div class="settings-title">
+            <strong style="display:flex; align-items:center; gap:10px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)" aria-hidden="true">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M12 1v3m0 16v3M4.22 4.22l2.12 2.13m11.32 11.32l2.12 2.13M1 12h3m16 0h3M4.22 19.78l2.13-2.12m11.32-11.32l2.13-2.12"></path>
+              </svg>
+              <span>Reader Settings</span>
+            </strong>
+            <span>Customize your reading experience</span>
+          </div>
+          <button class="settings-close" id="settings-close" type="button" aria-label="Close settings">✕</button>
+        </div>
+
+        <div class="settings-body">
+          <div class="setting-item">
+            <span class="setting-label">Reading mode</span>
+            <span class="mode-toggle" role="group" aria-label="Reading mode">
+              <button type="button" class="mode-btn active" id="mode-strip" aria-label="Long strip">
+                <svg viewBox="0 0 24 24">
+                  <rect x="6" y="3" width="12" height="18" rx="2"></rect>
+                  <path d="M9 7h6"></path>
+                  <path d="M9 12h6"></path>
+                  <path d="M9 17h6"></path>
+                </svg>
+              </button>
+              <button type="button" class="mode-btn" id="mode-page" aria-label="Page">
+                <svg viewBox="0 0 24 24">
+                  <rect x="4" y="6" width="16" height="12" rx="2"></rect>
+                  <path d="M12 6v12"></path>
+                </svg>
+              </button>
+            </span>
+          </div>
+
+          <div class="setting-item">
+            <span class="setting-label">Progress bar</span>
+            <span class="setting-inline-controls">
+              <select class="setting-select" id="progress-mode">
+                <option value="top">Top bar</option>
+                <option value="ui">UI bar</option>
+                <option value="minimal">Minimal</option>
+              </select>
+              <button class="toggle-btn active" id="progress-toggle">On</button>
+            </span>
+          </div>
+
+          <div class="setting-item">
+            <span class="setting-label">Scroll to top</span>
+            <button class="toggle-btn active" id="scroll-top-toggle">On</button>
+          </div>
+
+          <div class="setting-item">
+            <span class="setting-label">Page spacing</span>
+            <input id="page-gap" class="range-green" type="range" min="0" max="24" step="2" value="0" />
+            <span id="page-gap-value" style="color: var(--muted); font-size: 0.85rem;">0px</span>
+          </div>
+
+          <div class="setting-item">
+            <span class="setting-label">Keyboard shortcuts</span>
+            <button class="toggle-btn active" id="shortcuts-toggle">On</button>
+          </div>
+
+          <div class="settings-help">
+            <strong>Controls</strong>
+            <p style="margin-top:0.6rem;">Keyboard shortcuts (when enabled):</p>
+            <ul>
+              <li><code>←</code> / <code>→</code> = Prev / Next chapter</li>
+              <li><code>S</code> = Settings</li>
+              <li><code>J</code> / <code>K</code> = Scroll down / up</li>
+              <li><code>Esc</code> = Close settings</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Parse URL parameters
+      const params = new URLSearchParams(window.location.search);
+      let chapterId = params.get("chapter");
+      const seriesId = params.get("series");
+      const canonicalSeriesSlug = params.get("seriesSlug") || "";
+      let titleName = params.get("title") || "Untitled";
+      let currentSource = params.get("source") || "comix";
+      const allowedSources = new Set(["comix", "asura", "mangataro"]);
+      if (!allowedSources.has(currentSource)) {
+        currentSource = "comix";
+      }
+      let currentAsuraSlug = params.get("slug") || "";
+      let currentMangataroSlug = params.get("mangataro") || "";
+      let currentComixSlug = params.get("comix") || "";
+      const initialGroupParam = params.get("group") || "";
+
+      // Constants
+      const SOURCE_OPTIONS = [
+        { value: "comix", label: "Comix" },
+      ];
+      const ASURA_SLUG_STORAGE_KEY = "asuraSlugMap";
+      const MANGATARO_SLUG_STORAGE_KEY = "mangataroSlugMap";
+      const COMIX_SLUG_STORAGE_KEY = "comixSlugMap";
+      const ASURA_BASE_URL = "https://asuracomic.net";
+      const READING_PROGRESS_KEY = "readingProgress";
+
+      // DOM elements
+      const seriesThumb = document.getElementById("series-thumb");
+      const seriesTitle = document.getElementById("series-title");
+      const seriesSubtitle = document.getElementById("series-subtitle");
+      const seriesLinkThumb = document.getElementById("series-link-thumb");
+      const statusMessage = document.getElementById("status-message");
+      const pageContainer = document.getElementById("page-container");
+      const progressBar = document.getElementById("progress-bar");
+      const uiProgressBar = document.getElementById("ui-progress-bar");
+      const uiBarFill = document.getElementById("ui-bar-fill");
+      const uiPercentage = document.getElementById("ui-percentage");
+      const minimalProgress = document.getElementById("minimal-progress");
+      const loadingOverlay = document.getElementById("loading-overlay");
+      const settingsBtn = document.getElementById("settings-btn");
+      const downloadBtn = document.getElementById("download-btn");
+      const settingsOverlay = document.getElementById("settings-overlay");
+      const settingsPanel = document.getElementById("settings-panel");
+      const settingsClose = document.getElementById("settings-close");
+      const refreshBtn = document.getElementById("refresh-btn");
+      const scrollTopToggle = document.getElementById("scroll-top-toggle");
+      const progressToggle = document.getElementById("progress-toggle");
+      const progressModeSelect = document.getElementById("progress-mode");
+      const pageGapInput = document.getElementById("page-gap");
+      const pageGapValue = document.getElementById("page-gap-value");
+      const modeStripBtn = document.getElementById("mode-strip");
+      const modePageBtn = document.getElementById("mode-page");
+      const shortcutsToggle = document.getElementById("shortcuts-toggle");
+      const sourceSelect = document.getElementById("source-select");
+      const groupSelect = document.getElementById("group-select");
+      const footerNav = document.getElementById("footer-nav");
+      const footerPrev = document.getElementById("footer-prev");
+      const footerNext = document.getElementById("footer-next");
+      const footerInfo = document.getElementById("footer-info");
+      const footerMangaTitle = document.getElementById("footer-manga-title");
+      const footerPrevChapter = document.getElementById("footer-prev-chapter");
+      const footerNextChapter = document.getElementById("footer-next-chapter");
+      const scrollTopBtn = document.getElementById("scroll-top-btn");
+
+      const resumeReadingWrap = document.getElementById("resume-reading");
+      const resumeReadingCard = document.getElementById("resume-reading-card");
+      const resumeReadingSubtitle = document.getElementById("resume-reading-subtitle");
+      const resumeReadingPercent = document.getElementById("resume-reading-percent");
+      const resumeReadingExpiry = document.getElementById("resume-reading-expiry");
+
+      const headerStack = document.getElementById('header-stack');
+
+      const prevBtns = [ document.getElementById("prev-btn") ];
+      const nextBtns = [ document.getElementById("next-btn") ];
+      const chapterSelects = [ document.getElementById("chapter-select") ];
+
+      // State
+      let allChapters = [];
+      let visibleChapters = [];
+      let currentGroupFilter = "";
+      let currentIndex = -1;
+      let progressEnabled = true;
+      let progressMode = "top"; // "top" | "ui" | "minimal"
+      let loadingChapter = false;
+      let seriesCover = params.get("cover") || "";
+      let sourceCache = {};
+      let currentSeriesMeta = null;
+      let scrollTopEnabled = true;
+      let scrollTopEnabledBeforePageMode = null;
+
+      let lastPageUrls = [];
+      let offlineReady = false;
+      let offlineUserId = null;
+
+      let resumeReadingHideTimer = null;
+      let resumeReadingActivePayload = null;
+
+      let userHasInteracted = false;
+
+      function replaceUrlChapter(nextChapterId) {
+        try {
+          const url = new URL(window.location.href);
+          if (nextChapterId) {
+            url.searchParams.set('chapter', String(nextChapterId));
+          } else {
+            url.searchParams.delete('chapter');
+          }
+          window.history.replaceState({}, '', url.toString());
+        } catch (_) {}
+      }
+
+      function getLastOfflineUserId() {
+        try {
+          const v = localStorage.getItem('aryLastUserId');
+          return v ? String(v) : '';
+        } catch (_) {
+          return '';
+        }
+      }
+
+      async function loadOfflineChapterPages(idOverride) {
+        try {
+          const uid = String(offlineUserId || '').trim() || getLastOfflineUserId();
+          if (!uid) return null;
+          const targetId = String(idOverride || chapterId || '').trim();
+          if (!targetId) return null;
+          if (!window.AryOffline) return null;
+
+          if (typeof window.AryOffline.getChapter === 'function') {
+            const direct = await window.AryOffline.getChapter(uid, currentSource, targetId);
+            if (direct && Array.isArray(direct.pageUrls) && direct.pageUrls.length) {
+              chapterId = direct.chapterId || targetId;
+              return { page_urls: direct.pageUrls.slice() };
+            }
+          }
+
+          if (typeof window.AryOffline.listForUser !== 'function') return null;
+          const list = await window.AryOffline.listForUser(uid);
+          if (!Array.isArray(list) || !list.length) return null;
+
+          const wantSeriesId = seriesId != null ? String(seriesId) : '';
+          const wantSeriesSlug = canonicalSeriesSlug ? String(canonicalSeriesSlug) : '';
+          const numKey = getChapterNumberKey(getCurrentChapterNumber() || targetId);
+
+          const sameSeries = list.filter((r) => {
+            if (!r) return false;
+            if (String(r.source || '') !== String(currentSource || '')) return false;
+            const rid = r.seriesId != null ? String(r.seriesId) : '';
+            const rslug = r.seriesSlug != null ? String(r.seriesSlug) : '';
+            if (wantSeriesId && rid && rid === wantSeriesId) return true;
+            if (wantSeriesSlug && rslug && rslug === wantSeriesSlug) return true;
+            if (!wantSeriesId && !wantSeriesSlug) return true;
+            return false;
+          });
+
+          const match = sameSeries.find((r) => {
+            const label = r.chapterLabel != null ? String(r.chapterLabel) : '';
+            const id = r.chapterId != null ? String(r.chapterId) : '';
+            if (id && id === targetId) return true;
+            if (label && String(label).trim() === String(targetId).trim()) return true;
+            if (numKey && label && getChapterNumberKey(label) === numKey) return true;
+            return false;
+          });
+
+          if (!match || !Array.isArray(match.pageUrls) || !match.pageUrls.length) return null;
+          chapterId = match.chapterId || chapterId;
+          return { page_urls: match.pageUrls.slice() };
+        } catch (_) {
+          return null;
+        }
+      }
+
+      async function loadOfflineChaptersForSeries() {
+        try {
+          const uid = String(offlineUserId || '').trim() || getLastOfflineUserId();
+          if (!uid) return null;
+          if (!window.AryOffline || typeof window.AryOffline.listForUser !== 'function') return null;
+
+          const list = await window.AryOffline.listForUser(uid);
+          if (!Array.isArray(list) || !list.length) return null;
+
+          const wantSeriesId = seriesId != null ? String(seriesId) : '';
+          const wantSeriesSlug = canonicalSeriesSlug ? String(canonicalSeriesSlug) : '';
+
+          const filtered = list.filter((r) => {
+            if (!r) return false;
+            const rid = r.seriesId != null ? String(r.seriesId) : '';
+            const rslug = r.seriesSlug != null ? String(r.seriesSlug) : '';
+            if (wantSeriesId && rid && rid === wantSeriesId) return true;
+            if (wantSeriesSlug && rslug && rslug === wantSeriesSlug) return true;
+            if (!wantSeriesId && !wantSeriesSlug) return true;
+            return false;
+          });
+
+          if (!filtered.length) return null;
+
+          const first = filtered[0] || null;
+          const title = first && first.title ? String(first.title) : titleName;
+          const cover = first && first.cover ? String(first.cover) : (seriesCover || '');
+
+          return {
+            title: { title, cover_url: cover, description: '' },
+            chapters: filtered.map((r) => ({
+              id: r.chapterId,
+              chapter: r.chapterLabel || r.chapterId,
+              url: null,
+              scanlation_group: 'Offline',
+              translated_language: 'en',
+              cover_url: r.cover || cover,
+            })),
+          };
+        } catch (_) {
+          return null;
+        }
+      }
+
+      function getChapterNumberKey(value) {
+        const raw = String(value || '').trim();
+        if (!raw) return '';
+        const num = parseFloat(raw);
+        if (Number.isFinite(num)) return String(num);
+        return raw.toLowerCase();
+      }
+
+      function getCurrentChapterNumber() {
+        const matched = findChapterMatch(chapterId, allChapters);
+        const chapterValue = matched?.chapter || matched?.chap || null;
+        return chapterValue != null ? String(chapterValue) : '';
+      }
+
+      function updateGroupOptionsForCurrentChapter() {
+        if (!groupSelect) return;
+        const currentNumber = getCurrentChapterNumber();
+        if (!currentNumber) {
+          populateGroupSelect();
+          return;
+        }
+
+        const numberKey = getChapterNumberKey(currentNumber);
+        const chapterScoped = allChapters.filter((ch) => {
+          return getChapterNumberKey(ch?.chapter) === numberKey;
+        });
+
+        const groups = Array.from(
+          new Set(chapterScoped.map((ch) => ch.scanlation_group || "Unknown group"))
+        ).sort((a, b) => a.localeCompare(b));
+
+        if (currentGroupFilter && !groups.includes(currentGroupFilter)) {
+          currentGroupFilter = "";
+        }
+
+        groupSelect.innerHTML = `
+          <option value="">All groups (${chapterScoped.length || 0})</option>
+          ${groups.map((g) => `<option value="${g}">${g}</option>`).join("")}
+        `;
+        groupSelect.value = currentGroupFilter;
+      }
+
+      function isStandalone() {
+        try {
+          return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone;
+        } catch (_) {
+          return false;
+        }
+      }
+
+      async function refreshOfflineGate() {
+        offlineReady = false;
+        offlineUserId = null;
+        try {
+          if (!isStandalone()) return;
+          if (typeof getSupabaseClient !== 'function') return;
+          const client = getSupabaseClient();
+          if (!client) return;
+          const { data, error } = await client.auth.getUser();
+          if (error || !data || !data.user) return;
+          offlineUserId = String(data.user.id);
+          if (!offlineUserId) return;
+          offlineReady = true;
+        } catch (_) {
+          offlineReady = false;
+          offlineUserId = null;
+        }
+
+        if (!offlineReady) {
+          const cached = getLastOfflineUserId();
+          if (cached) {
+            offlineUserId = cached;
+            offlineReady = true;
+          }
+        }
+      }
+
+      async function isChapterDownloaded() {
+        try {
+          if (!offlineReady || !offlineUserId) return false;
+          if (!window.AryOffline || typeof window.AryOffline.listForUser !== 'function') return false;
+          const list = await window.AryOffline.listForUser(offlineUserId);
+          const key = window.AryOffline.makeKey(offlineUserId, currentSource, chapterId);
+          return Array.isArray(list) && list.some((it) => String(it.key) === String(key));
+        } catch (_) {
+          return false;
+        }
+      }
+
+      async function refreshOfflineDownloadUi() {
+        if (!downloadBtn) return;
+        await refreshOfflineGate();
+
+        if (!offlineReady || !offlineUserId) {
+          downloadBtn.hidden = true;
+          downloadBtn.disabled = true;
+          return;
+        }
+
+        downloadBtn.hidden = false;
+        if (!chapterId || !lastPageUrls.length) {
+          downloadBtn.disabled = true;
+          return;
+        }
+
+        const downloaded = await isChapterDownloaded();
+        downloadBtn.disabled = false;
+        downloadBtn.setAttribute('aria-label', downloaded ? 'Remove offline download' : 'Download chapter for offline');
+        downloadBtn.dataset.mode = downloaded ? 'remove' : 'download';
+        downloadBtn.style.opacity = downloaded ? '0.92' : '';
+
+        if (downloaded) {
+          downloadBtn.innerHTML = `
+            <svg viewBox="0 0 24 24">
+              <path d="M3 6h18"></path>
+              <path d="M8 6V4h8v2"></path>
+              <path d="M6 6l1 16h10l1-16"></path>
+              <path d="M10 11v6"></path>
+              <path d="M14 11v6"></path>
+            </svg>
+          `;
+        } else {
+          downloadBtn.innerHTML = `
+            <svg viewBox="0 0 24 24">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+          `;
+        }
+      }
+
+      if (downloadBtn) {
+        downloadBtn.addEventListener('click', async (e) => {
+          e.preventDefault();
+          try {
+            await refreshOfflineGate();
+            if (!offlineReady || !offlineUserId) return;
+            if (!chapterId || !lastPageUrls.length) return;
+
+            downloadBtn.disabled = true;
+            const downloaded = await isChapterDownloaded();
+            const mode = downloadBtn.dataset.mode || (downloaded ? 'remove' : 'download');
+
+            if (mode === 'remove' || downloaded) {
+              if (window.AryOffline && typeof window.AryOffline.removeChapter === 'function') {
+                await window.AryOffline.removeChapter(offlineUserId, currentSource, chapterId);
+              }
+            } else {
+              const chapter = findChapterMatch(chapterId, allChapters) || null;
+              const readerUrl = window.location.href;
+              if (window.AryOffline && typeof window.AryOffline.downloadChapter === 'function') {
+                await window.AryOffline.downloadChapter({
+                  userId: offlineUserId,
+                  source: currentSource,
+                  chapterId,
+                  title: titleName,
+                  description: String(currentSeriesMeta?.description || currentSeriesMeta?.desc || ""),
+                  chapterLabel: String(chapter?.chapter || chapterId),
+                  readerUrl,
+                  pageUrls: lastPageUrls,
+                  cover: chapter?.cover_url || seriesCover,
+                  seriesId,
+                  seriesSlug: canonicalSeriesSlug || currentSeriesMeta?.slug || currentSeriesMeta?.hid || "",
+                });
+              }
+            }
+          } catch (err) {
+            console.warn('offline download failed', err);
+          }
+          downloadBtn.disabled = false;
+          refreshOfflineDownloadUi();
+        });
+      }
+
+      let lastSavedContinuePage = null;
+      let lastContinueSaveAt = 0;
+
+      let expectedTotalPages = 0;
+      let pageGap = 0;
+      let shortcutsEnabled = true;
+
+      let readingMode = "strip"; // "strip" | "page"
+
+      let uiHidden = false;
+
+      // Initialize
+      async function init() {
+        applySavedPreferences();
+        sourceSelect.value = currentSource;
+
+        try {
+          await refreshSourceData(currentSource, { fromInit: true });
+          
+          if (!chapterId && visibleChapters.length) {
+            chapterId = visibleChapters[0].id;
+          }
+          
+          if (chapterId) {
+            await loadChapter(chapterId);
+          } else {
+            statusMessage.textContent = "No chapter selected.";
+          }
+        } catch (err) {
+          statusMessage.textContent = `Failed to load reader: ${err.message}`;
+          console.error(err);
+        }
+
+        // Event listeners
+        prevBtns.forEach(btn => btn?.addEventListener("click", () => navigateChapter("prev")));
+        nextBtns.forEach(btn => btn?.addEventListener("click", () => navigateChapter("next")));
+        chapterSelects.forEach(select => select?.addEventListener("change", handleChapterSelectChange));
+        
+        footerPrev.addEventListener("click", () => navigateChapter("prev"));
+        footerNext.addEventListener("click", () => {
+          const hasNext = currentIndex > 0;
+          if (hasNext) {
+            navigateChapter("next");
+          } else {
+            window.location.href = "/"; // Go home if no next chapter
+          }
+        });
+
+        footerInfo.addEventListener("click", () => {
+          if (canonicalSeriesSlug) {
+            window.location.href = `/series?slug=${canonicalSeriesSlug}`;
+          } else if (seriesId) {
+            window.location.href = `/series?id=${seriesId}`;
+          }
+        });
+
+        settingsBtn.addEventListener("click", toggleSettings);
+        settingsClose.addEventListener("click", closeSettings);
+        settingsOverlay.addEventListener("click", (e) => {
+          if (e.target === settingsOverlay) closeSettings();
+        });
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape" && !settingsOverlay.hidden) {
+            closeSettings();
+          }
+        });
+        if (refreshBtn) {
+          refreshBtn.addEventListener("click", async (e) => {
+            e.preventDefault();
+            try {
+              await refreshSourceData(currentSource, { fromInit: false });
+              const matched = findChapterMatch(chapterId, visibleChapters);
+              if (matched) {
+                chapterId = matched.id;
+              }
+              if (chapterId) {
+                setCurrentIndex(chapterId);
+                await loadChapter(chapterId);
+              }
+            } catch (err) {
+              console.warn('refresh chapters failed', err);
+            }
+          });
+        }
+        if (progressToggle) {
+          progressToggle.addEventListener("click", toggleProgress);
+        }
+        if (progressModeSelect) {
+          progressModeSelect.addEventListener("change", handleProgressModeChange);
+        }
+
+        modeStripBtn?.addEventListener("click", () => setReadingMode("strip"));
+        modePageBtn?.addEventListener("click", () => setReadingMode("page"));
+        sourceSelect.addEventListener("change", handleSourceChange);
+        groupSelect.addEventListener("change", handleGroupChange);
+
+        pageGapInput?.addEventListener("input", () => applyPageGap(parseInt(pageGapInput.value || "0", 10)));
+        shortcutsToggle?.addEventListener("click", toggleShortcuts);
+
+        document.addEventListener("keydown", handleKeyShortcuts);
+
+        let lastScrollY = window.scrollY;
+        window.addEventListener("scroll", () => {
+          const headerStack = document.getElementById('header-stack');
+          if (window.scrollY > lastScrollY && window.scrollY > 150) {
+            if (headerStack && !uiHidden) {
+              setUiHidden(true);
+            }
+          } else {
+            if (headerStack && uiHidden) {
+              setUiHidden(false);
+            }
+          }
+          lastScrollY = window.scrollY;
+        });
+
+        // Scroll-based reading progress
+        const markInteracted = () => {
+          userHasInteracted = true;
+        };
+
+        window.addEventListener('pointerdown', markInteracted, { passive: true });
+        window.addEventListener('touchstart', markInteracted, { passive: true });
+        window.addEventListener('wheel', markInteracted, { passive: true });
+        window.addEventListener('keydown', markInteracted, { passive: true });
+
+        window.addEventListener("scroll", (e) => {
+          const trusted = Boolean(e && e.isTrusted);
+          handleScrollProgress(Boolean(userHasInteracted && trusted));
+        }, { passive: true });
+
+        if (pageContainer) {
+          pageContainer.addEventListener(
+            "scroll",
+            (e) => {
+              const trusted = Boolean(e && e.isTrusted);
+              handleScrollProgress(Boolean(userHasInteracted && trusted));
+            },
+            { passive: true }
+          );
+        }
+        setTimeout(() => handleScrollProgress(false), 100);
+
+        if (scrollTopBtn) {
+          scrollTopBtn.addEventListener("click", () => {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          });
+        }
+        if (scrollTopToggle) {
+          scrollTopToggle.addEventListener("click", toggleScrollTop);
+        }
+      }
+
+      function applySavedPreferences() {
+        const savedProgress = localStorage.getItem("readerProgressEnabled");
+        if (savedProgress === "false") {
+          setProgressEnabled(false, { persist: false });
+        } else {
+          setProgressEnabled(true, { persist: false });
+        }
+
+        const savedProgressMode = localStorage.getItem("readerProgressMode") || "top";
+        progressMode = savedProgressMode;
+        if (progressModeSelect) progressModeSelect.value = savedProgressMode;
+        applyProgressMode(savedProgressMode, { persist: false });
+
+        const savedReadingMode = localStorage.getItem("readerReadingMode") || "strip";
+        setReadingMode(savedReadingMode, { persist: false });
+
+        const savedGap = parseInt(localStorage.getItem("readerPageGap") || "0", 10);
+        pageGap = Number.isFinite(savedGap) ? savedGap : 0;
+        if (pageGapInput) pageGapInput.value = String(pageGap);
+        applyPageGap(pageGap, { persist: false });
+
+        const savedShortcuts = localStorage.getItem("readerShortcutsEnabled");
+        shortcutsEnabled = savedShortcuts !== "false";
+        if (shortcutsToggle) {
+          shortcutsToggle.classList.toggle("active", shortcutsEnabled);
+          shortcutsToggle.textContent = shortcutsEnabled ? "On" : "Off";
+        }
+      }
+
+      if (resumeReadingCard) {
+        const activateResume = (e) => {
+          if (e && typeof e.preventDefault === 'function') e.preventDefault();
+          if (!resumeReadingActivePayload || !resumeReadingActivePayload.page) return;
+          jumpToReaderPage(resumeReadingActivePayload.page);
+          dismissResumeReading();
+        };
+
+        resumeReadingCard.addEventListener('click', activateResume);
+        resumeReadingCard.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            activateResume(e);
+          }
+        });
+      }
+
+      async function refreshSourceData(source, options = {}) {
+        statusMessage.textContent = "Loading chapter list...";
+        
+        try {
+          if (source === "asura") {
+            await loadAsuraChapters(options);
+          } else if (source === "comix") {
+            await loadComixChapters(options);
+          } else if (source === "mangataro") {
+            await loadMangataroChapters(options);
+          }
+          
+          populateGroupSelect();
+
+          // If URL specified a group, lock to it on initial load
+          if (initialGroupParam) {
+            const normalizedGroup = initialGroupParam.trim();
+            if (normalizedGroup) {
+              currentGroupFilter = normalizedGroup;
+              groupSelect.value = normalizedGroup;
+            }
+          }
+
+          applyChapterFilters();
+          statusMessage.textContent = "";
+        } catch (err) {
+          const msg = String((err && err.message) || err || '').trim();
+          const looksOffline = msg === 'offline' || /\boffline\b/i.test(msg) || /Failed to fetch/i.test(msg);
+          if (looksOffline) {
+            try {
+              await refreshOfflineGate();
+              const offlineBundle = await loadOfflineChaptersForSeries();
+              if (offlineBundle && offlineBundle.title && Array.isArray(offlineBundle.chapters) && offlineBundle.chapters.length) {
+                applySourceData(offlineBundle, currentSource);
+                populateGroupSelect();
+                applyChapterFilters({ triggerLoad: true });
+                statusMessage.textContent = "";
+                return;
+              }
+            } catch (_) {}
+          }
+          throw err;
+        }
+      }
+
+      async function loadAsuraChapters() {
+        const slug = await ensureAsuraSlug();
+        if (!slug) throw new Error("Asura slug required");
+
+        if (sourceCache.asura && sourceCache.asura.slug === slug) {
+          applySourceData(sourceCache.asura, "asura");
+          return;
+        }
+
+        const res = await fetch(`/api/source/asura/series?slug=${encodeURIComponent(slug)}`);
+        if (!res.ok) throw new Error(await res.text());
+        
+        const data = await res.json();
+        sourceCache.asura = { ...data, slug };
+        applySourceData(sourceCache.asura, "asura");
+      }
+
+      async function loadComixChapters() {
+        const slug = await ensureComixSlug();
+        if (!slug) throw new Error("Comix slug required");
+
+        if (sourceCache.comix && sourceCache.comix.slug === slug) {
+          applySourceData(sourceCache.comix, "comix");
+          return;
+        }
+
+        const res = await fetch(`/api/source/comix/series?slug=${encodeURIComponent(slug)}`);
+        if (!res.ok) throw new Error(await res.text());
+        
+        const data = await res.json();
+        const backendSlug = data.slug || slug;
+        sourceCache.comix = { ...data, slug: backendSlug };
+        applySourceData(sourceCache.comix, "comix");
+      }
+
+      async function loadMangataroChapters() {
+        const slug = await ensureMangataroSlug();
+        if (!slug) throw new Error("Mangataro slug required");
+
+        if (sourceCache.mangataro && sourceCache.mangataro.slug === slug) {
+          applySourceData(sourceCache.mangataro, "mangataro");
+          return;
+        }
+
+        const res = await fetch(`/api/source/mangataro/series?slug=${encodeURIComponent(slug)}`);
+        if (!res.ok) throw new Error(await res.text());
+        
+        const data = await res.json();
+        const backendSlug = data.slug || slug;
+        sourceCache.mangataro = { ...data, slug: backendSlug };
+        applySourceData(sourceCache.mangataro, "mangataro");
+      }
+
+      function applySourceData(data, sourceKey) {
+        currentSeriesMeta = data.title || currentSeriesMeta;
+        
+        if (currentSeriesMeta?.title) {
+          titleName = currentSeriesMeta.title;
+          // seriesTitle.textContent = titleName;
+          // const sourceLabel = sourceKey === "asura" ? "Asura" : "Mangataro";
+          // seriesSubtitle.textContent = sourceLabel;
+        }
+
+        if (canonicalSeriesSlug) {
+          seriesLinkThumb.href = `/series?slug=${canonicalSeriesSlug}`;
+        } else if (seriesId) {
+          seriesLinkThumb.href = `/series?id=${seriesId}`;
+        }
+
+        seriesCover = currentSeriesMeta?.cover_url || seriesCover;
+        if (seriesCover) {
+          seriesThumb.src = seriesCover;
+          seriesThumb.hidden = false;
+        }
+
+        if (sourceKey === "asura") {
+          currentAsuraSlug = data.slug || currentAsuraSlug;
+          cacheAsuraSlugForSeries(currentAsuraSlug);
+        } else if (sourceKey === "mangataro") {
+          currentMangataroSlug = data.slug || currentMangataroSlug;
+          cacheMangataroSlugForSeries(currentMangataroSlug);
+        } else if (sourceKey === "comix") {
+          currentComixSlug = data.slug || currentComixSlug;
+          cacheComixSlugForSeries(currentComixSlug);
+        }
+
+        allChapters = (data.chapters || []).map((ch) => ({
+          ...ch,
+          id: ch.id || ch.hid || ch.url || `${ch.chapter}`,
+          scanlation_group: ch.scanlation_group || ch.group_name || (sourceKey === "asura" ? "Asura" : "Unknown group"),
+          translated_language: (ch.translated_language || ch.language || "en").toLowerCase(),
+        }));
+
+        // Force sort chapters descending to ensure navigation logic is correct
+        allChapters.sort((a, b) => {
+          const numA = parseFloat(a.chapter);
+          const numB = parseFloat(b.chapter);
+          if (isNaN(numA)) return 1;
+          if (isNaN(numB)) return -1;
+          return numB - numA;
+        });
+
+        currentGroupFilter = "";
+        groupSelect.value = "";
+        visibleChapters = allChapters.slice();
+      }
+
+      function applyChapterFilters({ triggerLoad = false } = {}) {
+        visibleChapters = allChapters.filter((ch) => {
+          if (!currentGroupFilter) return true;
+          const groupName = ch.scanlation_group || "Unknown group";
+          return groupName === currentGroupFilter;
+        });
+
+        updateChapterSelects();
+
+        if (!visibleChapters.length) {
+          currentIndex = -1;
+          pageContainer.hidden = false;
+          loadingOverlay.hidden = true;
+          statusMessage.textContent = "No chapters for this selection.";
+          updateNavButtons();
+          return;
+        }
+
+        const matchedChapter = findChapterMatch(chapterId, visibleChapters);
+        if (matchedChapter) {
+          chapterId = matchedChapter.id;
+          if (triggerLoad) {
+            loadChapter(chapterId);
+          } else {
+            setCurrentIndex(chapterId);
+          }
+        } else {
+          chapterId = visibleChapters[0].id;
+          if (triggerLoad) {
+            loadChapter(chapterId);
+          } else {
+            setCurrentIndex(chapterId);
+          }
+        }
+      }
+
+      async function loadChapter(chapterIdToLoad) {
+        if (!chapterIdToLoad) return;
+        if (loadingChapter) return;
+
+        statusMessage.textContent = "Loading chapter...";
+        statusMessage.hidden = false;
+        pageContainer.hidden = true;
+        loadingChapter = true;
+
+        // Reset progress bar while loading a new chapter
+        updateProgressVisual(0);
+
+        const matched = findChapterMatch(chapterIdToLoad, allChapters);
+        chapterId = matched?.id || chapterIdToLoad;
+        replaceUrlChapter(chapterId);
+        const chapter = matched || null;
+
+        // Keep the group dropdown scoped to this chapter number.
+        updateGroupOptionsForCurrentChapter();
+
+        async function fetchWithRetry(requestUrl, retries) {
+          for (let attempt = 0; attempt <= (retries || 0); attempt++) {
+            try {
+              const r = await fetch(requestUrl);
+              if (r.ok) return r;
+              if (attempt >= (retries || 0)) return r;
+              if (![502, 503, 504].includes(r.status)) return r;
+            } catch (e) {
+              if (attempt >= (retries || 0)) throw e;
+            }
+            await new Promise((resolve) => setTimeout(resolve, 700 * (attempt + 1)));
+          }
+        }
+
+        try {
+          let res;
+          if (currentSource === "asura") {
+            const chapterUrl = chapter?.url || buildAsuraChapterUrl(chapter, chapterId);
+            if (!chapterUrl) {
+              const offlineData = await loadOfflineChapterPages(chapterId);
+              if (offlineData && Array.isArray(offlineData.page_urls) && offlineData.page_urls.length) {
+                if (visibleChapters.length) setCurrentIndex(chapterId);
+                renderPages(offlineData, chapter);
+                return;
+              }
+              throw new Error("Missing Asura chapter URL");
+            }
+            res = await fetch(`/api/source/asura/chapter-pages?url=${encodeURIComponent(chapterUrl)}`);
+          } else if (currentSource === "mangataro") {
+            const chapterUrl = chapter?.url;
+            if (!chapterUrl) {
+              const offlineData = await loadOfflineChapterPages(chapterId);
+              if (offlineData && Array.isArray(offlineData.page_urls) && offlineData.page_urls.length) {
+                if (visibleChapters.length) setCurrentIndex(chapterId);
+                renderPages(offlineData, chapter);
+                return;
+              }
+              throw new Error("Missing Mangataro chapter URL");
+            }
+            res = await fetch(`/api/source/mangataro/chapter-pages?url=${encodeURIComponent(chapterUrl)}`);
+          } else {
+            const chapterUrl = chapter?.url;
+            if (!chapterUrl) {
+              const offlineData = await loadOfflineChapterPages(chapterId);
+              if (offlineData && Array.isArray(offlineData.page_urls) && offlineData.page_urls.length) {
+                if (visibleChapters.length) setCurrentIndex(chapterId);
+                renderPages(offlineData, chapter);
+                return;
+              }
+              throw new Error("Missing Comix chapter URL");
+            }
+            res = await fetchWithRetry(`/api/source/comix/chapter-pages?url=${encodeURIComponent(chapterUrl)}`, 1);
+          }
+
+          if (!res.ok) {
+            let text = '';
+            try { text = await res.text(); } catch (_) {}
+            throw new Error(text || res.statusText || 'request failed');
+          }
+
+          const data = await res.json();
+          
+          if (visibleChapters.length) {
+            setCurrentIndex(chapterId);
+          }
+          
+          const pageUrls = data.page_urls;
+          lastPageUrls = Array.isArray(pageUrls) ? pageUrls.slice() : [];
+          expectedTotalPages = Array.isArray(pageUrls) ? pageUrls.length : 0;
+          document.title = `Ch. ${chapter?.chapter || chapterId} • ${titleName} • Ary`;
+          
+          statusMessage.hidden = true;
+          pageContainer.hidden = false;
+          
+          pageContainer.innerHTML = pageUrls
+            .map((url, idx) => {
+              const proxied = `/api/img-proxy?url=${encodeURIComponent(url)}`;
+              return `<img src="${proxied}" alt="Page ${idx + 1}" loading="lazy" referrerpolicy="no-referrer" />`;
+            })
+            .join("");
+
+          refreshOfflineDownloadUi();
+
+          // Show saved continue progress (if any) now that images exist.
+          // This prompt should only appear on initial load/re-entry, and hide after the
+          // user starts reading.
+          const saved = getSavedContinueProgress();
+          if (saved && expectedTotalPages && (!saved.totalPages || saved.totalPages < expectedTotalPages)) {
+            saved.totalPages = expectedTotalPages;
+            saveContinueProgress(saved);
+          }
+          renderContinueProgressUi(saved);
+
+          // Reset and update scroll-based progress after content is rendered
+          updateProgressVisual(0);
+          setTimeout(() => handleScrollProgress(false), 100);
+
+          writeHistory({
+            title: titleName,
+            chapterId,
+            chapterLabel: chapter?.chapter || chapterId,
+            chapterNumber: chapter?.chapter ?? chapterId,
+            seriesId,
+            seriesSlug: canonicalSeriesSlug || currentSeriesMeta?.slug || currentSeriesMeta?.hid || "",
+            cover: chapter?.cover_url || seriesCover,
+            source: currentSource,
+            sourceSlug:
+              currentSource === "asura"
+                ? currentAsuraSlug
+                : currentSource === "mangataro"
+                ? currentMangataroSlug
+                : currentComixSlug,
+          });
+        } catch (err) {
+          const msg = String((err && err.message) || err || '').trim();
+          const looksOffline = msg === 'offline' || /\boffline\b/i.test(msg) || /Failed to fetch/i.test(msg);
+          if (looksOffline) {
+            try {
+              const offlineData = await loadOfflineChapterPages(chapterId);
+              if (offlineData && Array.isArray(offlineData.page_urls) && offlineData.page_urls.length) {
+                if (visibleChapters.length) {
+                  setCurrentIndex(chapterId);
+                }
+                renderPages(offlineData, chapter);
+                return;
+              }
+            } catch (_) {}
+          }
+          statusMessage.textContent = `Failed to load chapter: ${msg || 'unknown error'}`;
+          console.error(err);
+        } finally {
+          loadingOverlay.hidden = true;
+          loadingChapter = false;
+          toggleNavButtons(false);
+        }
+      }
+
+      function renderPages(data, chapter) {
+        const label = chapter?.chapter || chapterId;
+        document.title = `Ch. ${label} • ${titleName} • Ary`;
+        
+        statusMessage.hidden = true;
+        pageContainer.hidden = false;
+        
+        pageContainer.innerHTML = data.page_urls
+          .map((url, idx) => {
+            const proxied = `/api/img-proxy?url=${encodeURIComponent(url)}`;
+            return `<img src="${proxied}" alt="Page ${idx + 1}" loading="lazy" referrerpolicy="no-referrer" />`;
+          })
+          .join("");
+
+        lastPageUrls = Array.isArray(data.page_urls) ? data.page_urls.slice() : [];
+        refreshOfflineDownloadUi();
+
+        // Reset and update scroll-based progress after content is rendered
+        updateProgressVisual(0);
+        setTimeout(handleScrollProgress, 100);
+
+        writeHistory({
+          title: titleName,
+          chapterId,
+          chapterLabel: label,
+          chapterNumber: chapter?.chapter ?? label,
+          seriesId,
+          seriesSlug: canonicalSeriesSlug || currentSeriesMeta?.slug || currentSeriesMeta?.hid || "",
+          cover: chapter?.cover_url || seriesCover,
+          source: currentSource,
+          sourceSlug:
+            currentSource === "asura"
+              ? currentAsuraSlug
+              : currentSource === "mangataro"
+              ? currentMangataroSlug
+              : currentComixSlug,
+        });
+      }
+
+      function updateProgressVisual(percent) {
+        const clamped = Math.min(100, Math.max(0, Number(percent) || 0));
+        const roundedPercent = Math.round(clamped);
+
+        if (progressMode === "top") {
+          if (progressBar) progressBar.style.width = `${clamped}%`;
+        } else if (progressMode === "ui") {
+          if (uiBarFill) uiBarFill.style.width = `${clamped}%`;
+          if (uiPercentage) uiPercentage.textContent = `${roundedPercent}%`;
+        } else if (progressMode === "minimal") {
+          if (minimalProgress) minimalProgress.textContent = `${roundedPercent}%`;
+        }
+      }
+
+      function handleScrollProgress(fromUserScroll = false) {
+        let percentage = 0;
+
+        if (readingMode === "page" && pageContainer && pageContainer.classList.contains("page-mode")) {
+          const width = pageContainer.scrollWidth - pageContainer.clientWidth;
+          const scrolled = width > 0 ? (pageContainer.scrollLeft / width) * 100 : 0;
+          percentage = Math.min(100, Math.max(0, scrolled));
+        } else {
+          const doc = document.documentElement;
+          const winScroll = doc.scrollTop || document.body.scrollTop;
+          const height = doc.scrollHeight - doc.clientHeight;
+          const scrolled = height > 0 ? (winScroll / height) * 100 : 0;
+          percentage = Math.min(100, Math.max(0, scrolled));
+        }
+
+        updateProgressVisual(percentage);
+        updateContinueProgressFromScroll(fromUserScroll);
+      }
+
+      function getContinueProgressStorage() {
+        try {
+          return JSON.parse(localStorage.getItem("readerContinueProgress") || "{}") || {};
+        } catch (err) {
+          return {};
+        }
+      }
+
+      function setContinueProgressStorage(payload) {
+        try {
+          localStorage.setItem("readerContinueProgress", JSON.stringify(payload || {}));
+        } catch (err) {}
+      }
+
+      function getContinueProgressKey() {
+        const seriesKey = getActiveSeriesKey();
+        if (!seriesKey || !chapterId) return null;
+        return `${String(seriesKey)}|${String(currentSource)}|${String(chapterId)}`;
+      }
+
+      function getSavedContinueProgress() {
+        const key = getContinueProgressKey();
+        if (!key) return null;
+        const store = getContinueProgressStorage();
+        return store[key] || null;
+      }
+
+      function saveContinueProgress(progress) {
+        const key = getContinueProgressKey();
+        if (!key) return;
+        const store = getContinueProgressStorage();
+        store[key] = progress;
+        setContinueProgressStorage(store);
+      }
+
+      function clearContinueProgress() {
+        const key = getContinueProgressKey();
+        if (!key) return;
+        const store = getContinueProgressStorage();
+        if (store[key]) {
+          delete store[key];
+          setContinueProgressStorage(store);
+        }
+      }
+
+      function getReaderImages() {
+        if (!pageContainer) return [];
+        return Array.from(pageContainer.querySelectorAll('img'));
+      }
+
+      function isImageLoaded(img) {
+        return Boolean(img && img.complete && img.naturalHeight > 0);
+      }
+
+      function getCurrentVisiblePageIndex(images) {
+        const list = images || getReaderImages();
+        if (!list.length) return null;
+
+        if (readingMode === "page" && pageContainer && pageContainer.classList.contains("page-mode")) {
+          const slotWidth = pageContainer.clientWidth || window.innerWidth;
+          const idx = slotWidth > 0 ? Math.round(pageContainer.scrollLeft / slotWidth) : 0;
+          return Math.max(1, Math.min(list.length, idx + 1));
+        }
+
+        const marker = window.innerHeight * 0.45;
+        let bestIndex = null;
+        let bestDist = Infinity;
+
+        for (let i = 0; i < list.length; i++) {
+          const img = list[i];
+          const rect = img.getBoundingClientRect();
+          const centerY = rect.top + rect.height / 2;
+          const dist = Math.abs(centerY - marker);
+
+          if (dist < bestDist) {
+            bestDist = dist;
+            bestIndex = i + 1;
+          }
+        }
+        return bestIndex;
+      }
+
+      function renderContinueProgressUi(saved) {
+        if (!resumeReadingWrap || !resumeReadingCard || !resumeReadingSubtitle || !resumeReadingPercent) return;
+
+        if (!saved || !saved.totalPages || !saved.page) {
+          resumeReadingWrap.hidden = true;
+          resumeReadingActivePayload = null;
+          if (headerStack) headerStack.classList.remove('resume-visible');
+          if (resumeReadingHideTimer) {
+            clearTimeout(resumeReadingHideTimer);
+            resumeReadingHideTimer = null;
+          }
+          return;
+        }
+
+        const page = Math.max(1, Math.min(Number(saved.page) || 1, Number(saved.totalPages) || 1));
+        const total = Math.max(1, Number(saved.totalPages) || 1);
+        if (page <= 1 || page >= total) {
+          resumeReadingWrap.hidden = true;
+          resumeReadingActivePayload = null;
+          if (headerStack) headerStack.classList.remove('resume-visible');
+          return;
+        }
+
+        const percent = Math.max(0, Math.min(100, Math.round((page / total) * 100)));
+        resumeReadingSubtitle.textContent = `Continue from ${percent}% (Page ${page})`;
+        resumeReadingPercent.textContent = `${percent}%`;
+
+        resumeReadingActivePayload = { page, totalPages: total };
+        resumeReadingWrap.hidden = false;
+        if (headerStack) headerStack.classList.add('resume-visible');
+        setUiHidden(false);
+
+        if (resumeReadingExpiry) {
+          resumeReadingExpiry.style.transition = 'none';
+          resumeReadingExpiry.style.width = '0%';
+          requestAnimationFrame(() => {
+            resumeReadingExpiry.style.transition = 'width 5s linear';
+            resumeReadingExpiry.style.width = '100%';
+          });
+        }
+
+        if (resumeReadingHideTimer) clearTimeout(resumeReadingHideTimer);
+        resumeReadingHideTimer = setTimeout(() => {
+          clearContinueProgress();
+          dismissResumeReading();
+        }, 5000);
+      }
+
+      function jumpToReaderPage(pageNumber) {
+        const images = getReaderImages();
+        if (!images.length) return;
+
+        const page = Math.max(1, Math.min(Number(pageNumber) || 1, images.length));
+
+        if (readingMode === "page" && pageContainer && pageContainer.classList.contains("page-mode")) {
+          const slotWidth = pageContainer.clientWidth || window.innerWidth;
+          pageContainer.scrollTo({ left: (page - 1) * slotWidth, behavior: "smooth" });
+          return;
+        }
+
+        const img = images[page - 1];
+        if (img && typeof img.scrollIntoView === "function") {
+          img.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }
+
+      function updateContinueProgressFromScroll(fromUserScroll = false) {
+        if (!chapterId || loadingChapter) return;
+        const images = getReaderImages();
+        if (!images.length) return;
+
+        const totalPages = expectedTotalPages || images.length;
+        const currentPage = getCurrentVisiblePageIndex(images);
+        if (!currentPage) return;
+
+        const existing = getSavedContinueProgress();
+        const existingPage = existing && typeof existing.page === "number" ? existing.page : null;
+
+        // Don't keep useless page-1 saves around.
+        if (currentPage <= 1) {
+          if (existingPage !== null && existingPage <= 1) {
+            clearContinueProgress();
+          }
+          return;
+        }
+
+        // Only advance the saved page; never decrease it (prevents accidental reset when scrolling back).
+        // Also: do not re-show the prompt while actively reading.
+        if (existingPage !== null && currentPage <= existingPage) {
+          return;
+        }
+
+        const now = Date.now();
+        const shouldSave = now - lastContinueSaveAt > 800;
+        if (!shouldSave && currentPage === lastSavedContinuePage) return;
+
+        lastContinueSaveAt = now;
+        lastSavedContinuePage = currentPage;
+
+        const doc = document.documentElement;
+        const isNearBottom =
+          readingMode === "page"
+            ? (pageContainer && (pageContainer.scrollLeft + pageContainer.clientWidth) >= (pageContainer.scrollWidth - 40))
+            : (window.scrollY + window.innerHeight) >= (doc.scrollHeight - 80);
+        if (currentPage >= totalPages && totalPages > 1 && isNearBottom) {
+          clearContinueProgress();
+          return;
+        }
+
+        const payload = {
+          page: currentPage,
+          totalPages,
+          updatedAt: new Date().toISOString(),
+        };
+        saveContinueProgress(payload);
+      }
+
+      function dismissResumeReading() {
+        if (!resumeReadingWrap) return;
+        resumeReadingWrap.hidden = true;
+        if (headerStack) headerStack.classList.remove('resume-visible');
+        if (resumeReadingExpiry) {
+          resumeReadingExpiry.style.transition = 'none';
+          resumeReadingExpiry.style.width = '0%';
+        }
+        if (resumeReadingHideTimer) {
+          clearTimeout(resumeReadingHideTimer);
+          resumeReadingHideTimer = null;
+        }
+      }
+
+      function setReadingMode(mode, { persist = true } = {}) {
+        const next = mode === "page" ? "page" : "strip";
+        readingMode = next;
+        document.body.classList.toggle("reading-mode-page", readingMode === "page");
+        if (pageContainer) pageContainer.classList.toggle("page-mode", readingMode === "page");
+
+        if (modeStripBtn) modeStripBtn.classList.toggle("active", readingMode === "strip");
+        if (modePageBtn) modePageBtn.classList.toggle("active", readingMode === "page");
+
+        if (readingMode === "page") {
+          if (scrollTopEnabledBeforePageMode === null) {
+            scrollTopEnabledBeforePageMode = scrollTopEnabled;
+          }
+          setScrollTopEnabled(false, { persist: false });
+          if (scrollTopToggle) {
+            scrollTopToggle.disabled = true;
+            scrollTopToggle.classList.remove("active");
+            scrollTopToggle.textContent = "Off";
+          }
+          if (pageGapInput) {
+            pageGapInput.disabled = true;
+            pageGapInput.value = "0";
+          }
+          applyPageGap(0);
+        } else {
+          if (scrollTopToggle) {
+            scrollTopToggle.disabled = false;
+          }
+          if (scrollTopEnabledBeforePageMode !== null) {
+            setScrollTopEnabled(scrollTopEnabledBeforePageMode, { persist: false });
+            scrollTopEnabledBeforePageMode = null;
+          }
+          if (pageGapInput) pageGapInput.disabled = false;
+        }
+
+        if (persist) localStorage.setItem("readerReadingMode", readingMode);
+      }
+
+      function applyPageGap(value, { persist = true } = {}) {
+        const v = Number.isFinite(value) ? value : 0;
+        pageGap = Math.max(0, Math.min(40, v));
+        document.documentElement.style.setProperty("--page-gap", `${pageGap}px`);
+        if (pageGapValue) pageGapValue.textContent = `${pageGap}px`;
+        if (persist) localStorage.setItem("readerPageGap", String(pageGap));
+      }
+
+      function toggleShortcuts() {
+        shortcutsEnabled = !shortcutsEnabled;
+        shortcutsToggle.classList.toggle("active", shortcutsEnabled);
+        if (shortcutsToggle) shortcutsToggle.textContent = shortcutsEnabled ? "On" : "Off";
+        localStorage.setItem("readerShortcutsEnabled", String(shortcutsEnabled));
+      }
+
+      function handleKeyShortcuts(e) {
+        if (!shortcutsEnabled) return;
+        const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : "";
+        if (tag === "input" || tag === "textarea" || tag === "select") return;
+
+        if (e.key === "ArrowLeft") {
+          e.preventDefault();
+          navigateChapter("prev");
+          return;
+        }
+        if (e.key === "ArrowRight") {
+          e.preventDefault();
+          navigateChapter("next");
+          return;
+        }
+        if (e.key === "s" || e.key === "S") {
+          e.preventDefault();
+          toggleSettings();
+          return;
+        }
+        if (e.key === "j" || e.key === "J") {
+          window.scrollBy({ top: 220, behavior: "smooth" });
+          return;
+        }
+        if (e.key === "k" || e.key === "K") {
+          window.scrollBy({ top: -220, behavior: "smooth" });
+          return;
+        }
+      }
+
+      function setUiHidden(next) {
+        const headerStack = document.getElementById('header-stack');
+        if (headerStack && headerStack.classList.contains('resume-visible')) {
+          uiHidden = false;
+          headerStack.classList.remove('header-stack-hidden');
+          return;
+        }
+        uiHidden = Boolean(next);
+        if (headerStack) headerStack.classList.toggle('header-stack-hidden', uiHidden);
+      }
+
+      function populateGroupSelect() {
+        const groups = Array.from(
+          new Set(allChapters.map((ch) => ch.scanlation_group || "Unknown group"))
+        ).sort((a, b) => a.localeCompare(b));
+
+        groupSelect.innerHTML = `
+          <option value="">All groups (${allChapters.length})</option>
+          ${groups.map((g) => `<option value="${g}">${g}</option>`).join("")}
+        `;
+        groupSelect.value = currentGroupFilter;
+      }
+
+      function updateChapterSelects() {
+        if (!visibleChapters.length) {
+          chapterSelects.forEach(select => {
+            if (select) {
+              select.innerHTML = '<option>No chapters</option>';
+              select.disabled = true;
+            }
+          });
+          return;
+        }
+
+        const optionsMarkup = visibleChapters
+          .map((ch) => {
+            const number = ch.chapter || "?";
+            return `<option value="${ch.id}">Ch. ${number}</option>`;
+          })
+          .join("");
+
+        chapterSelects.forEach(select => {
+          if (select) {
+            select.innerHTML = optionsMarkup;
+            select.value = chapterId || "";
+            select.disabled = false;
+          }
+        });
+      }
+
+      function setCurrentIndex(id) {
+        currentIndex = visibleChapters.findIndex((ch) => ch.id === id);
+        if (currentIndex === -1 && visibleChapters.length) {
+          currentIndex = 0;
+          chapterId = visibleChapters[0].id;
+        }
+        
+        chapterSelects.forEach(select => {
+          if (select) select.value = chapterId || "";
+        });
+        
+        updateNavButtons();
+      }
+
+      function updateNavButtons() {
+        const hasPrev = currentIndex < visibleChapters.length - 1;
+        const hasNext = currentIndex > 0;
+        
+        prevBtns.forEach(btn => {
+          if (btn) btn.disabled = loadingChapter || !hasPrev;
+        });
+        
+        nextBtns.forEach(btn => {
+          if (btn) btn.disabled = loadingChapter || !hasNext;
+        });
+
+        // Update footer nav
+        footerMangaTitle.textContent = titleName;
+        
+        const prevChapter = hasPrev ? visibleChapters[currentIndex + 1] : null;
+        footerPrevChapter.textContent = prevChapter ? `Chapter ${prevChapter.chapter || "?"}` : "-";
+        footerPrev.style.opacity = hasPrev ? "1" : "0.4";
+        footerPrev.style.cursor = hasPrev ? "pointer" : "default";
+
+        // Handle Next Chapter / Back to Home state
+        const nextLabel = footerNext.querySelector('.footer-nav-label');
+        const nextValue = footerNext.querySelector('.footer-nav-value');
+        const nextIcon = footerNext.querySelector('svg');
+
+        if (hasNext) {
+          const nextChapter = visibleChapters[currentIndex - 1];
+          nextLabel.textContent = "Next";
+          nextValue.textContent = `Chapter ${nextChapter.chapter || "?"}`;
+          nextValue.style.display = 'block';
+          nextIcon.innerHTML = `<polyline points="9 18 15 12 9 6"></polyline>`; // Arrow icon
+          footerNext.style.opacity = "1";
+          footerNext.style.cursor = "pointer";
+        } else {
+          nextLabel.textContent = "Back to Home";
+          nextValue.style.display = 'none';
+          nextIcon.innerHTML = `<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline>`; // Home icon
+          footerNext.style.opacity = "1";
+          footerNext.style.cursor = "pointer";
+        }
+      }
+
+      function toggleNavButtons(forceDisable) {
+        if (forceDisable) {
+          prevBtns.forEach(btn => { if (btn) btn.disabled = true; });
+          nextBtns.forEach(btn => { if (btn) btn.disabled = true; });
+        } else {
+          updateNavButtons();
+        }
+      }
+
+      function navigateChapter(direction) {
+        if (!allChapters.length) return;
+
+        // Primary navigation within current group (if any)
+        const withinGroup = allChapters.filter((ch) => {
+          if (!currentGroupFilter) return true;
+          const groupName = ch.scanlation_group || "Unknown group";
+          return groupName === currentGroupFilter;
+        });
+
+        const currentList = withinGroup.length ? withinGroup : allChapters;
+        const idxInList = currentList.findIndex((ch) => ch.id === chapterId);
+        if (idxInList === -1) return;
+
+        let targetIndex = direction === "prev" ? idxInList + 1 : idxInList - 1;
+
+        if (targetIndex < 0 || targetIndex >= currentList.length) {
+          // We hit the edge for this group; try to fall back to any group
+          const currentChapter = currentList[idxInList];
+          const currentNumber = parseFloat(currentChapter.chapter);
+          if (!isNaN(currentNumber)) {
+            const delta = direction === "prev" ? -1 : 1;
+            const targetNumber = currentNumber + delta;
+            const candidates = allChapters.filter((ch) => {
+              const v = parseFloat(ch.chapter);
+              return !isNaN(v) && v === targetNumber;
+            });
+            if (candidates.length) {
+              const nextChapter = candidates[0];
+              chapterId = nextChapter.id;
+              currentGroupFilter = nextChapter.scanlation_group || "";
+              groupSelect.value = currentGroupFilter;
+              applyChapterFilters({ triggerLoad: true });
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+              return;
+            }
+          }
+          return;
+        }
+
+        const nextChapter = currentList[targetIndex];
+        chapterId = nextChapter.id;
+        applyChapterFilters({ triggerLoad: true });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      function handleChapterSelectChange(event) {
+        const selectedId = event.target.value;
+        if (selectedId && selectedId !== chapterId) {
+          loadChapter(selectedId);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      }
+
+      async function handleSourceChange() {
+        const nextSource = sourceSelect.value;
+        if (nextSource === currentSource) return;
+
+        const previousSource = currentSource;
+        currentSource = nextSource;
+
+        try {
+          await refreshSourceData(nextSource);
+          
+          if (!visibleChapters.length) {
+            statusMessage.textContent = "No chapters for this source.";
+            pageContainer.hidden = true;
+            return;
+          }
+          
+          chapterId = visibleChapters[0].id;
+          await loadChapter(chapterId);
+        } catch (err) {
+          alert(`Failed to switch source: ${err.message}`);
+          currentSource = previousSource;
+          sourceSelect.value = previousSource;
+          await refreshSourceData(previousSource);
+          if (chapterId) loadChapter(chapterId);
+        }
+      }
+
+      function handleGroupChange() {
+        const desiredChapterNumber = getCurrentChapterNumber();
+        const desiredKey = getChapterNumberKey(desiredChapterNumber);
+        currentGroupFilter = groupSelect.value;
+        applyChapterFilters({ triggerLoad: false });
+
+        // When switching groups, prefer staying on the same chapter number.
+        if (desiredKey) {
+          const candidate = visibleChapters.find((ch) => getChapterNumberKey(ch?.chapter) === desiredKey);
+          if (candidate?.id) {
+            chapterId = candidate.id;
+            setCurrentIndex(chapterId);
+            loadChapter(chapterId);
+            return;
+          }
+        }
+
+        // Fallback to default behavior.
+        applyChapterFilters({ triggerLoad: true });
+      }
+
+      function toggleSettings() {
+        if (!settingsOverlay) return;
+        if (settingsOverlay.hidden) {
+          openSettings();
+        } else {
+          closeSettings();
+        }
+      }
+
+      function openSettings() {
+        if (!settingsOverlay) return;
+        settingsOverlay.hidden = false;
+        document.body.style.overflow = "hidden";
+      }
+
+      function closeSettings() {
+        if (!settingsOverlay) return;
+        settingsOverlay.hidden = true;
+        document.body.style.overflow = "";
+      }
+
+      function applyProgressMode(mode, opts = {}) {
+        const persist = opts.persist !== false;
+        progressMode = mode;
+        if (persist) localStorage.setItem("readerProgressMode", mode);
+
+        if (progressBar) progressBar.hidden = true;
+        if (uiProgressBar) uiProgressBar.hidden = true;
+        if (minimalProgress) minimalProgress.hidden = true;
+
+        if (!progressEnabled) return;
+
+        if (mode === "top") {
+          if (progressBar) progressBar.hidden = false;
+        } else if (mode === "ui") {
+          if (uiProgressBar) uiProgressBar.hidden = false;
+        } else if (mode === "minimal") {
+          if (minimalProgress) minimalProgress.hidden = false;
+        } else {
+          progressMode = "top";
+          if (progressBar) progressBar.hidden = false;
+        }
+      }
+
+      function setProgressEnabled(enabled, opts = {}) {
+        const persist = opts.persist !== false;
+        progressEnabled = !!enabled;
+        if (persist) {
+          localStorage.setItem("readerProgressEnabled", progressEnabled ? "true" : "false");
+        }
+        if (progressToggle) {
+          progressToggle.textContent = progressEnabled ? "On" : "Off";
+          progressToggle.classList.toggle("active", progressEnabled);
+        }
+        applyProgressMode(progressMode, { persist: false });
+      }
+
+      function toggleProgress() {
+        setProgressEnabled(!progressEnabled);
+      }
+
+      function handleProgressModeChange() {
+        const mode = progressModeSelect ? progressModeSelect.value : "top";
+        applyProgressMode(mode);
+        updateProgressVisual(0);
+      }
+
+      function toggleScrollTop() {
+        if (readingMode === "page") return;
+        setScrollTopEnabled(!scrollTopEnabled);
+      }
+
+      function setScrollTopEnabled(state, { persist = true } = {}) {
+        scrollTopEnabled = state;
+        if (scrollTopBtn) {
+          scrollTopBtn.style.display = state ? "" : "none";
+        }
+        if (scrollTopToggle) {
+          scrollTopToggle.classList.toggle("active", state);
+          scrollTopToggle.textContent = state ? "On" : "Off";
+        }
+        if (persist) {
+          localStorage.setItem("readerScrollTopEnabled", String(state));
+        }
+      }
+
+      function updateUrl(id, label) {
+        const params = new URLSearchParams(window.location.search);
+        params.set("chapter", id);
+        params.set("source", currentSource);
+        if (seriesId) params.set("series", seriesId);
+        if (label) params.set("title", label);
+        if (currentSource === "asura" && currentAsuraSlug) {
+          params.set("slug", currentAsuraSlug);
+        }
+        if (currentSource === "mangataro" && currentMangataroSlug) {
+          params.set("mangataro", currentMangataroSlug);
+        }
+        if (currentSource === "comix" && currentComixSlug) {
+          params.set("comix", currentComixSlug);
+        }
+        if (currentGroupFilter) {
+          params.set("group", currentGroupFilter);
+        } else {
+          params.delete("group");
+        }
+        
+        const newUrl = `/reader?${params.toString()}`;
+        history.replaceState({}, "", newUrl);
+        chapterId = id;
+      }
+
+      // Helper functions
+      function extractChapterToken(chapterIdValue) {
+        if (!chapterIdValue) return null;
+        let decoded = chapterIdValue;
+        try {
+          decoded = decodeURIComponent(chapterIdValue);
+        } catch (err) {}
+        const parts = decoded.split("-");
+        const token = parts[parts.length - 1];
+        if (!token) return null;
+        const num = parseFloat(token);
+        return Number.isFinite(num) ? token : null;
+      }
+
+      function findChapterMatch(targetId, chapters = []) {
+        if (targetId === null || targetId === undefined) return null;
+        const trimmed =
+          typeof targetId === "string" ? targetId.trim() : String(targetId).trim();
+        const direct = chapters.find((ch) => ch.id === trimmed);
+        if (direct) return direct;
+        
+        const targetToken = extractChapterToken(trimmed);
+        if (!targetToken) return null;
+        
+        return chapters.find((ch) => {
+          if (ch.id && extractChapterToken(ch.id) === targetToken) return true;
+          const chapterLabel = ch.chapter != null ? String(ch.chapter).trim() : "";
+          return chapterLabel === targetToken;
+        }) || null;
+      }
+
+      function buildAsuraChapterUrl(chapter, fallbackId) {
+        const slug = currentSeriesMeta?.slug || currentAsuraSlug || currentSeriesMeta?.id || "";
+        if (!slug) return "";
+        
+        const chapterLabel = chapter?.chapter || chapter?.chap || 
+          (typeof fallbackId === "string" ? fallbackId.split("-").pop() : "");
+        if (!chapterLabel) return "";
+        
+        return `${ASURA_BASE_URL}/series/${slug}/chapter/${chapterLabel}`;
+      }
+
+      async function ensureAsuraSlug() {
+        const map = loadAsuraSlugMap();
+        if (currentAsuraSlug) {
+          cacheAsuraSlugForSeries(currentAsuraSlug, map);
+          return currentAsuraSlug;
+        }
+        if (seriesId && map[seriesId]) {
+          currentAsuraSlug = map[seriesId];
+          return currentAsuraSlug;
+        }
+        const input = prompt(
+          "Enter the Asura slug or full URL for this series (e.g., shadow-temple).\nWe'll reuse it next time.",
+          currentAsuraSlug || ""
+        );
+        if (!input) return null;
+        
+        const normalized = input.trim();
+        currentAsuraSlug = normalized;
+        cacheAsuraSlugForSeries(normalized, map);
+        return normalized;
+      }
+
+      async function ensureMangataroSlug() {
+        const map = loadMangataroSlugMap();
+        if (currentMangataroSlug) {
+          cacheMangataroSlugForSeries(currentMangataroSlug, map);
+          return currentMangataroSlug;
+        }
+        if (seriesId && map[seriesId]) {
+          currentMangataroSlug = map[seriesId];
+          return currentMangataroSlug;
+        }
+        const input = prompt(
+          "Enter the Mangataro slug or full URL for this series (e.g., manga/solo-leveling).\nWe'll reuse it next time.",
+          currentMangataroSlug || ""
+        );
+        if (!input) return null;
+        
+        const normalized = input.trim();
+        currentMangataroSlug = normalized;
+        cacheMangataroSlugForSeries(normalized, map);
+        return normalized;
+      }
+
+      async function ensureComixSlug() {
+        const map = loadComixSlugMap();
+        if (currentComixSlug) {
+          cacheComixSlugForSeries(currentComixSlug, map);
+          return currentComixSlug;
+        }
+        if (seriesId && map[seriesId]) {
+          currentComixSlug = map[seriesId];
+          return currentComixSlug;
+        }
+        const input = prompt(
+          "Enter the Comix slug or full URL for this series (e.g., title/1234-series-name).\nWe'll reuse it next time.",
+          currentComixSlug || ""
+        );
+        if (!input) return null;
+        
+        const normalized = input.trim();
+        currentComixSlug = normalized;
+        cacheComixSlugForSeries(normalized, map);
+        return normalized;
+      }
+
+      function loadAsuraSlugMap() {
+        try {
+          return JSON.parse(localStorage.getItem(ASURA_SLUG_STORAGE_KEY) || "{}");
+        } catch (err) {
+          return {};
+        }
+      }
+
+      function loadMangataroSlugMap() {
+        try {
+          return JSON.parse(localStorage.getItem(MANGATARO_SLUG_STORAGE_KEY) || "{}");
+        } catch (err) {
+          return {};
+        }
+      }
+
+      function cacheAsuraSlugForSeries(slugValue, map) {
+        if (!slugValue) return;
+        const existingMap = map || loadAsuraSlugMap();
+        if (seriesId && existingMap[seriesId] !== slugValue) {
+          existingMap[seriesId] = slugValue;
+          saveAsuraSlugMap(existingMap);
+        }
+      }
+
+      function cacheMangataroSlugForSeries(slugValue, map) {
+        if (!slugValue) return;
+        const existingMap = map || loadMangataroSlugMap();
+        if (seriesId && existingMap[seriesId] !== slugValue) {
+          existingMap[seriesId] = slugValue;
+          saveMangataroSlugMap(existingMap);
+        }
+      }
+
+      function cacheComixSlugForSeries(slugValue, map) {
+        if (!slugValue) return;
+        const existingMap = map || loadComixSlugMap();
+        if (seriesId && existingMap[seriesId] !== slugValue) {
+          existingMap[seriesId] = slugValue;
+          saveComixSlugMap(existingMap);
+        }
+      }
+
+      function saveAsuraSlugMap(map) {
+        try {
+          localStorage.setItem(ASURA_SLUG_STORAGE_KEY, JSON.stringify(map));
+        } catch (err) {}
+      }
+
+      function saveMangataroSlugMap(map) {
+        try {
+          localStorage.setItem(MANGATARO_SLUG_STORAGE_KEY, JSON.stringify(map));
+        } catch (err) {}
+      }
+
+      function loadComixSlugMap() {
+        try {
+          return JSON.parse(localStorage.getItem(COMIX_SLUG_STORAGE_KEY) || "{}");
+        } catch (err) {
+          return {};
+        }
+      }
+
+      function saveComixSlugMap(map) {
+        try {
+          localStorage.setItem(COMIX_SLUG_STORAGE_KEY, JSON.stringify(map));
+        } catch (err) {}
+      }
+
+      function getActiveSeriesKey() {
+        return seriesId || canonicalSeriesSlug || currentSeriesMeta?.id || 
+               currentSeriesMeta?.hid || currentSeriesMeta?.slug || titleName;
+      }
+
+      function getReadingProgress() {
+        try {
+          const stored = localStorage.getItem(READING_PROGRESS_KEY);
+          return stored ? JSON.parse(stored) : {};
+        } catch (err) {
+          return {};
+        }
+      }
+
+      function normalizeChapterNumber(value) {
+        const num = parseFloat(value);
+        return Number.isFinite(num) ? num : null;
+      }
+
+      function getProgressKeysForCurrentSeries(entry) {
+        const keys = [];
+        const push = (v) => {
+          if (v === null || v === undefined) return;
+          const s = String(v).trim();
+          if (!s) return;
+          if (!keys.includes(s)) keys.push(s);
+        };
+        push(entry?.seriesId);
+        push(entry?.seriesSlug);
+        push(canonicalSeriesSlug);
+        push(currentSeriesMeta?.hid);
+        push(currentSeriesMeta?.id);
+        push(currentSeriesMeta?.slug);
+        push(titleName);
+        return keys;
+      }
+
+      function recordReadingProgress(entry) {
+        const progress = getReadingProgress();
+        const seriesKey = entry.seriesId || getActiveSeriesKey();
+        const keys = getProgressKeysForCurrentSeries(entry);
+        if (!keys.length && seriesKey) keys.push(String(seriesKey));
+        if (!keys.length) return;
+
+        const chapterNumber = normalizeChapterNumber(entry.chapterNumber ?? entry.chapterLabel);
+
+        for (const key of keys) {
+          const existing = progress[key] || { lastRead: 0, chapters: {} };
+
+          if (chapterNumber !== null) {
+            existing.lastRead = Math.max(existing.lastRead || 0, chapterNumber);
+            if (key === String(seriesKey)) {
+              existing.lastVisitedNumber = chapterNumber;
+            }
+            existing.chapters = existing.chapters || {};
+            existing.chapters[String(chapterNumber)] = true;
+          }
+
+          if (entry.chapterId) existing.lastChapterId = entry.chapterId;
+          if (entry.source) existing.lastSource = entry.source;
+          if (entry.sourceSlug) existing.lastSourceSlug = entry.sourceSlug;
+          if (entry.readerUrl) existing.lastReaderUrl = entry.readerUrl;
+          existing.updatedAt = entry.viewedAt || new Date().toISOString();
+
+          progress[key] = existing;
+        }
+
+        localStorage.setItem(READING_PROGRESS_KEY, JSON.stringify(progress));
+      }
+
+      function writeHistory(entry) {
+        try {
+          console.log("[writeHistory] Called with entry:", entry);
+
+          const seriesKey = entry.seriesId || getActiveSeriesKey();
+          const normalizedSlug = entry.seriesSlug || canonicalSeriesSlug ||
+                                currentSeriesMeta?.slug || currentSeriesMeta?.hid || "";
+
+          const normalizedEntry = {
+            ...entry,
+            seriesId: seriesKey,
+            seriesSlug: normalizedSlug,
+            sourceSlug: entry.sourceSlug || normalizedSlug,
+            chapterNumber: normalizeChapterNumber(entry.chapterNumber ?? entry.chapterLabel),
+            viewedAt: new Date().toISOString(),
+            readerUrl: `/reader${window.location.search}`,
+          };
+
+          console.log("[writeHistory] Normalized entry:", normalizedEntry);
+          recordReadingProgress(normalizedEntry);
+
+          // Prefer remote history for logged-in users.
+          // Only fall back to local history when logged out or when sync fails.
+          (async () => {
+            const synced = await syncHistoryToSupabase(normalizedEntry);
+            if (synced) return;
+
+            try {
+              const existing = JSON.parse(localStorage.getItem("readerHistory") || "[]");
+              console.log("[writeHistory] Existing local history count:", existing.length);
+              const filtered = existing.filter(
+                (item) => item.chapterId !== normalizedEntry.chapterId || item.source !== normalizedEntry.source
+              );
+              filtered.unshift(normalizedEntry);
+              localStorage.setItem("readerHistory", JSON.stringify(filtered.slice(0, 30)));
+              console.log("[writeHistory] Saved to localStorage. New count:", filtered.length);
+            } catch (err) {
+              console.warn("[writeHistory] Failed to write history locally", err);
+            }
+          })();
+        } catch (err) {
+          console.warn("[writeHistory] Failed to write history", err);
+        }
+      }
+
+      async function syncHistoryToSupabase(entry) {
+        try {
+          console.log("[syncHistoryToSupabase] Starting sync...");
+          if (typeof getSupabaseClient !== "function") {
+            console.log("[syncHistoryToSupabase] getSupabaseClient not available");
+            return false;
+          }
+          const client = getSupabaseClient();
+          if (!client) {
+            console.log("[syncHistoryToSupabase] No Supabase client");
+            return false;
+          }
+
+          let user = null;
+          try {
+            const { data, error } = await client.auth.getUser();
+            if (!error && data && data.user) user = data.user;
+          } catch (_) {}
+
+          if (!user) {
+            try {
+              const sessionRes = await client.auth.getSession();
+              const sessionUser = sessionRes && sessionRes.data && sessionRes.data.session && sessionRes.data.session.user
+                ? sessionRes.data.session.user
+                : null;
+              if (sessionUser) user = sessionUser;
+            } catch (_) {}
+          }
+
+          if (!user) {
+            console.log("[syncHistoryToSupabase] No user logged in");
+            return false;
+          }
+          console.log("[syncHistoryToSupabase] User:", user.id);
+
+          if (!entry || !entry.chapterId || !entry.source) {
+            console.log("[syncHistoryToSupabase] Missing required fields:", { chapterId: entry?.chapterId, source: entry?.source });
+            return false;
+          }
+
+          const payload = {
+            user_id: user.id,
+            series_id: entry.seriesId != null ? String(entry.seriesId) : null,
+            series_slug: entry.seriesSlug != null ? String(entry.seriesSlug) : null,
+            series_title: entry.title || titleName || "Untitled",
+            cover_url: entry.cover || seriesCover || null,
+            chapter_id: String(entry.chapterId),
+            chapter_number: entry.chapterNumber != null ? entry.chapterNumber : null,
+            chapter_label: entry.chapterLabel || String(entry.chapterId),
+            source: String(entry.source),
+            source_slug: entry.sourceSlug != null ? String(entry.sourceSlug) : null,
+            reader_url: entry.readerUrl || `/reader${window.location.search}`,
+            viewed_at: entry.viewedAt || new Date().toISOString(),
+          };
+          console.log("[syncHistoryToSupabase] Payload:", payload);
+
+          const { data: upsertData, error: upsertError } = await client
+            .from("reading_history")
+            .upsert(payload, { onConflict: "user_id,source,chapter_id" })
+            .select("id")
+            .limit(1);
+
+          if (upsertError) {
+            console.warn(
+              "[syncHistoryToSupabase] Failed to sync reading_history to Supabase",
+              {
+                message: upsertError?.message,
+                code: upsertError?.code,
+                hint: upsertError?.hint,
+                details: upsertError?.details,
+              }
+            );
+            return false;
+          }
+
+          console.log("[syncHistoryToSupabase] Upsert result:", upsertData);
+
+          console.log("[syncHistoryToSupabase] Successfully synced to Supabase");
+          return true;
+        } catch (err) {
+          console.warn("[syncHistoryToSupabase] Failed to sync reading history to Supabase", err);
+          return false;
+        }
+      }
+
+      // Initialize on load
+      window.addEventListener("DOMContentLoaded", init);
+    </script>
+  </body>
+</html>

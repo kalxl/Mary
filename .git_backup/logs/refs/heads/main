@@ -1,0 +1,5 @@
+0000000000000000000000000000000000000000 c58c98b82fb28a233818788a8b52ad89397878b4 Niskly <itsnisk@gmail.com> 1770224101 +0100	commit (initial): initial commit
+c58c98b82fb28a233818788a8b52ad89397878b4 c58c98b82fb28a233818788a8b52ad89397878b4 Niskly <itsnisk@gmail.com> 1770224101 +0100	Branch: renamed refs/heads/master to refs/heads/main
+c58c98b82fb28a233818788a8b52ad89397878b4 6458f4e706632b4d2968ca26be87bf95e4381d43 Niskly <itsnisk@gmail.com> 1770226220 +0100	commit: Convert webapp from submodule to regular folder
+6458f4e706632b4d2968ca26be87bf95e4381d43 b3f0993c5e42ee9ff56f87b41da9732113b5977b Niskly <itsnisk@gmail.com> 1770229895 +0100	commit: Convert webapp from submodule to regular folder
+b3f0993c5e42ee9ff56f87b41da9732113b5977b d7e78578bab64a02ad14e11e2846b4cf9e362abf Niskly <itsnisk@gmail.com> 1770236893 +0100	commit: Some message about the changes

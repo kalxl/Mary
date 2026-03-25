@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Downloads • Ary</title>
+    <link rel="icon" href="/static/favicon_io/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon_io/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon_io/favicon-16x16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon_io/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script defer src="/static/js/navbar.js?v=20260212-1"></script>
+    <script defer src="/static/js/offline.js"></script>
+    <style>
+      :root {
+        --bg: #0a0e0b;
+        --surface: #131816;
+        --surface-hover: #1a1e1c;
+        --border: #252925;
+        --text-primary: #e8eae8;
+        --text-secondary: #a0a4a1;
+        --text-muted: #7a7e7b;
+        --accent: #78f09a;
+        --accent-dark: #45c768;
+        --accent-rgb: 120, 240, 154;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: "Outfit", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        background: var(--bg);
+        color: var(--text-primary);
+        min-height: 100vh;
+        padding: 0;
+      }
+
+      html, body{
+        scrollbar-width: thin;
+        scrollbar-color: rgba(var(--accent-rgb),0.55) rgba(255,255,255,0.08);
+      }
+      html::-webkit-scrollbar, body::-webkit-scrollbar{width:10px;height:10px}
+      html::-webkit-scrollbar-track, body::-webkit-scrollbar-track{background:rgba(255,255,255,0.06);border-radius:999px}
+      html::-webkit-scrollbar-thumb, body::-webkit-scrollbar-thumb{background:linear-gradient(180deg, rgba(var(--accent-rgb),0.60), rgba(var(--accent-rgb),0.22));border-radius:999px;border:2px solid rgba(0,0,0,0.22)}
+      html::-webkit-scrollbar-thumb:hover, body::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg, rgba(var(--accent-rgb),0.74), rgba(var(--accent-rgb),0.32))}
+
+      .container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 1.25rem 1rem 3rem;
+      }
+
+      .page-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1rem;
+        margin: 1.25rem 0 1rem;
+      }
+
+      .page-header h1 {
+        font-size: 1.35rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+
+      .page-header p {
+        margin-top: 0.3rem;
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+      }
+
+      .actions {
+        display: flex;
+        gap: 0.6rem;
+        align-items: center;
+      }
+
+      .btn {
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--text-primary);
+        border-radius: 12px;
+        padding: 0.55rem 0.85rem;
+        cursor: pointer;
+        font: inherit;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: transform 0.12s ease, background 0.12s ease, border-color 0.12s ease;
+        user-select: none;
+        text-decoration: none;
+      }
+
+      .btn.icon {
+        width: 42px;
+        height: 42px;
+        padding: 0;
+        justify-content: center;
+        border-radius: 12px;
+      }
+
+      .btn:hover {
+        transform: translateY(-1px);
+        background: rgba(255, 255, 255, 0.09);
+        border-color: rgba(var(--accent-rgb), 0.45);
+        text-decoration: none;
+      }
+
+      .btn.danger {
+        border-color: rgba(240, 96, 96, 0.35);
+        background: rgba(240, 96, 96, 0.12);
+        color: #ffd3d3;
+      }
+
+      .btn.danger:hover {
+        border-color: rgba(240, 96, 96, 0.65);
+        background: rgba(240, 96, 96, 0.18);
+      }
+
+      .btn svg {
+        width: 16px;
+        height: 16px;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 2;
+      }
+
+      .btn.icon svg {
+        width: 18px;
+        height: 18px;
+      }
+
+      .card {
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(19, 24, 22, 0.9);
+        border-radius: 16px;
+        overflow: hidden;
+      }
+
+      .series-card {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      .series-summary {
+        display: grid;
+        grid-template-columns: 56px 1fr auto;
+        gap: 0.9rem;
+        padding: 0.9rem 1rem;
+        align-items: center;
+        cursor: pointer;
+        user-select: none;
+      }
+
+      .series-summary:hover {
+        background: rgba(255, 255, 255, 0.03);
+      }
+
+      .series-meta {
+        min-width: 0;
+      }
+
+      .series-meta strong {
+        display: block;
+        font-size: 1rem;
+        line-height: 1.2;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .series-meta p {
+        margin-top: 0.25rem;
+        color: var(--text-secondary);
+        font-size: 0.88rem;
+        line-height: 1.35;
+        display: -webkit-box;
+        line-clamp: 2;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .series-chips {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        flex-wrap: wrap;
+      }
+
+      .chev {
+        width: 18px;
+        height: 18px;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 2;
+        transition: transform 0.15s ease;
+        opacity: 0.75;
+      }
+
+      .series-card.open .chev {
+        transform: rotate(180deg);
+      }
+
+      .chapters {
+        display: none;
+        padding: 0 1rem 1rem;
+      }
+
+      .series-card.open .chapters {
+        display: block;
+      }
+
+      .chapters-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        padding-top: 0.15rem;
+        padding-bottom: 0.75rem;
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+      }
+
+      .chapter-row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 0.75rem;
+        padding: 0.75rem 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        align-items: center;
+      }
+
+      .chapter-meta {
+        min-width: 0;
+      }
+
+      .chapter-meta strong {
+        display: block;
+        font-size: 0.95rem;
+        color: var(--text-primary);
+        line-height: 1.2;
+      }
+
+      .chapter-meta span {
+        display: block;
+        margin-top: 0.2rem;
+        color: var(--text-secondary);
+        font-size: 0.82rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .chapter-actions {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-shrink: 0;
+      }
+
+      .list {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .row {
+        display: grid;
+        grid-template-columns: 56px 1fr auto;
+        gap: 0.9rem;
+        padding: 0.9rem 1rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        align-items: center;
+      }
+
+      .row:last-child {
+        border-bottom: none;
+      }
+
+      .cover {
+        width: 56px;
+        height: 78px;
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        overflow: hidden;
+        background: rgba(255, 255, 255, 0.04);
+        flex: 0 0 auto;
+      }
+
+      .cover img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+
+      .meta {
+        min-width: 0;
+      }
+
+      .meta strong {
+        display: block;
+        font-size: 1rem;
+        line-height: 1.2;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .meta span {
+        display: block;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        margin-top: 0.2rem;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .row-actions {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+      }
+
+      .pill {
+        font-size: 0.78rem;
+        color: color-mix(in srgb, var(--accent) 62%, white);
+        background: rgba(var(--accent-rgb), 0.12);
+        border: 1px solid rgba(var(--accent-rgb), 0.22);
+        padding: 0.2rem 0.55rem;
+        border-radius: 999px;
+        white-space: nowrap;
+      }
+
+      .empty {
+        padding: 2.25rem 1.25rem;
+        text-align: center;
+        color: var(--text-secondary);
+      }
+
+      .gate {
+        padding: 2rem 1.25rem;
+        text-align: center;
+        color: var(--text-secondary);
+      }
+
+      .gate strong {
+        color: var(--text-primary);
+      }
+
+      @media (max-width: 560px) {
+        .row {
+          grid-template-columns: 52px 1fr;
+          grid-template-rows: auto auto;
+          gap: 0.7rem 0.8rem;
+        }
+        .row-actions {
+          grid-column: 1 / -1;
+          justify-content: flex-end;
+        }
+
+        .actions {
+          gap: 0.5rem;
+        }
+
+        .series-summary {
+          grid-template-columns: 52px 1fr auto;
+          gap: 0.75rem;
+          padding: 0.85rem 0.9rem;
+        }
+
+        .chapters {
+          padding: 0 0.9rem 0.9rem;
+        }
+      }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <div id="navbar-mount"></div>
+
+    <div class="container">
+      <div class="page-header">
+        <div>
+          <h1>Downloads</h1>
+          <p>Read downloaded chapters offline. Visible only in the installed app.</p>
+        </div>
+        <div class="actions">
+          <button class="btn icon" id="refresh-btn" type="button" aria-label="Refresh" title="Refresh">
+            <svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3.12-6.74"/><polyline points="21 3 21 9 15 9"/></svg>
+          </button>
+          <button class="btn danger icon" id="delete-all-btn" type="button" aria-label="Delete all" title="Delete all">
+            <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div id="gate" class="gate" hidden></div>
+        <div id="empty" class="empty" hidden>No downloads yet.</div>
+        <div id="list" class="list" hidden></div>
+      </div>
+    </div>
+
+    <script>
+      const navMount = document.getElementById('navbar-mount');
+      const listEl = document.getElementById('list');
+      const emptyEl = document.getElementById('empty');
+      const gateEl = document.getElementById('gate');
+      const refreshBtn = document.getElementById('refresh-btn');
+      const deleteAllBtn = document.getElementById('delete-all-btn');
+
+      function isStandalone() {
+        try {
+          return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone;
+        } catch (_) {
+          return false;
+        }
+      }
+
+      async function injectNavbar() {
+        try {
+          const res = await fetch('/static/components/navbar.html', { cache: 'no-store' });
+          const html = await res.text();
+          navMount.innerHTML = html;
+          if (typeof initNavbar === 'function') initNavbar();
+          navMount.querySelectorAll('[data-nav-link="downloads"]').forEach((el) => el.classList.add('active'));
+        } catch (_) {}
+      }
+
+      async function getUserId() {
+        try {
+          if (typeof getSupabaseClient !== 'function') return null;
+          const client = getSupabaseClient();
+          if (!client) return null;
+          const { data } = await client.auth.getUser();
+          return data && data.user && data.user.id ? String(data.user.id) : null;
+        } catch (_) {
+          return null;
+        }
+      }
+
+      function getUserIdOfflineFallback() {
+        try {
+          const v = localStorage.getItem('aryLastUserId');
+          return v ? String(v) : null;
+        } catch (_) {
+          return null;
+        }
+      }
+
+      function setVisible(el, visible) {
+        if (!el) return;
+        el.hidden = !visible;
+      }
+
+      function escapeHtml(text) {
+        return String(text || '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      }
+
+      function parseChapterNumber(entry) {
+        try {
+          const raw = entry && (entry.chapterLabel || entry.chapterId) ? String(entry.chapterLabel || entry.chapterId) : '';
+          if (!raw) return NaN;
+          const m = raw.match(/\d+(?:\.\d+)?/);
+          if (!m) return NaN;
+          const n = Number(m[0]);
+          return Number.isFinite(n) ? n : NaN;
+        } catch (_) {
+          return NaN;
+        }
+      }
+
+      async function render() {
+        const uid = (await getUserId()) || getUserIdOfflineFallback();
+
+        if (!isStandalone() || !uid) {
+          setVisible(gateEl, true);
+          setVisible(listEl, false);
+          setVisible(emptyEl, false);
+          setVisible(deleteAllBtn, false);
+          setVisible(refreshBtn, false);
+          gateEl.innerHTML = `<strong>Downloads</strong> are available only when you are <strong>logged in</strong> and using the <strong>installed app</strong>.`;
+          return;
+        }
+
+        setVisible(gateEl, false);
+        setVisible(deleteAllBtn, true);
+        setVisible(refreshBtn, true);
+
+        let items = [];
+        try {
+          items = (window.AryOffline && typeof window.AryOffline.listForUser === 'function')
+            ? await window.AryOffline.listForUser(uid)
+            : [];
+        } catch (_) {
+          items = [];
+        }
+
+        if (!items.length) {
+          setVisible(emptyEl, true);
+          setVisible(listEl, false);
+          return;
+        }
+
+        setVisible(emptyEl, false);
+        setVisible(listEl, true);
+
+        const groups = new Map();
+        for (const it of items) {
+          if (!it) continue;
+          const seriesKey = String(it.seriesId || it.seriesSlug || it.title || '');
+          if (!groups.has(seriesKey)) groups.set(seriesKey, []);
+          groups.get(seriesKey).push(it);
+        }
+
+        const seriesList = Array.from(groups.values())
+          .map((chapters) => {
+            const latest = chapters.reduce((acc, cur) => {
+              const a = Number(acc?.downloadedAt || 0) || 0;
+              const b = Number(cur?.downloadedAt || 0) || 0;
+              return b > a ? cur : acc;
+            }, chapters[0]);
+            return { latest, chapters };
+          })
+          .sort((a, b) => (Number(b.latest?.downloadedAt || 0) || 0) - (Number(a.latest?.downloadedAt || 0) || 0));
+
+        listEl.innerHTML = seriesList
+          .map(({ latest, chapters }, idx) => {
+            const title = escapeHtml(latest?.title || 'Untitled');
+            const cover = escapeHtml(latest?.cover || '');
+            const desc = escapeHtml(latest?.description || '');
+            const count = chapters.length;
+            const cardId = `series-${idx}`;
+
+            const chapterRows = chapters
+              .slice()
+              .sort((a, b) => {
+                const an = parseChapterNumber(a);
+                const bn = parseChapterNumber(b);
+                const aOk = Number.isFinite(an);
+                const bOk = Number.isFinite(bn);
+                if (aOk && bOk && an !== bn) return an - bn;
+                if (aOk && !bOk) return -1;
+                if (!aOk && bOk) return 1;
+                return (Number(b.downloadedAt || 0) || 0) - (Number(a.downloadedAt || 0) || 0);
+              })
+              .map((ch) => {
+                const chapLabel = escapeHtml(ch.chapterLabel || ch.chapterId || '');
+                const readerUrl = escapeHtml(ch.readerUrl || '');
+                const downloadedAt = ch.downloadedAt ? new Date(ch.downloadedAt).toLocaleString() : '';
+                return `
+                  <div class="chapter-row" data-key="${escapeHtml(ch.key || '')}">
+                    <div class="chapter-meta">
+                      <strong>${chapLabel ? `Chapter ${chapLabel}` : 'Chapter'}</strong>
+                      <span>${downloadedAt ? `${escapeHtml(downloadedAt)}` : ''}</span>
+                    </div>
+                    <div class="chapter-actions">
+                      <a class="btn" href="${readerUrl}">
+                        <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                        Read
+                      </a>
+                      <button class="btn danger" type="button" data-delete>
+                        <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"></path></svg>
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                `;
+              })
+              .join('');
+
+            return `
+              <div class="series-card" data-series-card id="${cardId}">
+                <div class="series-summary" role="button" tabindex="0" aria-expanded="false" data-series-toggle>
+                  <div class="cover">${cover ? `<img src="${cover}" alt="" />` : ''}</div>
+                  <div class="series-meta">
+                    <strong title="${title}">${title}</strong>
+                    ${desc ? `<p>${desc}</p>` : ''}
+                    <div class="series-chips" style="margin-top:0.55rem;">
+                      <span class="pill">${count} chapter${count === 1 ? '' : 's'}</span>
+                    </div>
+                  </div>
+                  <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </div>
+                <div class="chapters" data-series-body>
+                  <div class="chapters-header">
+                  </div>
+                  ${chapterRows}
+                </div>
+              </div>
+            `;
+          })
+          .join('');
+
+        listEl.querySelectorAll('[data-series-toggle]').forEach((el) => {
+          const toggle = () => {
+            const card = el.closest('[data-series-card]');
+            if (!card) return;
+            const open = card.classList.toggle('open');
+            el.setAttribute('aria-expanded', open ? 'true' : 'false');
+          };
+          el.addEventListener('click', (e) => {
+            if (e.target && e.target.closest && e.target.closest('[data-delete]')) return;
+            toggle();
+          });
+          el.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              toggle();
+            }
+          });
+        });
+
+        listEl.querySelectorAll('[data-delete]').forEach((btn) => {
+          btn.addEventListener('click', async (e) => {
+            const row = e.target.closest('[data-key]');
+            if (!row) return;
+            const key = row.getAttribute('data-key') || '';
+            const item = items.find((it) => String(it.key) === String(key));
+            if (!item) return;
+            try {
+              if (window.AryOffline && typeof window.AryOffline.removeChapter === 'function') {
+                await window.AryOffline.removeChapter(uid, item.source, item.chapterId);
+              }
+            } catch (_) {}
+            render();
+          });
+        });
+      }
+
+      refreshBtn?.addEventListener('click', () => render());
+
+      deleteAllBtn?.addEventListener('click', async () => {
+        const uid = (await getUserId()) || getUserIdOfflineFallback();
+        if (!uid) return;
+        try {
+          if (window.AryOffline && typeof window.AryOffline.removeAllForUser === 'function') {
+            await window.AryOffline.removeAllForUser(uid);
+          }
+        } catch (_) {}
+        render();
+      });
+
+      window.addEventListener('DOMContentLoaded', async () => {
+        await injectNavbar();
+        render();
+      });
+    </script>
+  </body>
+</html>
