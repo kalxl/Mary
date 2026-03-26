@@ -2527,6 +2527,9 @@
       const popupChapterList = document.getElementById('popup-chapter-list');
 
       const SOURCE_OPTIONS = [];
+      if (isComickMode) {
+        SOURCE_OPTIONS.push({ value: "comick", label: "Comick" });
+      }
       const ENABLE_COMIX_SOURCE = false;
       if (ENABLE_COMIX_SOURCE) {
         SOURCE_OPTIONS.push({ value: "comix", label: "Comix" });
@@ -2539,9 +2542,13 @@
         const asuraMap = loadAsuraSlugMap();
         const mangataroMap = loadMangataroSlugMap();
 
-        // Remove existing options
+        // Remove existing Asura/Mangataro options
         SOURCE_OPTIONS.length = 0;
 
+        // Always show Comick first if in comick mode
+        if (isComickMode) {
+          SOURCE_OPTIONS.push({ value: "comick", label: "Comick" });
+        }
         if (ENABLE_COMIX_SOURCE) {
           SOURCE_OPTIONS.push({ value: "comix", label: "Comix" });
         }
