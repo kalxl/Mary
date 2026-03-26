@@ -367,10 +367,13 @@
         contain-intrinsic-size: 260px 360px;
       }
 
-      #history-row .history-card,
-      #library-updates-grid .trending-card,
-      #trending-grid .trending-card {
+      #history-row .history-card {
         contain-intrinsic-size: 180px 340px;
+      }
+      #library-updates-grid .trending-card,
+      #trending-grid .trending-card,
+      #followed-grid .trending-card {
+        contain-intrinsic-size: 180px auto;
       }
 
       .skeleton-card {
@@ -671,6 +674,8 @@
         text-decoration: none;
         color: inherit;
         scroll-snap-align: start;
+        align-self: flex-start;
+        height: fit-content;
       }
       .trending-card:hover .trending-cover::after {
         opacity: 0.85;
