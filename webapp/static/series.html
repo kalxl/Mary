@@ -5033,12 +5033,19 @@
       }
 
       async function preloadExternalSources() {
-        if (!ENABLE_COMIX_SOURCE) return;
         const seriesId = getSlugStorageKey();
         if (!seriesId) return;
+        const asuraMap = loadAsuraSlugMap();
+        const mangataroMap = loadMangataroSlugMap();
         const comixMap = loadComixSlugMap();
         const promises = [];
-        if (comixMap[seriesId]) {
+        if (asuraMap[seriesId]) {
+          promises.push(loadAsuraSeries(asuraMap[seriesId], false));
+        }
+        if (mangataroMap[seriesId]) {
+          promises.push(loadMangataroSeries(mangataroMap[seriesId], false));
+        }
+        if (ENABLE_COMIX_SOURCE && comixMap[seriesId]) {
           promises.push(loadComixSeries(comixMap[seriesId], false));
         }
 
