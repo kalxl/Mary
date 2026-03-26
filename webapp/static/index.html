@@ -328,8 +328,16 @@
         #trending-grid.trending-strip .trending-card,
         #library-updates-grid.library-updates-strip .trending-card,
         #history-row .history-card {
-          flex: 0 0 calc((100% - 1rem) / 2);
-          max-width: calc((100% - 1rem) / 2);
+          flex: 0 0 calc((100% - 1rem) / 3);
+          max-width: calc((100% - 1rem) / 3);
+        }
+        
+        .history-card .history-cover {
+          aspect-ratio: 3 / 4.2;
+        }
+        
+        .history-card .history-card-footer {
+          font-size: 0.75rem;
         }
       }
 
