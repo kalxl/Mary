@@ -4102,31 +4102,45 @@
             const numberStr = String(numberRaw || '').trim();
             const num = parseFloat(numberStr);
 
-            const comixEntry = sourceCache.comix;
-            const comixChapters = (comixEntry && Array.isArray(comixEntry.chapters))
-              ? comixEntry.chapters
-              : [];
-
-            if (!comixChapters.length) {
-              alert('Comix source is not configured for this series yet.');
-              return;
-            }
-
-            let target = null;
-            if (Number.isFinite(num)) {
-              target = comixChapters.find((ch) => {
+            function findChapterForSource(sourceKey) {
+              const entry = sourceCache && sourceCache[sourceKey] ? sourceCache[sourceKey] : null;
+              const chapters = entry && Array.isArray(entry.chapters) ? entry.chapters : [];
+              if (!chapters.length) return null;
+              if (!Number.isFinite(num)) return null;
+              return chapters.find((ch) => {
                 const v = parseFloat(ch.chapter);
                 return Number.isFinite(v) && v === num;
-              });
+              }) || null;
             }
 
-            if (!target) {
-              const label = numberStr || '?';
-              alert(`Chapter ${label} is not available on Comix yet.`);
+            // Prefer opening the in-app reader for a configured source.
+            const asuraMatch = findChapterForSource('asura');
+            if (asuraMatch && asuraMatch.id) {
+              window.location.href = buildReaderUrl(asuraMatch.id, 'asura', asuraMatch.scanlation_group || '');
               return;
             }
-            chapterState.selectedChapterNumber = numberStr;
-            openChapterSelectPopup(numberStr);
+
+            const mangataroMatch = findChapterForSource('mangataro');
+            if (mangataroMatch && mangataroMatch.id) {
+              window.location.href = buildReaderUrl(mangataroMatch.id, 'mangataro', mangataroMatch.scanlation_group || '');
+              return;
+            }
+
+            const comixMatch = findChapterForSource('comix');
+            if (comixMatch && comixMatch.id) {
+              window.location.href = buildReaderUrl(comixMatch.id, 'comix', comixMatch.scanlation_group || '');
+              return;
+            }
+
+            // Fallback: open on Comick directly.
+            const comickId = row.getAttribute('data-chapter-id');
+            if (comickId) {
+              window.location.href = buildReaderUrl(comickId, 'comick');
+              return;
+            }
+
+            const label = numberStr || '?';
+            alert(`No configured source has chapter ${label} yet.`);
           });
         });
       }

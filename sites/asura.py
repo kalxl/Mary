@@ -556,6 +556,10 @@ class AsuraSiteHandler(BaseSiteHandler):
 
     # -- Internal helpers --------------------------------------------
     def _series_base(self, base: str, slug: str) -> str:
+        base_norm = (base or "").lower()
+        # New Asura (Astro) uses /comics/<slug>
+        if "asurascans" in base_norm:
+            return f"{base}/comics/{slug}"
         return f"{base}/series/{slug}"
 
     def _slug_from_url(self, url: str) -> str:

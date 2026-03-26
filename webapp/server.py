@@ -1374,6 +1374,34 @@ async def asura_series(slug: str):
     chapters_raw: List[Dict[str, Any]] = []
     used_url: Optional[str] = None
 
+    def _chapter_url_matches_slug(chapter_url: Optional[str], expected_slug: str) -> bool:
+        if not chapter_url or not expected_slug:
+            return False
+        try:
+            parts = [p for p in urlparse(chapter_url).path.split("/") if p]
+        except Exception:
+            return False
+        if len(parts) < 4:
+            return False
+        # /series/<slug>/chapter/<value>
+        if parts[0] == "series" and parts[2] == "chapter":
+            return parts[1] == expected_slug
+        # /comics/<slug>/chapter/<value>
+        if parts[0] == "comics" and parts[2] == "chapter":
+            return parts[1] == expected_slug
+        return False
+
+    def _filter_chapters_for_slug(chaps: List[Dict[str, Any]], expected_slug: str) -> List[Dict[str, Any]]:
+        if not chaps:
+            return []
+        filtered: List[Dict[str, Any]] = []
+        for ch in chaps:
+            if not isinstance(ch, dict):
+                continue
+            if _chapter_url_matches_slug(ch.get("url"), expected_slug):
+                filtered.append(ch)
+        return filtered
+
     for idx, url in enumerate(candidate_urls):
         try:
             ctx = ASURA_HANDLER.fetch_comic_context(url, scraper, _simple_request)
@@ -1384,12 +1412,17 @@ async def asura_series(slug: str):
             cover_val = comic.get("cover") or comic.get("thumb")
 
             # If we got nothing meaningful, try the next candidate.
-            if (not chaps) and (_looks_generic_title(title_val) or not cover_val):
+            expected_slug = (ctx.identifier or ctx.comic.get("slug") or "").strip() if (ctx and ctx.comic) else ""
+            if not expected_slug and not normalized.startswith("http"):
+                expected_slug = normalized.strip("/")
+
+            filtered_for_slug = _filter_chapters_for_slug(chaps or [], expected_slug)
+            if (not filtered_for_slug) and (_looks_generic_title(title_val) or not cover_val):
                 if idx < len(candidate_urls) - 1:
                     continue
 
             context = ctx
-            chapters_raw = chaps or []
+            chapters_raw = filtered_for_slug or (chaps or [])
             used_url = url
             break
         except Exception as exc:
@@ -1436,23 +1469,33 @@ async def asura_series(slug: str):
         "language": "English",
     }
 
-    chapters: List[Dict[str, Optional[str]]] = []
+    # De-dupe by chapter number (and ensure URLs belong to this series).
+    chapters_by_number: Dict[str, Dict[str, Optional[str]]] = {}
     for entry in chapters_raw:
-        chap_id = entry.get("hid") or entry.get("url") or f"{slug_value}-{entry.get('chap')}"
+        if not isinstance(entry, dict):
+            continue
         chapter_number = entry.get("chap")
-        if chapter_number is not None:
-            chapter_number = str(chapter_number)
-        chapters.append(
-            {
-                "id": chap_id,
-                "chapter": chapter_number,
-                "title": entry.get("title"),
-                "translated_language": "en",
-                "scanlation_group": entry.get("group_name") or "Asura",
-                "published_at": None,
-                "url": entry.get("url"),
-            }
-        )
+        if chapter_number is None:
+            continue
+        chapter_number_str = str(chapter_number).strip()
+        if not chapter_number_str:
+            continue
+        url_val = entry.get("url")
+        if url_val and not _chapter_url_matches_slug(url_val, str(slug_value).strip("/")):
+            continue
+
+        chap_id = entry.get("hid") or url_val or f"{slug_value}-{chapter_number_str}"
+        chapters_by_number[chapter_number_str] = {
+            "id": chap_id,
+            "chapter": chapter_number_str,
+            "title": entry.get("title") or f"Chapter {chapter_number_str}",
+            "translated_language": "en",
+            "scanlation_group": entry.get("group_name") or "Asura",
+            "published_at": None,
+            "url": url_val,
+        }
+
+    chapters: List[Dict[str, Optional[str]]] = list(chapters_by_number.values())
 
     chapters.sort(
         key=lambda ch: float(ch["chapter"]) if ch.get("chapter") and ch.get("chapter").replace(".", "", 1).isdigit() else 0,
@@ -1828,7 +1871,7 @@ async def asura_chapter_pages(url: str):
     if not url:
         raise HTTPException(status_code=400, detail="Missing Asura chapter URL")
 
-    scraper = requests.Session()
+    scraper = _create_scraper(use_cloudflare=True)
     ASURA_HANDLER.configure_session(scraper, None)
 
     try:
