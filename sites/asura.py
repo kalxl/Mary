@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import re
 from typing import Dict, List, Optional
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urljoin
 
 from bs4 import BeautifulSoup
 
@@ -17,6 +17,8 @@ class AsuraSiteHandler(BaseSiteHandler):
         "www.asuracomic.net",
         "asurascans.net",
         "www.asurascans.net",
+        "asurascans.com",
+        "www.asurascans.com",
     )
 
     def configure_session(self, scraper, args) -> None:
@@ -27,6 +29,83 @@ class AsuraSiteHandler(BaseSiteHandler):
                     "Origin": "https://asuracomic.net",
                 }
             )
+
+    def _looks_like_astro(self, html: str) -> bool:
+        # asurascans.com is built with Astro and embeds useful SEO meta/JSON-LD.
+        if not html:
+            return False
+        return (
+            "Astro v" in html
+            or "_astro/" in html
+            or 'name="generator" content="Astro' in html
+        )
+
+    def _parse_astro_series_page(self, html: str, url: str) -> Dict[str, object]:
+        """Extract minimal comic metadata + chapter links from Astro-rendered pages."""
+        soup = BeautifulSoup(html, "html.parser")
+        comic: Dict[str, object] = {}
+
+        og_title = soup.select_one('meta[property="og:title"]')
+        og_image = soup.select_one('meta[property="og:image"]')
+        og_desc = soup.select_one('meta[property="og:description"]')
+
+        title = og_title.get("content") if og_title else None
+        cover = og_image.get("content") if og_image else None
+        desc = og_desc.get("content") if og_desc else None
+
+        if title:
+            # Common format: "Nano Machine | Asura Scans"
+            cleaned = title.split("|")[0].strip()
+            comic["name"] = cleaned or title
+        if cover:
+            comic["cover"] = cover
+        if desc:
+            comic["desc"] = desc
+
+        # JSON-LD sometimes contains richer ComicSeries info.
+        for tag in soup.select('script[type="application/ld+json"]'):
+            try:
+                payload = json.loads(tag.get_text(strip=True) or "")
+            except Exception:
+                continue
+            if isinstance(payload, dict) and payload.get("@type") == "ComicSeries":
+                if not comic.get("name") and payload.get("name"):
+                    comic["name"] = payload.get("name")
+                if not comic.get("desc") and payload.get("description"):
+                    comic["desc"] = payload.get("description")
+                if not comic.get("cover") and payload.get("image"):
+                    comic["cover"] = payload.get("image")
+                genre = payload.get("genre")
+                if genre and not comic.get("genres"):
+                    if isinstance(genre, list):
+                        comic["genres"] = [{"name": str(g)} for g in genre if str(g).strip()]
+                    elif isinstance(genre, str):
+                        comic["genres"] = [{"name": g.strip()} for g in genre.split(",") if g.strip()]
+
+        parsed = urlparse(url)
+        base_url = f"{parsed.scheme}://{parsed.netloc}"
+
+        # Scrape chapter links.
+        chapter_urls: List[str] = []
+        for a in soup.select('a[href*="/chapter/"]'):
+            href = a.get("href")
+            if not href:
+                continue
+            abs_url = urljoin(base_url, href)
+            if "/chapter/" not in abs_url:
+                continue
+            chapter_urls.append(abs_url)
+
+        # De-dupe while preserving order.
+        seen = set()
+        unique_chapters: List[str] = []
+        for u in chapter_urls:
+            if u in seen:
+                continue
+            seen.add(u)
+            unique_chapters.append(u)
+
+        return {"comic": comic, "chapter_urls": unique_chapters}
 
     # -- Helpers -----------------------------------------------------
     def _fetch_html(self, url: str, scraper, make_request) -> str:
@@ -265,6 +344,20 @@ class AsuraSiteHandler(BaseSiteHandler):
         html = self._fetch_html(url, scraper, make_request)
         data = self._parse_chapter_page(html)
         comic = data["comic"] or {}
+
+        # Astro pages (asurascans.com) no longer include Next.js flight payload.
+        chapter_urls: List[str] = []
+        if self._looks_like_astro(html):
+            astro = self._parse_astro_series_page(html, url)
+            astro_comic = astro.get("comic") or {}
+            if isinstance(astro_comic, dict):
+                for k, v in astro_comic.items():
+                    if k not in comic or comic.get(k) in (None, "", []):
+                        comic[k] = v
+            astro_chapters = astro.get("chapter_urls") or []
+            if isinstance(astro_chapters, list):
+                chapter_urls = [str(u) for u in astro_chapters if isinstance(u, str) and u.strip()]
+
         if not comic:
             raise RuntimeError("Unable to parse comic metadata from Asura page.")
 
@@ -285,6 +378,8 @@ class AsuraSiteHandler(BaseSiteHandler):
 
         # inject helpers
         comic["_chapter_map"] = data.get("chapter_map", [])
+        if chapter_urls:
+            comic["_chapter_urls"] = chapter_urls
 
         if not comic["_chapter_map"]:
             series_url = self._series_base(base_url, slug)
@@ -365,6 +460,48 @@ class AsuraSiteHandler(BaseSiteHandler):
         chapter_map: List[Dict] = context.comic.get("_chapter_map", [])
         chapters: List[Dict] = []
 
+        # If we have scraped chapter URLs (Astro pages), build chapters from those.
+        chapter_urls = comic.get("_chapter_urls")
+        if isinstance(chapter_urls, list) and chapter_urls:
+            normalized: List[Dict[str, str]] = []
+            for u in chapter_urls:
+                if not isinstance(u, str) or not u.strip():
+                    continue
+                parsed = urlparse(u)
+                parts = [p for p in parsed.path.split("/") if p]
+                chap_value: Optional[str] = None
+                if "chapter" in parts:
+                    idx = parts.index("chapter")
+                    if idx + 1 < len(parts):
+                        chap_value = parts[idx + 1]
+                if not chap_value:
+                    continue
+                chap_no = self._normalize_chapter_number(chap_value)
+                normalized.append({"chap": chap_no, "url": u})
+
+            def _sort_key(row: Dict[str, str]):
+                value = row.get("chap") or ""
+                try:
+                    return float(value)
+                except ValueError:
+                    return float("inf")
+
+            for row in sorted(normalized, key=_sort_key):
+                chap_no = row.get("chap")
+                chap_url = row.get("url")
+                if not chap_no or not chap_url:
+                    continue
+                chapters.append(
+                    {
+                        "hid": f"{slug}-{chap_no}",
+                        "chap": chap_no,
+                        "title": f"Chapter {chap_no}",
+                        "url": chap_url,
+                        "group_name": None,
+                    }
+                )
+            return chapters
+
         normalized_entries = []
         for entry in chapter_map:
             if not isinstance(entry, dict):
@@ -424,10 +561,13 @@ class AsuraSiteHandler(BaseSiteHandler):
     def _slug_from_url(self, url: str) -> str:
         path = urlparse(url).path
         # path like /series/<slug>/chapter/<name> or /series/<slug>
+        # or /comics/<slug> (Astro)
         parts = [part for part in path.split("/") if part]
         if not parts:
             return ""
         if parts[0] == "series":
+            return parts[1] if len(parts) > 1 else ""
+        if parts[0] == "comics":
             return parts[1] if len(parts) > 1 else ""
         return parts[0]
 

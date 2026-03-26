@@ -71,6 +71,7 @@ COMIX_BASE = "https://comix.to"
 COMIX_HANDLER = ComixSiteHandler()
 USER_SETTINGS_FILE = (DATA_ROOT / "user_settings.json") if DATA_ROOT else (REPO_ROOT / "webapp" / "user_settings.json")
 LIST_DIR = (DATA_ROOT / "list") if DATA_ROOT else (REPO_ROOT / "list")
+REPO_LIST_DIR = REPO_ROOT / "list"
 SERIES_MAP_FILE = LIST_DIR / "series"
 SERVER_JSON_FILE = LIST_DIR / "server.json"
 _USER_SETTINGS_LOCK = threading.Lock()
@@ -146,6 +147,10 @@ def _update_user_settings(payload: UserSettingsPayload) -> Dict[str, Any]:
 def _load_asura_cover_map() -> Dict[str, str]:
     """Loads list/asurascans_slugs.txt in slug|cover format."""
     path = LIST_DIR / "asurascans_slugs.txt"
+    if not path.exists():
+        repo_fallback = REPO_LIST_DIR / "asurascans_slugs.txt"
+        if repo_fallback.exists():
+            path = repo_fallback
     out: Dict[str, str] = {}
     if not path.exists():
         return out
@@ -1338,23 +1343,73 @@ async def asura_series(slug: str):
         raise HTTPException(status_code=400, detail="Missing Asura slug or URL")
 
     normalized = slug.strip()
-    if not normalized.startswith("http"):
-        normalized = normalized.strip("/")
-        normalized = f"{ASURA_BASE}/series/{normalized}"
+
+    # Asura has multiple domains / page implementations.
+    # - https://asuracomic.net/series/<slug> (older Next.js)
+    # - https://asurascans.com/comics/<slug> (new Astro)
+    candidate_urls: List[str]
+    if normalized.startswith("http"):
+        candidate_urls = [normalized]
+    else:
+        s = normalized.strip("/")
+        candidate_urls = [
+            f"{ASURA_BASE}/series/{s}",
+            f"https://asurascans.com/comics/{s}",
+        ]
 
     scraper = _create_scraper(use_cloudflare=True)
     ASURA_HANDLER.configure_session(scraper, None)
 
-    try:
-        context = ASURA_HANDLER.fetch_comic_context(normalized, scraper, _simple_request)
-        chapters_raw = ASURA_HANDLER.get_chapters(context, scraper, "en", _simple_request)
-    except Exception as exc:
-        raise HTTPException(status_code=502, detail=f"Failed to fetch Asura series: {exc}") from exc
+    def _looks_generic_title(title: Optional[str]) -> bool:
+        t = (title or "").strip().lower()
+        if not t:
+            return True
+        return (
+            "asura scans" in t
+            and ("read manga" in t or "read manhwa" in t or "online" in t)
+        )
+
+    last_exc: Optional[Exception] = None
+    context: Optional[SiteComicContext] = None
+    chapters_raw: List[Dict[str, Any]] = []
+    used_url: Optional[str] = None
+
+    for idx, url in enumerate(candidate_urls):
+        try:
+            ctx = ASURA_HANDLER.fetch_comic_context(url, scraper, _simple_request)
+            chaps = ASURA_HANDLER.get_chapters(ctx, scraper, "en", _simple_request)
+
+            comic = ctx.comic or {}
+            title_val = comic.get("name") or ctx.title
+            cover_val = comic.get("cover") or comic.get("thumb")
+
+            # If we got nothing meaningful, try the next candidate.
+            if (not chaps) and (_looks_generic_title(title_val) or not cover_val):
+                if idx < len(candidate_urls) - 1:
+                    continue
+
+            context = ctx
+            chapters_raw = chaps or []
+            used_url = url
+            break
+        except Exception as exc:
+            last_exc = exc
+            continue
+
+    if context is None:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Failed to fetch Asura series: {last_exc}",
+        ) from last_exc
 
     comic = context.comic or {}
     base_url = comic.get("_base_url") or ASURA_BASE
     slug_value = context.identifier or comic.get("slug") or slug
-    source_url = f"{base_url.rstrip('/')}/series/{slug_value.strip('/')}"
+    # Prefer the actual URL we used when available.
+    if used_url and used_url.startswith("http"):
+        source_url = used_url
+    else:
+        source_url = f"{base_url.rstrip('/')}/series/{slug_value.strip('/')}"
 
     tags = []
     genres = comic.get("genres") or []
