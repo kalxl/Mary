@@ -3768,7 +3768,7 @@
             const readClass = isRead ? 'is-read' : '';
 
             // Check if we have a linked source for this chapter
-            const linkedSource = getLinkedSourceForChapter(num);
+            const linkedSource = chNumValue !== null ? getLinkedSourceForChapter(chNumValue) : null;
             const linkedSourceLabel = linkedSource ? linkedSource.toUpperCase() : null;
             
             if (isComickSource) {
