@@ -2572,13 +2572,16 @@
       async function renderAsuraPickerResults(query) {
         if (!slugModalResults) return;
         const q = String(query || '').trim().toLowerCase();
+        // Normalize query: replace spaces with hyphens to match slug format
+        const qNormalized = q.replace(/\s+/g, '-');
         const index = await loadAsuraPickerIndex();
         const filtered = !q
           ? index.slice(0, 40)
           : index.filter((it) => {
               const slug = String(it.slug || '').toLowerCase();
               const title = String(it.title || '').toLowerCase();
-              return slug.includes(q) || title.includes(q);
+              // Match against both original query and normalized (spaces->hyphens)
+              return slug.includes(q) || slug.includes(qNormalized) || title.includes(q) || title.includes(qNormalized);
             }).slice(0, 60);
 
         slugModalResults.innerHTML = filtered.map((it) => {
@@ -2643,6 +2646,9 @@
           console.warn('Failed to persist series mapping', err);
         }
         closeAsuraSlugModal();
+        // Switch to Asura source before loading so renderSeries gets called
+        currentSource = "asura";
+        updateSourceDisplay();
         await loadAsuraSeries(asuraPickerSelectedSlug);
       });
 
@@ -4132,15 +4138,9 @@
               return;
             }
 
-            // Fallback: open on Comick directly.
-            const comickId = row.getAttribute('data-chapter-id');
-            if (comickId) {
-              window.location.href = buildReaderUrl(comickId, 'comick');
-              return;
-            }
-
+            // Fallback: no configured source has this chapter
             const label = numberStr || '?';
-            alert(`No configured source has chapter ${label} yet.`);
+            alert(`No configured source has chapter ${label} yet. Link an Asura/Mangataro series first.`);
           });
         });
       }
