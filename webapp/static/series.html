@@ -1225,6 +1225,18 @@
         height: 16px;
         object-fit: contain;
       }
+      /* Asura tag - purple */
+      .slug-tag.asura {
+        border-color: rgba(147, 51, 234, 0.5);
+        background: rgba(147, 51, 234, 0.18);
+        color: #c084fc;
+      }
+      /* Mangataro tag - orange */
+      .slug-tag.mangataro {
+        border-color: rgba(251, 146, 60, 0.5);
+        background: rgba(251, 146, 60, 0.18);
+        color: #fdba74;
+      }
       .slug-slug {
         color: rgba(255, 255, 255, 0.55);
         font-size: 12px;
@@ -2426,9 +2438,12 @@
             </div>
             <div class="popup-filter-row">
               <span style="display:inline-flex; align-items:center; gap:0.55rem;">
-                <strong>Group:</strong>
-                <select id="popup-group-select" aria-label="Select group">
+                <strong>Source:</strong>
+                <select id="popup-group-select" aria-label="Select source">
                   <option value="">All</option>
+                  <option value="comick">Comick</option>
+                  <option value="asura">Asura</option>
+                  <option value="mangataro">Mangataro</option>
                 </select>
               </span>
               <button type="button" class="btn ghost square" id="popup-reorder-btn">
@@ -2508,8 +2523,7 @@
 
       const SOURCE_OPTIONS = [];
       if (isComickMode) {
-        // "Comick" source is intentionally hidden from the UI options
-        // SOURCE_OPTIONS.push({ value: "comick", label: "Comick" });
+        SOURCE_OPTIONS.push({ value: "comick", label: "Comick" });
       }
       const ENABLE_COMIX_SOURCE = false;
       if (ENABLE_COMIX_SOURCE) {
@@ -2525,6 +2539,11 @@
         
         // Remove existing Asura/Mangataro options
         SOURCE_OPTIONS.length = 0;
+        
+        // Always show Comick first if in comick mode
+        if (isComickMode) {
+          SOURCE_OPTIONS.push({ value: "comick", label: "Comick" });
+        }
         if (ENABLE_COMIX_SOURCE) {
           SOURCE_OPTIONS.push({ value: "comix", label: "Comix" });
         }
@@ -2715,8 +2734,8 @@
           const name = toCleanSeriesName(it);
           const selected = isItemSelected(slug, source) ? 'selected' : '';
           const sourceIcon = source === 'mangataro' 
-            ? `<span class="slug-tag corner mangataro">Mangataro</span>`
-            : `<span class="slug-tag corner"><img src="/static/img/asura.png" alt="Asura" /> Asura</span>`;
+            ? `<span class="slug-tag corner mangataro"><img src="/static/img/mangataro.png" alt="Mangataro" /> Mangataro</span>`
+            : `<span class="slug-tag corner asura"><img src="/static/img/asura.png" alt="Asura" /> Asura</span>`;
           return `
             <div class="slug-result ${selected}" data-slug="${slug}" data-source="${source}">
               <div class="slug-result-media">

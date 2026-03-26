@@ -2462,7 +2462,7 @@
             .map((url, idx) => {
               // Bypass proxy for Asura CDN and Mangataro images (they work with direct URLs)
               const isAsuraCdn = url.includes('asurascans.com') || url.includes('cdn.asurascans.com');
-              const isMangataro = url.includes('mangataro.org');
+              const isMangataro = url.includes('mangataro.org') || url.includes('mangataro.yachts');
               const imgSrc = (isAsuraCdn || isMangataro) ? url : `/api/img-proxy?url=${encodeURIComponent(url)}`;
               return `<img src="${imgSrc}" alt="Page ${idx + 1}" loading="lazy" referrerpolicy="no-referrer" />`;
             })
