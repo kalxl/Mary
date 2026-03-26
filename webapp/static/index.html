@@ -139,13 +139,13 @@
       }
       @media (max-width: 768px) {
         main {
-          gap: 0.95rem;
+          gap: 0.5rem;
           padding-top: 0.85rem;
           padding-bottom: 2.25rem;
         }
 
         .grid-header {
-          margin-bottom: 0.55rem;
+          margin-bottom: 0.35rem;
         }
 
         #chapters-grid.card-grid {
@@ -332,7 +332,15 @@
 
         #trending-grid.trending-strip .trending-card,
         #library-updates-grid.library-updates-strip .trending-card,
+        #followed-grid.trending-strip .trending-card,
         #history-row .history-card {
+          flex: 0 0 calc((100% - 2rem) / 3);
+          max-width: calc((100% - 2rem) / 3);
+          scroll-snap-align: start;
+        }
+        
+        #trending-grid.trending-strip .skeleton-card,
+        #followed-grid.trending-strip .skeleton-card {
           flex: 0 0 calc((100% - 2rem) / 3);
           max-width: calc((100% - 2rem) / 3);
         }
@@ -439,9 +447,15 @@
         overflow-x: auto;
         padding-bottom: 0.2rem;
         scrollbar-gutter: stable;
+        scroll-snap-type: x mandatory;
+        scroll-behavior: smooth;
+        overscroll-behavior-x: contain;
       }
 
       #trending-grid.trending-strip .skeleton-card {
+        flex: 0 0 160px;
+      }
+      #followed-grid.trending-strip .skeleton-card {
         flex: 0 0 160px;
       }
       #trending-grid.trending-strip::-webkit-scrollbar {
@@ -462,6 +476,9 @@
         overflow-x: auto;
         padding-bottom: 0.2rem;
         scrollbar-gutter: stable;
+        scroll-snap-type: x mandatory;
+        scroll-behavior: smooth;
+        overscroll-behavior-x: contain;
       }
       #followed-grid.trending-strip::-webkit-scrollbar {
         height: 0;
@@ -480,6 +497,9 @@
         overflow-x: auto;
         padding-bottom: 0.2rem;
         scrollbar-gutter: stable;
+        scroll-snap-type: x mandatory;
+        scroll-behavior: smooth;
+        overscroll-behavior-x: contain;
       }
 
       #library-updates-grid.library-updates-strip > .trending-card {
@@ -1768,11 +1788,26 @@
         </div>
         
         <div class="footer-links">
-          <a href="/" class="footer-link">Home</a>
-          <a href="/browse" class="footer-link">Browse</a>
-          <a href="/library" class="footer-link">Library</a>
-          <a href="/downloads" class="footer-link">Downloads</a>
-          <a href="https://github.com/kalxl/Mary" class="footer-link" target="_blank" rel="noopener">GitHub</a>
+          <a href="/" class="footer-link">
+            <span class="footer-link-emoji">🏠</span>
+            <span class="footer-link-text">Home</span>
+          </a>
+          <a href="/browse" class="footer-link">
+            <span class="footer-link-emoji">🔍</span>
+            <span class="footer-link-text">Browse</span>
+          </a>
+          <a href="/library" class="footer-link">
+            <span class="footer-link-emoji">📚</span>
+            <span class="footer-link-text">Library</span>
+          </a>
+          <a href="/downloads" class="footer-link">
+            <span class="footer-link-emoji">📥</span>
+            <span class="footer-link-text">Downloads</span>
+          </a>
+          <a href="https://github.com/kalxl/Mary" class="footer-link" target="_blank" rel="noopener">
+            <span class="footer-link-emoji">💻</span>
+            <span class="footer-link-text">GitHub</span>
+          </a>
         </div>
         
         <div class="footer-bottom">

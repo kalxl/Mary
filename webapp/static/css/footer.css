@@ -61,24 +61,51 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
 }
 
 .footer-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
   color: rgba(255, 255, 255, 0.65);
   text-decoration: none;
   font-size: 0.9rem;
   font-weight: 600;
-  padding: 0.5rem 1rem;
-  border-radius: 10px;
+  padding: 0.65rem 1.1rem;
+  border-radius: 14px;
   border: 1px solid transparent;
   transition: all 0.18s ease;
+  background: rgba(255, 255, 255, 0.02);
+  min-width: 85px;
+}
+
+.footer-link-emoji {
+  font-size: 1.35rem;
+  line-height: 1;
+  transition: transform 0.2s ease;
+}
+
+.footer-link-text {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.55);
+  transition: color 0.18s ease;
 }
 
 .footer-link:hover {
   color: var(--accent);
   background: rgba(120, 240, 154, 0.08);
   border-color: rgba(120, 240, 154, 0.15);
+  transform: translateY(-2px);
+}
+
+.footer-link:hover .footer-link-emoji {
+  transform: scale(1.15);
+}
+
+.footer-link:hover .footer-link-text {
+  color: var(--accent);
 }
 
 .footer-bottom {
@@ -164,12 +191,21 @@
   }
   
   .footer-links {
-    gap: 0.35rem;
+    gap: 0.5rem;
   }
   
   .footer-link {
     font-size: 0.85rem;
-    padding: 0.4rem 0.75rem;
+    padding: 0.55rem 0.9rem;
+    min-width: 75px;
+  }
+  
+  .footer-link-emoji {
+    font-size: 1.2rem;
+  }
+  
+  .footer-link-text {
+    font-size: 0.72rem;
   }
   
   .footer-stats {
