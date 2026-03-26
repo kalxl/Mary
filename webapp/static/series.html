@@ -2504,6 +2504,24 @@
         
         updateSourceDisplay();
       }
+      
+      function savePreferredSource(seriesId, source) {
+        try {
+          const map = JSON.parse(localStorage.getItem(PREFERRED_SOURCE_KEY) || "{}");
+          map[seriesId] = source;
+          localStorage.setItem(PREFERRED_SOURCE_KEY, JSON.stringify(map));
+        } catch (_) {}
+      }
+      
+      function loadPreferredSource(seriesId) {
+        try {
+          const map = JSON.parse(localStorage.getItem(PREFERRED_SOURCE_KEY) || "{}");
+          return map[seriesId] || null;
+        } catch (_) {
+          return null;
+        }
+      }
+      
       const ASURA_SLUG_STORAGE_KEY = "asuraSlugMap";
       const MANGATARO_STORAGE_KEY = "mangataroSlugMap";
       const COMIX_STORAGE_KEY = "comixSlugMap";
@@ -2527,6 +2545,7 @@
       let externalSourcesPreloaded = false;
       const READING_PROGRESS_KEY = "readingProgress";
       const CACHE_KEY = 'seriesCache';
+      const PREFERRED_SOURCE_KEY = 'preferredSourceMap';
       let currentRecommendations = [];
       let recommendationPage = 0;
       let chapterState = {};
@@ -3099,6 +3118,9 @@
           }
         }
         currentSource = nextSource;
+        // Save preferred source for this series
+        const mdId = getSlugStorageKey();
+        if (mdId) savePreferredSource(mdId, nextSource);
         updateSourceControlsState();
         await loadSeriesForSource(nextSource);
       }
@@ -3231,11 +3253,31 @@
           // Update source options to show Asura/Mangataro if linked
           updateSourceOptions();
           
-          // Load Asura data if linked (for chapter matching)
+          // Check if user has a preferred source for this series
           const mdId = getSlugStorageKey();
-          const asuraMap = loadAsuraSlugMap();
-          if (mdId && asuraMap[mdId]) {
-            loadAsuraSeries(asuraMap[mdId], false);
+          const preferredSource = mdId ? loadPreferredSource(mdId) : null;
+          
+          if (preferredSource && preferredSource !== 'comick') {
+            // Switch to preferred source immediately (will use cache if available)
+            currentSource = preferredSource;
+            updateSourceControlsState();
+            if (preferredSource === 'asura') {
+              const asuraMap = loadAsuraSlugMap();
+              if (mdId && asuraMap[mdId]) {
+                await loadAsuraSeries(asuraMap[mdId]);
+              }
+            } else if (preferredSource === 'mangataro') {
+              const mangataroMap = loadMangataroSlugMap();
+              if (mdId && mangataroMap[mdId]) {
+                await loadMangataroSeries(mangataroMap[mdId]);
+              }
+            }
+          } else {
+            // Load Asura data if linked (for chapter matching in Comick UI)
+            const asuraMap = loadAsuraSlugMap();
+            if (mdId && asuraMap[mdId]) {
+              loadAsuraSeries(asuraMap[mdId], false);
+            }
           }
         } catch (err) {
           hero.innerHTML = `<p style="color: var(--muted);">Failed to load Comick series: ${err}</p>`;
