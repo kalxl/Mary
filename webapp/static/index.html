@@ -68,6 +68,7 @@
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
+        margin-top: 1.5rem;
         gap: 1rem;
         margin-bottom: 0.4rem;
       }
@@ -1821,10 +1822,8 @@
       </div>
     </footer>
     <script>
-      document.getElementById('footer-logo')?.addEventListener('click', function() {
-        this.classList.remove('spinning');
-        void this.offsetWidth;
-        this.classList.add('spinning');
+      document.getElementById('footer-logo')?.addEventListener('dblclick', function() {
+        this.classList.toggle('spinning');
       });
     </script>
 
