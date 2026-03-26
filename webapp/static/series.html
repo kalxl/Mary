@@ -2484,6 +2484,32 @@
       if (ENABLE_COMIX_SOURCE) {
         SOURCE_OPTIONS.push({ value: "comix", label: "Comix" });
       }
+      // Add Asura and Mangataro to source options if they have linked series
+      function updateSourceOptions() {
+        const mdId = getSlugStorageKey();
+        if (!mdId) return;
+        
+        const asuraMap = loadAsuraSlugMap();
+        const mangataroMap = loadMangataroSlugMap();
+        
+        // Remove existing Asura/Mangataro options
+        SOURCE_OPTIONS.length = 0;
+        if (ENABLE_COMIX_SOURCE) {
+          SOURCE_OPTIONS.push({ value: "comix", label: "Comix" });
+        }
+        
+        // Add Asura if linked
+        if (asuraMap[mdId]) {
+          SOURCE_OPTIONS.push({ value: "asura", label: "Asura" });
+        }
+        
+        // Add Mangataro if linked
+        if (mangataroMap[mdId]) {
+          SOURCE_OPTIONS.push({ value: "mangataro", label: "Mangataro" });
+        }
+        
+        updateSourceDisplay();
+      }
       const ASURA_SLUG_STORAGE_KEY = "asuraSlugMap";
       const MANGATARO_STORAGE_KEY = "mangataroSlugMap";
       const COMIX_STORAGE_KEY = "comixSlugMap";
@@ -3185,6 +3211,16 @@
           setCache(cacheKey, payload);
           sourceCache.comick = payload;
           renderSeries(payload, "comick");
+          
+          // Update source options to show Asura/Mangataro if linked
+          updateSourceOptions();
+          
+          // Load Asura data if linked (for chapter matching)
+          const mdId = getSlugStorageKey();
+          const asuraMap = loadAsuraSlugMap();
+          if (mdId && asuraMap[mdId]) {
+            loadAsuraSeries(asuraMap[mdId], false);
+          }
         } catch (err) {
           hero.innerHTML = `<p style="color: var(--muted);">Failed to load Comick series: ${err}</p>`;
           hero.hidden = false;
@@ -3214,6 +3250,8 @@
           if (currentSource === "asura") {
             renderSeries(data, "asura");
           }
+          // Update source options to show Asura in the switcher
+          updateSourceOptions();
         } catch (err) {
           if (showLoading) {
             alert(`Failed to load Asura series: ${err}`);
