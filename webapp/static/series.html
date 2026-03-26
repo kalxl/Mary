@@ -2439,11 +2439,16 @@
             <div class="popup-filter-row">
               <span style="display:inline-flex; align-items:center; gap:0.55rem;">
                 <strong>Source:</strong>
-                <select id="popup-group-select" aria-label="Select source">
+                <select id="popup-source-select" aria-label="Select source">
                   <option value="">All</option>
-                  <option value="comick">Comick</option>
                   <option value="asura">Asura</option>
                   <option value="mangataro">Mangataro</option>
+                </select>
+              </span>
+              <span style="display:inline-flex; align-items:center; gap:0.55rem;">
+                <strong>Group:</strong>
+                <select id="popup-group-select" aria-label="Select group">
+                  <option value="">All</option>
                 </select>
               </span>
               <button type="button" class="btn ghost square" id="popup-reorder-btn">
@@ -5127,6 +5132,7 @@
       let popupSortDesc = true;
       let popupSearchQuery = '';
       let popupGroupFilter = '';
+      let popupSourceFilter = '';
 
       function populatePopup() {
         const popupSourceTabs = document.getElementById('popup-source-tabs');
@@ -5281,7 +5287,8 @@
 
         function applyFilters(chapters) {
           const q = String(popupSearchQuery || '').trim().toLowerCase();
-          const targetSource = String(popupGroupFilter || '').trim().toLowerCase();
+          const targetSource = String(popupSourceFilter || '').trim().toLowerCase();
+          const targetGroup = String(popupGroupFilter || '').trim().toLowerCase();
           return (chapters || []).filter((ch) => {
             const label = String(ch.chapter || '').toLowerCase();
             const group = String(ch.scanlation_group || ch.group_name || '').toLowerCase();
@@ -5289,7 +5296,8 @@
             const sourceKey = String(ch.__sourceKey || '').toLowerCase();
             const matchesQuery = !q || label.includes(q) || group.includes(q) || title.includes(q);
             const matchesSource = !targetSource || sourceKey === targetSource;
-            return matchesQuery && matchesSource;
+            const matchesGroup = !targetGroup || group === targetGroup;
+            return matchesQuery && matchesSource && matchesGroup;
           });
         }
 
@@ -5394,6 +5402,15 @@
           groupSelectEl.__aryBound = true;
           groupSelectEl.addEventListener('change', () => {
             popupGroupFilter = String(groupSelectEl.value || '');
+            render();
+          });
+        }
+
+        const sourceSelectEl = document.getElementById('popup-source-select');
+        if (sourceSelectEl && !sourceSelectEl.__aryBound) {
+          sourceSelectEl.__aryBound = true;
+          sourceSelectEl.addEventListener('change', () => {
+            popupSourceFilter = String(sourceSelectEl.value || '');
             render();
           });
         }
