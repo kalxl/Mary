@@ -15,7 +15,7 @@
   transform: translateX(-50%);
   width: 200px;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(120, 240, 154, 0.3), transparent);
+  background: linear-gradient(90deg, transparent, rgba(var(--accent-rgb, 120, 240, 154), 0.3), transparent);
 }
 
 .footer-content {
@@ -39,8 +39,8 @@
   height: 56px;
   border-radius: 14px;
   object-fit: contain;
-  filter: drop-shadow(0 4px 12px rgba(120, 240, 154, 0.2));
-  transition: transform 0.2s ease;
+  filter: drop-shadow(0 4px 12px rgba(var(--accent-rgb, 120, 240, 154), 0.2));
+  transition: transform 0.2s ease, filter 0.2s ease;
   cursor: pointer;
 }
 
@@ -61,7 +61,7 @@
   font-size: 1.75rem;
   font-weight: 800;
   letter-spacing: -0.02em;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(120, 240, 154, 0.8));
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(var(--accent-rgb, 120, 240, 154), 0.8));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

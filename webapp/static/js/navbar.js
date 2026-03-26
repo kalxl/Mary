@@ -58,6 +58,12 @@ function applyThemePreset(themeKey) {
     if (preset.rgb) {
       document.documentElement.style.setProperty('--accent-rgb', preset.rgb);
     }
+    // Switch footer logo based on theme (zoro2.png for non-green themes)
+    const footerLogo = document.getElementById('footer-logo');
+    if (footerLogo) {
+      const isGreen = themeKey === 'green';
+      footerLogo.src = isGreen ? '/static/img/zoro.png' : '/static/img/zoro2.png';
+    }
     return true;
   } catch (_) {
     return false;
