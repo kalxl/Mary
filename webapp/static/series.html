@@ -2527,9 +2527,6 @@
       const popupChapterList = document.getElementById('popup-chapter-list');
 
       const SOURCE_OPTIONS = [];
-      if (isComickMode) {
-        SOURCE_OPTIONS.push({ value: "comick", label: "Comick" });
-      }
       const ENABLE_COMIX_SOURCE = false;
       if (ENABLE_COMIX_SOURCE) {
         SOURCE_OPTIONS.push({ value: "comix", label: "Comix" });
@@ -2538,31 +2535,27 @@
       function updateSourceOptions() {
         const mdId = getSlugStorageKey();
         if (!mdId) return;
-        
+
         const asuraMap = loadAsuraSlugMap();
         const mangataroMap = loadMangataroSlugMap();
-        
-        // Remove existing Asura/Mangataro options
+
+        // Remove existing options
         SOURCE_OPTIONS.length = 0;
-        
-        // Always show Comick first if in comick mode
-        if (isComickMode) {
-          SOURCE_OPTIONS.push({ value: "comick", label: "Comick" });
-        }
+
         if (ENABLE_COMIX_SOURCE) {
           SOURCE_OPTIONS.push({ value: "comix", label: "Comix" });
         }
-        
+
         // Add Asura if linked
         if (asuraMap[mdId]) {
           SOURCE_OPTIONS.push({ value: "asura", label: "Asura" });
         }
-        
+
         // Add Mangataro if linked
         if (mangataroMap[mdId]) {
           SOURCE_OPTIONS.push({ value: "mangataro", label: "Mangataro" });
         }
-        
+
         updateSourceDisplay();
       }
       
@@ -2604,7 +2597,7 @@
       let fullDescription = "";
       let descriptionExpanded = false;
       const sourceCache = {};
-      const SOURCE_PRIORITY = ENABLE_COMIX_SOURCE ? ["comick", "comix"] : ["comick"];
+      const SOURCE_PRIORITY = ["asura", "mangataro"];
       let externalSourcesPreloaded = false;
       const READING_PROGRESS_KEY = "readingProgress";
       const CACHE_KEY = 'seriesCache';
@@ -2825,7 +2818,7 @@
           } catch (err) {
             console.warn('Failed to persist series mapping', err);
           }
-          currentSource = "asura";
+          let currentSource = isComickMode ? "comick" : (ENABLE_COMIX_SOURCE ? "comix" : "comick");
           updateSourceDisplay();
           await loadAsuraSeries(firstItem.slug);
         } else if (firstItem.source === 'mangataro') {
@@ -3540,11 +3533,7 @@
           }
         } catch (err) {
           if (showLoading) {
-            currentSource = "comick";
-            updateSourceDisplay();
-            if (sourceCache.comick) {
-              renderSeries(sourceCache.comick, "comick");
-            }
+            alert(`Failed to load Comix series: ${err}`);
           } else {
             console.warn('Comix refresh failed', err);
           }
@@ -5186,9 +5175,6 @@
         }
 
         const potentialSources = [];
-        if (isComickMode && hasChapterForSource('comick')) {
-          potentialSources.push('comick');
-        }
         if (asuraMap[seriesId] && hasChapterForSource('asura')) {
           potentialSources.push('asura');
         }
@@ -5199,7 +5185,7 @@
           potentialSources.push('comix');
         }
 
-        const priorityOrder = ['comick', 'comix', 'asura', 'mangataro'];
+        const priorityOrder = ['comix', 'asura', 'mangataro'];
         potentialSources.sort((a, b) => {
           const ia = priorityOrder.indexOf(a);
           const ib = priorityOrder.indexOf(b);
@@ -6329,6 +6315,10 @@ We'll reuse it next time.`,
         <div class="offline-modal-footer">
           <button type="button" class="btn ghost" onclick="try{document.getElementById('offline-progress-modal')?.classList.remove('open');document.getElementById('offline-progress-modal')?.setAttribute('aria-hidden','true');}catch(_){}">Hide</button>
         </div>
+      </div>
+    </div>
+  </body>
+</html>
       </div>
     </div>
   </body>
