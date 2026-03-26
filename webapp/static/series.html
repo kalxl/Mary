@@ -3692,6 +3692,24 @@
         return `${Math.floor(seconds / 31536000)}y ago`;
       }
 
+      function getLinkedSourceForChapter(chapterNum) {
+        if (!Number.isFinite(chapterNum)) return null;
+        // Check each source cache for this chapter number
+        const sources = ['asura', 'mangataro', 'comix'];
+        for (const src of sources) {
+          const entry = sourceCache && sourceCache[src] ? sourceCache[src] : null;
+          const chapters = entry && Array.isArray(entry.chapters) ? entry.chapters : [];
+          if (chapters.length) {
+            const found = chapters.find((ch) => {
+              const v = parseFloat(ch.chapter);
+              return Number.isFinite(v) && v === chapterNum;
+            });
+            if (found) return src;
+          }
+        }
+        return null;
+      }
+
       function renderChapterTable() {
         if (!chapterList) return;
         const filtered = getFilteredChapters();
@@ -3749,16 +3767,19 @@
             );
             const readClass = isRead ? 'is-read' : '';
 
+            // Check if we have a linked source for this chapter
+            const linkedSource = getLinkedSourceForChapter(num);
+            const linkedSourceLabel = linkedSource ? linkedSource.toUpperCase() : null;
+            
             if (isComickSource) {
               return `
                 <div class="chapter-row is-comick ${readClass}" data-chapter-id="${ch.id}" data-group="${groupName}" data-chapter-number="${ch.chapter ?? ""}" data-chapter-label="${chapterKey}">
                   <div class="chapter-menu">⋮</div>
                   <div class="chapter-info">
                     <div class="chapter-number">Ch. ${ch.chapter ?? "?"}</div>
-                    <div class="chapter-title">${ch.title || groupName}</div>
+                    <div class="chapter-title">${ch.title || ""}</div>
                     <div class="chapter-meta">
-                      <span class="source-pill ${sourceClass}">${sourceLabel}</span>
-                      <span class="chapter-group">${groupName}</span>
+                      <span class="source-pill ${linkedSource ? linkedSource.toLowerCase() : sourceClass}">${linkedSourceLabel || sourceLabel}</span>
                     </div>
                   </div>
                   <div class="chapter-views">0</div>

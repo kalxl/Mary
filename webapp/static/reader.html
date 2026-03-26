@@ -2460,8 +2460,10 @@
           
           pageContainer.innerHTML = pageUrls
             .map((url, idx) => {
-              const proxied = `/api/img-proxy?url=${encodeURIComponent(url)}`;
-              return `<img src="${proxied}" alt="Page ${idx + 1}" loading="lazy" referrerpolicy="no-referrer" />`;
+              // Bypass proxy for Asura CDN images (they work with direct URLs)
+              const isAsuraCdn = url.includes('asurascans.com') || url.includes('cdn.asurascans.com');
+              const imgSrc = isAsuraCdn ? url : `/api/img-proxy?url=${encodeURIComponent(url)}`;
+              return `<img src="${imgSrc}" alt="Page ${idx + 1}" loading="lazy" referrerpolicy="no-referrer" />`;
             })
             .join("");
 
@@ -2530,8 +2532,10 @@
         
         pageContainer.innerHTML = data.page_urls
           .map((url, idx) => {
-            const proxied = `/api/img-proxy?url=${encodeURIComponent(url)}`;
-            return `<img src="${proxied}" alt="Page ${idx + 1}" loading="lazy" referrerpolicy="no-referrer" />`;
+            // Bypass proxy for Asura CDN images (they work with direct URLs)
+            const isAsuraCdn = url.includes('asurascans.com') || url.includes('cdn.asurascans.com');
+            const imgSrc = isAsuraCdn ? url : `/api/img-proxy?url=${encodeURIComponent(url)}`;
+            return `<img src="${imgSrc}" alt="Page ${idx + 1}" loading="lazy" referrerpolicy="no-referrer" />`;
           })
           .join("");
 
