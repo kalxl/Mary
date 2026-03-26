@@ -22,6 +22,20 @@ class AsuraSiteHandler(BaseSiteHandler):
     )
 
     def configure_session(self, scraper, args) -> None:
+        # Asura is aggressive with bot detection. Ensure we look like a browser.
+        headers = {
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/120.0.0.0 Safari/537.36"
+            ),
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Connection": "keep-alive",
+        }
+        for k, v in headers.items():
+            scraper.headers.setdefault(k, v)
+
         if "Referer" not in scraper.headers:
             scraper.headers.update(
                 {
@@ -106,6 +120,47 @@ class AsuraSiteHandler(BaseSiteHandler):
             unique_chapters.append(u)
 
         return {"comic": comic, "chapter_urls": unique_chapters}
+
+    def _parse_astro_chapter_page(self, html: str, url: str) -> Dict[str, object]:
+        """Extract chapter pages from Astro-rendered chapter pages (asurascans.com)."""
+        soup = BeautifulSoup(html, "html.parser")
+        pages: List[Dict] = []
+        seen_urls = set()
+
+        # Method 1: Regex for all CDN image URLs in the HTML (most reliable for Astro)
+        pattern = r'(https://cdn\.asurascans\.com/asura-images/chapters/[^"\s]+?\.(?:webp|jpg|png|jpeg))'
+        matches = re.findall(pattern, html)
+        for i, src in enumerate(matches):
+            if src not in seen_urls:
+                seen_urls.add(src)
+                # Extract order from filename like 001.webp, 002.webp
+                order = 0
+                href = src.split("/")[-1] if "/" in src else src
+                name = href.rsplit(".", 1)[0] if "." in href else href
+                try:
+                    order = int(name) if name.isdigit() else i
+                except ValueError:
+                    order = i
+                pages.append({"url": src, "order": order})
+
+        # Method 2: Also check for images with data-src (lazy loading)
+        for img in soup.select('img[data-src*="asura-images/chapters"]'):
+            src = img.get("data-src")
+            if src and src not in seen_urls:
+                seen_urls.add(src)
+                order = 0
+                href = src.split("/")[-1] if "/" in src else src
+                name = href.rsplit(".", 1)[0] if "." in href else href
+                try:
+                    order = int(name) if name.isdigit() else 0
+                except ValueError:
+                    pass
+                pages.append({"url": src, "order": order})
+
+        # Sort by order
+        pages.sort(key=lambda p: p.get("order", 0))
+
+        return {"chapter": {"pages": pages}}
 
     # -- Helpers -----------------------------------------------------
     def _fetch_html(self, url: str, scraper, make_request) -> str:
@@ -335,7 +390,13 @@ class AsuraSiteHandler(BaseSiteHandler):
         }
 
     def _chapter_url(self, base: str, slug: str, chapter_value: str) -> str:
-        return f"{base}/series/{slug}/chapter/{chapter_value}"
+        base_norm = (base or "").lower()
+        slug_clean = (slug or "").strip("/")
+        chap_clean = str(chapter_value).strip("/")
+        # Current Asura (asuracomic.net + asurascans.com) uses /comics/<slug>/chapter/<n>
+        if "asura" in base_norm:
+            return f"{base}/comics/{slug_clean}/chapter/{chap_clean}"
+        return f"{base}/series/{slug_clean}/chapter/{chap_clean}"
 
     # -- Base overrides ----------------------------------------------
     def fetch_comic_context(
@@ -542,7 +603,13 @@ class AsuraSiteHandler(BaseSiteHandler):
             raise RuntimeError("Chapter URL missing for Asura chapter.")
 
         html = self._fetch_html(chapter_url, scraper, make_request)
-        data = self._parse_chapter_page(html)
+        
+        # Check if this is an Astro page (asurascans.com)
+        if self._looks_like_astro(html):
+            data = self._parse_astro_chapter_page(html, chapter_url)
+        else:
+            data = self._parse_chapter_page(html)
+        
         pages = data.get("chapter", {}).get("pages", [])
 
         image_urls: List[str] = []
@@ -557,10 +624,11 @@ class AsuraSiteHandler(BaseSiteHandler):
     # -- Internal helpers --------------------------------------------
     def _series_base(self, base: str, slug: str) -> str:
         base_norm = (base or "").lower()
-        # New Asura (Astro) uses /comics/<slug>
-        if "asurascans" in base_norm:
-            return f"{base}/comics/{slug}"
-        return f"{base}/series/{slug}"
+        slug_clean = (slug or "").strip("/")
+        # New Asura uses /comics/<slug> (asurascans.com and now also asuracomic.net)
+        if "asura" in base_norm:
+            return f"{base}/comics/{slug_clean}"
+        return f"{base}/series/{slug_clean}"
 
     def _slug_from_url(self, url: str) -> str:
         path = urlparse(url).path

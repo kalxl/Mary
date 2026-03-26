@@ -63,7 +63,7 @@ COMICK_HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
     "Referer": "https://comick.dev/",
 }
-ASURA_BASE = "https://asuracomic.net"
+ASURA_BASE = "https://asurascans.com"
 ASURA_HANDLER = AsuraSiteHandler()
 MANGATARO_BASE = "https://mangataro.org"
 MANGATARO_HANDLER = MangataroSiteHandler()
@@ -1353,6 +1353,7 @@ async def asura_series(slug: str):
     else:
         s = normalized.strip("/")
         candidate_urls = [
+            f"{ASURA_BASE}/comics/{s}",
             f"{ASURA_BASE}/series/{s}",
             f"https://asurascans.com/comics/{s}",
         ]
@@ -1368,6 +1369,10 @@ async def asura_series(slug: str):
             "asura scans" in t
             and ("read manga" in t or "read manhwa" in t or "online" in t)
         )
+
+    def _looks_generic_cover(cover: Optional[str]) -> bool:
+        # Most real series have a cover; generic pages often have None.
+        return not cover
 
     last_exc: Optional[Exception] = None
     context: Optional[SiteComicContext] = None
@@ -1417,7 +1422,7 @@ async def asura_series(slug: str):
                 expected_slug = normalized.strip("/")
 
             filtered_for_slug = _filter_chapters_for_slug(chaps or [], expected_slug)
-            if (not filtered_for_slug) and (_looks_generic_title(title_val) or not cover_val):
+            if (not filtered_for_slug) and (_looks_generic_title(title_val) or _looks_generic_cover(cover_val)):
                 if idx < len(candidate_urls) - 1:
                     continue
 
