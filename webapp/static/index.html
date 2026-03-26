@@ -60,7 +60,7 @@
         padding: 2rem clamp(1rem, 4vw, 4rem) 3rem;
         display: flex;
         flex-direction: column;
-        gap: 2rem;
+        gap: 1.25rem;
         position: relative;
         z-index: 1;
       }
@@ -1583,7 +1583,7 @@
       </section>
 
       <section data-feed-section="chapters">
-        <div class="grid-header has-chips">
+        <div class="grid-header">
           <div class="header-left">
             <div>
               <h3 class="section-title-with-icon">
@@ -1596,9 +1596,24 @@
               <small>Fresh updates straight from Comick</small>
             </div>
           </div>
-          <div class="filter-chips" id="latest-filters" aria-label="Latest filters">
-            <button type="button" class="filter-chip active" data-latest-filter="hot">Hot</button>
-            <button type="button" class="filter-chip" data-latest-filter="new">New</button>
+          <div class="library-updates-filter" id="latest-filter-container" aria-label="Latest filters">
+            <button type="button" class="library-updates-filter-btn" id="latest-filter-btn" aria-haspopup="menu" aria-expanded="false" aria-label="Filter">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="5" r="1.6" />
+                <circle cx="12" cy="12" r="1.6" />
+                <circle cx="12" cy="19" r="1.6" />
+              </svg>
+            </button>
+            <div class="library-updates-filter-menu" id="latest-filter-menu" role="menu" aria-label="Latest filter">
+              <div class="library-updates-filter-item" role="menuitemradio" aria-checked="true" data-latest-filter="hot">
+                <span class="library-updates-filter-label">Hot</span>
+                <span class="library-updates-filter-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg></span>
+              </div>
+              <div class="library-updates-filter-item" role="menuitemradio" aria-checked="false" data-latest-filter="new">
+                <span class="library-updates-filter-label">New</span>
+                <span class="library-updates-filter-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg></span>
+              </div>
+            </div>
           </div>
         </div>
         <div id="chapters-grid" class="card-grid" aria-live="polite"></div>
@@ -1608,23 +1623,44 @@
       </section>
 
       <section data-feed-section="trending">
-        <div class="grid-header has-chips" style="align-items:center;">
+        <div class="grid-header" style="align-items:center;">
           <div class="header-left">
             <div>
               <h3 class="section-title-with-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14 2 9.27l6.91-1.01L12 2z"/>
                 </svg>
-                <span>Rating</span>
+                <span>Highest Rating</span>
               </h3>
               <small>Highest rated titles on Comick</small>
             </div>
           </div>
-          <div class="filter-chips" id="trending-filters" aria-label="Rating filters">
-            <button type="button" class="filter-chip active" data-rating-filter="all">All</button>
-            <button type="button" class="filter-chip" data-rating-filter="manhwa">manhwa</button>
-            <button type="button" class="filter-chip" data-rating-filter="manga">manga</button>
-            <button type="button" class="filter-chip" data-rating-filter="manhua">manhua</button>
+          <div class="library-updates-filter" id="rating-filter-container" aria-label="Rating filters">
+            <button type="button" class="library-updates-filter-btn" id="rating-filter-btn" aria-haspopup="menu" aria-expanded="false" aria-label="Filter">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="5" r="1.6" />
+                <circle cx="12" cy="12" r="1.6" />
+                <circle cx="12" cy="19" r="1.6" />
+              </svg>
+            </button>
+            <div class="library-updates-filter-menu" id="rating-filter-menu" role="menu" aria-label="Rating filter">
+              <div class="library-updates-filter-item" role="menuitemradio" aria-checked="true" data-rating-filter="all">
+                <span class="library-updates-filter-label">All</span>
+                <span class="library-updates-filter-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg></span>
+              </div>
+              <div class="library-updates-filter-item" role="menuitemradio" aria-checked="false" data-rating-filter="manhwa">
+                <span class="library-updates-filter-label">Manhwa</span>
+                <span class="library-updates-filter-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg></span>
+              </div>
+              <div class="library-updates-filter-item" role="menuitemradio" aria-checked="false" data-rating-filter="manga">
+                <span class="library-updates-filter-label">Manga</span>
+                <span class="library-updates-filter-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg></span>
+              </div>
+              <div class="library-updates-filter-item" role="menuitemradio" aria-checked="false" data-rating-filter="manhua">
+                <span class="library-updates-filter-label">Manhua</span>
+                <span class="library-updates-filter-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg></span>
+              </div>
+            </div>
           </div>
         </div>
         <div class="trending-carousel">
@@ -2152,18 +2188,51 @@
 
       function setupFilterChips() {
         setupLibraryUpdatesFilterMenu();
-        latestFilterRow?.querySelectorAll("[data-latest-filter]")?.forEach((btn) => {
-          btn.addEventListener("click", () => {
-            const key = btn.getAttribute('data-latest-filter') || 'all';
-            setLatestMode(key);
+        
+        // Setup latest filter dropdown
+        const latestFilterBtn = document.getElementById('latest-filter-btn');
+        const latestFilterMenu = document.getElementById('latest-filter-menu');
+        if (latestFilterBtn && latestFilterMenu) {
+          latestFilterBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isOpen = latestFilterMenu.classList.toggle('open');
+            latestFilterBtn.setAttribute('aria-expanded', isOpen);
           });
-        });
-
-        trendingFilterRow?.querySelectorAll("[data-rating-filter]")?.forEach((btn) => {
-          btn.addEventListener("click", () => {
-            const key = (btn.getAttribute("data-rating-filter") || "all").toLowerCase();
-            setRatingFilter(key);
+          latestFilterMenu.querySelectorAll('[data-latest-filter]').forEach((item) => {
+            item.addEventListener('click', () => {
+              const key = item.getAttribute('data-latest-filter') || 'hot';
+              setLatestMode(key);
+              latestFilterMenu.classList.remove('open');
+              latestFilterBtn.setAttribute('aria-expanded', 'false');
+            });
           });
+        }
+        
+        // Setup rating filter dropdown
+        const ratingFilterBtn = document.getElementById('rating-filter-btn');
+        const ratingFilterMenu = document.getElementById('rating-filter-menu');
+        if (ratingFilterBtn && ratingFilterMenu) {
+          ratingFilterBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isOpen = ratingFilterMenu.classList.toggle('open');
+            ratingFilterBtn.setAttribute('aria-expanded', isOpen);
+          });
+          ratingFilterMenu.querySelectorAll('[data-rating-filter]').forEach((item) => {
+            item.addEventListener('click', () => {
+              const key = (item.getAttribute('data-rating-filter') || 'all').toLowerCase();
+              setRatingFilter(key);
+              ratingFilterMenu.classList.remove('open');
+              ratingFilterBtn.setAttribute('aria-expanded', 'false');
+            });
+          });
+        }
+        
+        // Close menus on outside click
+        document.addEventListener('click', () => {
+          latestFilterMenu?.classList.remove('open');
+          latestFilterBtn?.setAttribute('aria-expanded', 'false');
+          ratingFilterMenu?.classList.remove('open');
+          ratingFilterBtn?.setAttribute('aria-expanded', 'false');
         });
 
         setLatestMode(latestMode, { silent: true });
@@ -2172,9 +2241,11 @@
 
       function setLatestMode(mode, { silent = false } = {}) {
         latestMode = mode === 'new' ? 'new' : 'hot';
-        latestFilterRow?.querySelectorAll(".filter-chip")?.forEach((chip) => {
-          const key = chip.getAttribute("data-latest-filter");
-          chip.classList.toggle("active", key === latestMode);
+        // Update dropdown items
+        const latestFilterMenu = document.getElementById('latest-filter-menu');
+        latestFilterMenu?.querySelectorAll('[data-latest-filter]')?.forEach((item) => {
+          const key = item.getAttribute('data-latest-filter');
+          item.setAttribute('aria-checked', key === latestMode);
         });
         if (!silent) {
           if (chaptersLoading) {
@@ -2189,9 +2260,11 @@
       function setRatingFilter(key, { silent = false } = {}) {
         const normalized = (key || "all").toLowerCase();
         ratingFilter = normalized === "manhwa" ? "manhwa" : normalized === "manga" ? "manga" : normalized === "manhua" ? "manhua" : "all";
-        trendingFilterRow?.querySelectorAll(".filter-chip")?.forEach((chip) => {
-          const chipKey = (chip.getAttribute("data-rating-filter") || "all").toLowerCase();
-          chip.classList.toggle("active", chipKey === ratingFilter);
+        // Update dropdown items
+        const ratingFilterMenu = document.getElementById('rating-filter-menu');
+        ratingFilterMenu?.querySelectorAll('[data-rating-filter]')?.forEach((item) => {
+          const itemKey = (item.getAttribute('data-rating-filter') || 'all').toLowerCase();
+          item.setAttribute('aria-checked', itemKey === ratingFilter);
         });
         if (!silent) {
           if (trendingLoading) {
