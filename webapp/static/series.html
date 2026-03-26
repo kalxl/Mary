@@ -3214,6 +3214,28 @@
 
       async function changeSource(nextSource) {
         if (!nextSource || nextSource === currentSource) return;
+        
+        // Update currentSource first
+        currentSource = nextSource;
+        
+        // Clear current chapters to avoid glitching
+        allChapters = [];
+        currentGroupFilter = "";
+        currentChapterPage = 0;
+        
+        // Save preferred source for this series
+        const mdId = getSlugStorageKey();
+        if (mdId) savePreferredSource(mdId, nextSource);
+        updateSourceControlsState();
+        
+        // Check if we have cached data for this source
+        const cached = sourceCache[nextSource];
+        if (cached && cached.chapters) {
+          allChapters = cached.chapters;
+          populateGroupFilter();
+          updateReadButton();
+        }
+        
         async function loadSeriesForSource(source, options = {}) {
           const { fromInit = false } = options;
           try {
@@ -3226,7 +3248,11 @@
               const asuraMap = loadAsuraSlugMap();
               const asuraSlug = mdId && asuraMap[mdId] ? asuraMap[mdId] : null;
               if (!asuraSlug) {
-                if (sourceCache.comick) renderSeries(sourceCache.comick, "comick");
+                if (sourceCache.comick) {
+                  currentSource = "comick";
+                  allChapters = sourceCache.comick.chapters || [];
+                  renderSeries(sourceCache.comick, "comick");
+                }
                 return;
               }
               await loadAsuraSeries(asuraSlug);
@@ -3237,7 +3263,11 @@
               const mangataroMap = loadMangataroSlugMap();
               const mangataroSlug = mdId && mangataroMap[mdId] ? mangataroMap[mdId] : null;
               if (!mangataroSlug) {
-                if (sourceCache.comick) renderSeries(sourceCache.comick, "comick");
+                if (sourceCache.comick) {
+                  currentSource = "comick";
+                  allChapters = sourceCache.comick.chapters || [];
+                  renderSeries(sourceCache.comick, "comick");
+                }
                 return;
               }
               await loadMangataroSeries(mangataroSlug);
@@ -3249,7 +3279,11 @@
               }
               const slug = await ensureComixSlug();
               if (!slug) {
-                if (sourceCache.comick) renderSeries(sourceCache.comick, "comick");
+                if (sourceCache.comick) {
+                  currentSource = "comick";
+                  allChapters = sourceCache.comick.chapters || [];
+                  renderSeries(sourceCache.comick, "comick");
+                }
                 return;
               }
               await loadComixSeries(slug);
@@ -3259,11 +3293,6 @@
             console.error(err);
           }
         }
-        currentSource = nextSource;
-        // Save preferred source for this series
-        const mdId = getSlugStorageKey();
-        if (mdId) savePreferredSource(mdId, nextSource);
-        updateSourceControlsState();
         await loadSeriesForSource(nextSource);
       }
 
@@ -3567,7 +3596,8 @@
           externalSourcesPreloaded = true;
           preloadExternalSources();
         }
-        // Only update allChapters if this is the current source
+        // Store chapters in sourceCache and update allChapters only for current source
+        sourceCache[sourceKey] = { ...data, chapters: chapters || [] };
         if (sourceKey === currentSource) {
           allChapters = chapters || [];
           currentGroupFilter = "";
@@ -5150,6 +5180,9 @@
         }
 
         const potentialSources = [];
+        if (isComickMode && hasChapterForSource('comick')) {
+          potentialSources.push('comick');
+        }
         if (asuraMap[seriesId] && hasChapterForSource('asura')) {
           potentialSources.push('asura');
         }
@@ -5160,8 +5193,12 @@
           potentialSources.push('comix');
         }
 
-        const priorityOrder = ['comix', 'asura', 'mangataro'];
-        potentialSources.sort((a, b) => priorityOrder.indexOf(a) - priorityOrder.indexOf(b));
+        const priorityOrder = ['comick', 'comix', 'asura', 'mangataro'];
+        potentialSources.sort((a, b) => {
+          const ia = priorityOrder.indexOf(a);
+          const ib = priorityOrder.indexOf(b);
+          return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+        });
 
         popupSourceTabs.innerHTML = '';
         popupChapterList.innerHTML = '';
@@ -5244,15 +5281,15 @@
 
         function applyFilters(chapters) {
           const q = String(popupSearchQuery || '').trim().toLowerCase();
-          const targetGroup = String(popupGroupFilter || '').trim().toLowerCase();
+          const targetSource = String(popupGroupFilter || '').trim().toLowerCase();
           return (chapters || []).filter((ch) => {
             const label = String(ch.chapter || '').toLowerCase();
             const group = String(ch.scanlation_group || ch.group_name || '').toLowerCase();
             const title = String(ch.title || '').toLowerCase();
-            const source = String(getSourceLabel(ch.__sourceKey) || '').toLowerCase();
-            const matchesQuery = !q || label.includes(q) || group.includes(q) || title.includes(q) || source.includes(q);
-            const matchesGroup = !targetGroup || group === targetGroup;
-            return matchesQuery && matchesGroup;
+            const sourceKey = String(ch.__sourceKey || '').toLowerCase();
+            const matchesQuery = !q || label.includes(q) || group.includes(q) || title.includes(q);
+            const matchesSource = !targetSource || sourceKey === targetSource;
+            return matchesQuery && matchesSource;
           });
         }
 
@@ -5391,11 +5428,10 @@
 
           const lastVisited = typeof effectiveEntry.lastVisitedNumber === "number" ? effectiveEntry.lastVisitedNumber : null;
           const lastRead = typeof effectiveEntry.lastRead === "number" ? effectiveEntry.lastRead : null;
-          // Prefer the highest known progress so reading an older chapter doesn't make Continue go backwards.
-          let continueNumber = null;
-          if (typeof lastVisited === 'number' || typeof lastRead === 'number') {
-            continueNumber = Math.max(lastVisited || 0, lastRead || 0);
-            if (!continueNumber) continueNumber = null;
+          // Use the most recently visited chapter for Continue, not the max
+          let continueNumber = lastVisited !== null ? lastVisited : lastRead;
+          if (continueNumber === null && (lastVisited !== null || lastRead !== null)) {
+            continueNumber = lastVisited || lastRead || null;
           }
 
           const continueLabel =
