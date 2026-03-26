@@ -2335,12 +2335,6 @@
                 <option value="comix">Comix</option>
               </select>
             </div>
-            <label class="group-selector">
-              <span>Group:</span>
-              <select id="group-filter">
-                <option value="">All groups</option>
-              </select>
-            </label>
             <label class="group-selector" style="display: none;">
               <span>Language:</span>
               <select id="language-filter">
@@ -3254,15 +3248,18 @@
         const cacheKey = `asura-${slug}`;
         const cached = getCache(cacheKey);
         if (cached) {
+          // Fast path: show cached immediately, but always revalidate so new chapters
+          // appear without waiting for the 24h cache TTL.
           sourceCache.asura = cached;
           if (currentSource === 'asura') renderSeries(cached, 'asura');
-          return;
+          // Continue and refresh in background (no loading overlay).
+          showLoading = false;
         }
         if (!slug) {
           loading.textContent = "Asura slug missing.";
           return;
         }
-        if (showLoading) showLoadingState("Loading Asura series...");
+        if (showLoading && !cached) showLoadingState("Loading Asura series...");
         try {
           const res = await fetch(`/api/source/asura/series?slug=${encodeURIComponent(slug)}`);
           if (!res.ok) throw new Error(await res.text());
@@ -3386,9 +3383,12 @@
           externalSourcesPreloaded = true;
           preloadExternalSources();
         }
-        allChapters = chapters || [];
-        currentGroupFilter = "";
-        currentChapterPage = 0;
+        // Only update allChapters if this is the current source
+        if (sourceKey === currentSource) {
+          allChapters = chapters || [];
+          currentGroupFilter = "";
+          currentChapterPage = 0;
+        }
         const heroData = sourceKey === "comick" ? title : (primarySeriesMeta || title);
         const sourceLabel =
           heroData?.source_label ||
