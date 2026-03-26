@@ -1670,6 +1670,57 @@
         </div>
       </section>
 
+      <section data-feed-section="followed">
+        <div class="grid-header" style="align-items:center;">
+          <div class="header-left">
+            <div>
+              <h3 class="section-title-with-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                  <circle cx="9" cy="7" r="4"/>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+                <span>Most Followed</span>
+              </h3>
+              <small>Most popular titles on Comick</small>
+            </div>
+          </div>
+          <div class="library-updates-filter" id="followed-filter-container" aria-label="Followed filters">
+            <button type="button" class="library-updates-filter-btn" id="followed-filter-btn" aria-haspopup="menu" aria-expanded="false" aria-label="Filter">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="5" r="1.6" />
+                <circle cx="12" cy="12" r="1.6" />
+                <circle cx="12" cy="19" r="1.6" />
+              </svg>
+            </button>
+            <div class="library-updates-filter-menu" id="followed-filter-menu" role="menu" aria-label="Followed filter">
+              <div class="library-updates-filter-item" role="menuitemradio" aria-checked="true" data-followed-filter="all">
+                <span class="library-updates-filter-label">All</span>
+                <span class="library-updates-filter-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg></span>
+              </div>
+              <div class="library-updates-filter-item" role="menuitemradio" aria-checked="false" data-followed-filter="manhwa">
+                <span class="library-updates-filter-label">Manhwa</span>
+                <span class="library-updates-filter-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg></span>
+              </div>
+              <div class="library-updates-filter-item" role="menuitemradio" aria-checked="false" data-followed-filter="manga">
+                <span class="library-updates-filter-label">Manga</span>
+                <span class="library-updates-filter-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg></span>
+              </div>
+              <div class="library-updates-filter-item" role="menuitemradio" aria-checked="false" data-followed-filter="manhua">
+                <span class="library-updates-filter-label">Manhua</span>
+                <span class="library-updates-filter-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="trending-carousel">
+          <button type="button" class="trending-arrow trending-arrow-floating trending-left" data-followed-arrows data-dir="prev">‹</button>
+          <div id="followed-grid" class="card-grid" aria-live="polite"></div>
+          <button type="button" class="trending-arrow trending-arrow-floating trending-right" data-followed-arrows data-dir="next">›</button>
+        </div>
+      </section>
+
       <section data-section="comics" hidden>
         <div class="grid-header">
           <div class="header-left">
@@ -1854,6 +1905,7 @@
       const TRENDING_LIMIT = 12;
       const LIBRARY_UPDATES_LIMIT = 18;
       const MAX_LIBRARY_UPDATES_PAGES = 10;
+      const FOLLOWED_LIMIT = 12;
       let searchMode = false;
       let currentSearchQuery = "";
       let chaptersPage = 1;
@@ -1861,9 +1913,12 @@
       let chaptersLastBatchCount = CHAPTERS_PER_PAGE;
       let latestMode = "hot"; // hot | new
       let ratingFilter = "all"; // all | manhwa | manga | manhua
+      let followedFilter = "all"; // all | manhwa | manga | manhua
       let trendingLoading = false;
+      let followedLoading = false;
       let pendingLatestMode = null;
       let pendingRatingFilter = null;
+      let pendingFollowedFilter = null;
       let heroItems = [];
       let currentHeroIndex = 0;
       let heroInterval;
@@ -1913,7 +1968,7 @@
           runSearch(query, false);
         } else {
           chaptersPage = 1;
-          await Promise.allSettled([loadHeroSection(), loadChapters(), loadTrending()]);
+          await Promise.allSettled([loadHeroSection(), loadChapters(), loadTrending(), loadFollowed()]);
           loadLibraryUpdates().catch((err) => console.warn("loadLibraryUpdates init failed", err));
           try { saveHomeToCache(getHomeCacheKey()); } catch (_) {}
         }
@@ -2186,6 +2241,52 @@
         }
       }
 
+      async function loadFollowed() {
+        if (followedLoading) return;
+        followedLoading = true;
+        const followedGrid = document.getElementById('followed-grid');
+        if (!homeRestoredFromCache) followedGrid.innerHTML = renderTrendingSkeletonsHtml(10);
+        followedGrid.classList.add('trending-strip');
+        setFollowedArrowsVisibility(true);
+        try {
+          const countryMap = {
+            manga: "jp",
+            manhwa: "kr",
+            manhua: "cn",
+          };
+          const params = {
+            page: 1,
+            limit: FOLLOWED_LIMIT,
+            sort: "user_follow_count",
+          };
+          const countryCode = countryMap[followedFilter];
+          if (countryCode) params.country = [countryCode];
+
+          const data = await fetchComickJson("/v1.0/search", params);
+          const rawList = Array.isArray(data) ? data : [];
+          const items = rawList
+            .map((entry) => normalizeComicCard(entry))
+            .filter(Boolean)
+            .slice(0, FOLLOWED_LIMIT);
+          renderFollowed(items);
+        } catch (err) {
+          const followedGrid = document.getElementById('followed-grid');
+          followedGrid.innerHTML = `<div class="series-card" style="grid-column: 1 / -1; color:#ef476f;">${err}</div>`;
+        }
+
+        followedLoading = false;
+
+        try { saveHomeToCache(getHomeCacheKey()); } catch (_) {}
+
+        if (pendingFollowedFilter && pendingFollowedFilter !== followedFilter) {
+          const next = pendingFollowedFilter;
+          pendingFollowedFilter = null;
+          setFollowedFilter(next);
+        } else {
+          pendingFollowedFilter = null;
+        }
+      }
+
       function setupFilterChips() {
         setupLibraryUpdatesFilterMenu();
         
@@ -2233,10 +2334,32 @@
           latestFilterBtn?.setAttribute('aria-expanded', 'false');
           ratingFilterMenu?.classList.remove('open');
           ratingFilterBtn?.setAttribute('aria-expanded', 'false');
+          followedFilterMenu?.classList.remove('open');
+          followedFilterBtn?.setAttribute('aria-expanded', 'false');
         });
+
+        // Setup followed filter dropdown
+        const followedFilterBtn = document.getElementById('followed-filter-btn');
+        const followedFilterMenu = document.getElementById('followed-filter-menu');
+        if (followedFilterBtn && followedFilterMenu) {
+          followedFilterBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isOpen = followedFilterMenu.classList.toggle('open');
+            followedFilterBtn.setAttribute('aria-expanded', isOpen);
+          });
+          followedFilterMenu.querySelectorAll('[data-followed-filter]').forEach((item) => {
+            item.addEventListener('click', () => {
+              const key = (item.getAttribute('data-followed-filter') || 'all').toLowerCase();
+              setFollowedFilter(key);
+              followedFilterMenu.classList.remove('open');
+              followedFilterBtn.setAttribute('aria-expanded', 'false');
+            });
+          });
+        }
 
         setLatestMode(latestMode, { silent: true });
         setRatingFilter(ratingFilter, { silent: true });
+        setFollowedFilter(followedFilter, { silent: true });
       }
 
       function setLatestMode(mode, { silent = false } = {}) {
@@ -2273,6 +2396,67 @@
           }
           loadTrending();
         }
+      }
+
+      function setFollowedFilter(key, { silent = false } = {}) {
+        const normalized = (key || "all").toLowerCase();
+        followedFilter = normalized === "manhwa" ? "manhwa" : normalized === "manga" ? "manga" : normalized === "manhua" ? "manhua" : "all";
+        // Update dropdown items
+        const followedFilterMenu = document.getElementById('followed-filter-menu');
+        followedFilterMenu?.querySelectorAll('[data-followed-filter]')?.forEach((item) => {
+          const itemKey = (item.getAttribute('data-followed-filter') || 'all').toLowerCase();
+          item.setAttribute('aria-checked', itemKey === followedFilter);
+        });
+        if (!silent) {
+          if (followedLoading) {
+            pendingFollowedFilter = followedFilter;
+            return;
+          }
+          loadFollowed();
+        }
+      }
+
+      function setFollowedArrowsVisibility(visible) {
+        document.querySelectorAll('[data-followed-arrows]').forEach((btn) => {
+          btn.style.display = visible ? '' : 'none';
+        });
+      }
+
+      function renderFollowed(items) {
+        const grid = document.getElementById('followed-grid');
+        if (!grid) return;
+        if (!items.length) {
+          grid.innerHTML = `<div class="series-card" style="grid-column: 1 / -1; text-align:center; color:#9aa0c9;">No results.</div>`;
+          setFollowedArrowsVisibility(true);
+          return;
+        }
+        grid.classList.add('trending-strip');
+        grid.innerHTML = items
+          .map((item) => {
+            const safeTitle = truncateText(item.title || "Untitled", 45);
+            const slug = item.slug || "";
+            const targetHref = `/series?slug=${encodeURIComponent(slug)}`;
+            const cover = (item.cover || "https://placehold.co/240x360?text=No+Cover").replace(/'/g, "%27");
+            const readsLabel = item.followers
+              ? `${formatCount(item.followers)} follows`
+              : "";
+            return `
+              <a class="trending-card" href="${targetHref}">
+                <div class="trending-cover">
+                  <img src="${cover}" alt="${safeTitle.replace(/"/g, '&quot;')}" loading="lazy" />
+                </div>
+                <div class="trending-info latest-info">
+                  <div class="latest-meta-row">
+                    <span class="trending-chapter">${readsLabel}</span>
+                  </div>
+                  <strong class="latest-title">${safeTitle}</strong>
+                </div>
+              </a>
+            `;
+          })
+          .join("");
+        setupHorizontalArrows(grid, 'data-followed-arrows');
+        setFollowedArrowsVisibility(true);
       }
 
       function renderHistorySkeletonsHtml(count = 8) {
