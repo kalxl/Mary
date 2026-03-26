@@ -172,6 +172,34 @@ def _load_asura_cover_map() -> Dict[str, str]:
     return out
 
 
+def _load_mangataro_cover_map() -> Dict[str, str]:
+    """Loads list/mangataro_slugs.txt in slug|cover format."""
+    path = LIST_DIR / "mangataro_slugs.txt"
+    if not path.exists():
+        repo_fallback = REPO_LIST_DIR / "mangataro_slugs.txt"
+        if repo_fallback.exists():
+            path = repo_fallback
+    out: Dict[str, str] = {}
+    if not path.exists():
+        return out
+    try:
+        for raw in path.read_text(encoding="utf-8").splitlines():
+            line = (raw or "").strip()
+            if not line:
+                continue
+            if "|" not in line:
+                continue
+            slug, cover = line.split("|", 1)
+            slug = slug.strip()
+            cover = cover.strip()
+            if not slug or not cover:
+                continue
+            out[slug] = cover
+    except Exception:
+        return {}
+    return out
+
+
 def _load_asura_series_index() -> Dict[str, Dict[str, Any]]:
     path = STATIC_DIR / "series.json"
     if not path.exists():
@@ -755,6 +783,50 @@ async def asura_picker_index():
                 continue
             out.append({"slug": slug, "title": "", "cover": cover})
 
+    out.sort(key=lambda r: (r.get("title") or r.get("slug") or "").lower())
+    return out
+
+
+@app.get("/api/mangataro/index")
+async def mangataro_picker_index():
+    cover_map = _load_mangataro_cover_map()
+    out: List[Dict[str, Any]] = []
+    for slug, cover in cover_map.items():
+        # Derive title from slug if not available
+        title = slug.replace("-", " ").title()
+        out.append({"slug": slug, "title": title, "cover": cover, "source": "mangataro"})
+    out.sort(key=lambda r: (r.get("title") or r.get("slug") or "").lower())
+    return out
+
+
+@app.get("/api/sources/index")
+async def sources_picker_index(source: str = Query(default="all")):
+    """Combined index for all sources. source can be 'all', 'asura', or 'mangataro'."""
+    out: List[Dict[str, Any]] = []
+    
+    if source in ("all", "asura"):
+        asura_index = _load_asura_series_index()
+        asura_covers = _load_asura_cover_map()
+        for key, item in asura_index.items():
+            if not isinstance(item, dict):
+                continue
+            slug = str(item.get("slug") or key or "").strip()
+            if not slug:
+                continue
+            title = str(item.get("title") or "").strip()
+            cover = asura_covers.get(slug) or ""
+            out.append({"slug": slug, "title": title, "cover": cover, "source": "asura"})
+        # Add cover-map entries not in series.json
+        for slug, cover in asura_covers.items():
+            if not any(r["slug"] == slug for r in out):
+                out.append({"slug": slug, "title": "", "cover": cover, "source": "asura"})
+    
+    if source in ("all", "mangataro"):
+        mangataro_covers = _load_mangataro_cover_map()
+        for slug, cover in mangataro_covers.items():
+            title = slug.replace("-", " ").title()
+            out.append({"slug": slug, "title": title, "cover": cover, "source": "mangataro"})
+    
     out.sort(key=lambda r: (r.get("title") or r.get("slug") or "").lower())
     return out
 

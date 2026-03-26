@@ -292,125 +292,83 @@ def scrape_slugs(
     max_scrolls: int = 200,
     scroll_wait_ms: int = 400,
     growth_timeout_ms: int = 5000,
-) -> list[str]:
+) -> dict[str, str]:
+    """Returns dict of {slug: cover_url}"""
     session = _build_session()
     _apply_cookie_string(session, cookie_string)
 
-    ordered: list[str] = []
+    result: dict[str, str] = {}
     seen: set[str] = set()
 
-    # 1) Try infinite-scroll REST API used by /browse
-    try:
-        bootstrap = session.get(start_url, timeout=timeout)
-        bootstrap.raise_for_status()
-        bootstrap_html = bootstrap.text
-    except Exception:
-        bootstrap_html = ""
+    # Use the POST API endpoint directly - much faster than playwright
+    api_url = "https://mangataro.org/wp-json/manga/v1/load"
+    session.headers.update({
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+    })
 
-    rest_url, nonce = (None, None)
-    if bootstrap_html:
-        rest_url, nonce = _discover_infinite_scroll_api(bootstrap_html)
+    _dbg(debug, f"[mangataro] using POST API: {api_url}")
 
-    _dbg(debug, f"[mangataro] discovered rest_url={rest_url!r} nonce_present={bool(nonce)}")
-
-    if rest_url and not use_playwright:
-        for page in range(1, max_pages + 1):
-            print(f"[mangataro] api page {page}: {rest_url}")
-            payload = _fetch_api_page(session, rest_url, nonce, page, timeout)
-            if debug:
-                if isinstance(payload, str):
-                    _dbg(debug, f"[mangataro] api payload text preview: {payload[:400]!r}")
-                elif isinstance(payload, dict):
-                    _dbg(debug, f"[mangataro] api payload keys: {list(payload.keys())[:30]}")
-                    if "code" in payload or "message" in payload:
-                        _dbg(debug, f"[mangataro] api error code={payload.get('code')!r}")
-                        _dbg(debug, f"[mangataro] api error message={payload.get('message')!r}")
-                        data = payload.get("data")
-                        if isinstance(data, dict):
-                            _dbg(debug, f"[mangataro] api error data keys: {list(data.keys())[:30]}")
-                            _dbg(debug, f"[mangataro] api error data: {data!r}")
-                elif isinstance(payload, list):
-                    _dbg(debug, f"[mangataro] api payload list len: {len(payload)}")
-            page_slugs = _extract_slugs_from_any_payload(payload)
-            _dbg(debug, f"[mangataro] api extracted slugs this page: {len(page_slugs)}")
-            if not page_slugs:
-                # If the endpoint returns a WP error envelope, continuing won't help.
-                if isinstance(payload, dict) and ("code" in payload or "message" in payload):
-                    code = payload.get("code")
-                    if code == "rest_cookie_invalid_nonce":
-                        _dbg(debug, "[mangataro] api blocked by cookie nonce; falling back to playwright")
-                        return _playwright_scroll_scrape(
-                            start_url,
-                            max_scrolls=max_scrolls,
-                            debug=debug,
-                            scroll_wait_ms=scroll_wait_ms,
-                            growth_timeout_ms=growth_timeout_ms,
-                        )
-                    break
-                break
-            added_any = False
-            for slug in page_slugs:
-                if slug in seen:
-                    continue
-                seen.add(slug)
-                ordered.append(slug)
-                added_any = True
-            if not added_any:
-                break
-            if delay:
-                time.sleep(delay)
-        if ordered:
-            return ordered
-        # If API didn't give slugs, fallback to playwright as a last resort.
-        return _playwright_scroll_scrape(
-            start_url,
-            max_scrolls=max_scrolls,
-            debug=debug,
-            scroll_wait_ms=scroll_wait_ms,
-            growth_timeout_ms=growth_timeout_ms,
-        )
-
-    if use_playwright:
-        return _playwright_scroll_scrape(
-            start_url,
-            max_scrolls=max_scrolls,
-            debug=debug,
-            scroll_wait_ms=scroll_wait_ms,
-            growth_timeout_ms=growth_timeout_ms,
-        )
-
-    url = start_url
-    visited_pages: set[str] = set()
-    pages = 0
-
-    while url and pages < max_pages:
-        norm = url.split("#", 1)[0]
-        if norm in visited_pages:
-            break
-        visited_pages.add(norm)
-
-        pages += 1
-        print(f"[mangataro] page {pages}: {url}")
-
-        resp = session.get(url, timeout=timeout)
-        resp.raise_for_status()
-        html = resp.text
-
-        for slug in _extract_manga_slugs(html):
-            if slug in seen:
-                continue
-            seen.add(slug)
-            ordered.append(slug)
-
-        next_url = _find_next_page_url(url, html)
-        if not next_url:
+    for page in range(1, max_pages + 1):
+        try:
+            r = session.post(api_url, json={"page": page}, timeout=timeout)
+        except Exception as e:
+            _dbg(debug, f"[mangataro] page {page} request error: {e}")
             break
 
-        url = next_url
+        if r.status_code != 200:
+            _dbg(debug, f"[mangataro] page {page} status {r.status_code}")
+            break
+
+        try:
+            data = r.json()
+        except Exception:
+            _dbg(debug, f"[mangataro] page {page} JSON parse error")
+            break
+
+        if not isinstance(data, list):
+            _dbg(debug, f"[mangataro] page {page} not a list: {type(data)}")
+            break
+
+        if not data:
+            _dbg(debug, f"[mangataro] page {page} empty response, done")
+            break
+
+        found = 0
+        for item in data:
+            url = item.get("url", "")
+            m = _MANGA_SLUG_RE.search(url)
+            if m:
+                slug = m.group(1).strip()
+                if slug and slug not in seen:
+                    seen.add(slug)
+                    cover = item.get("cover", "").strip()
+                    result[slug] = cover
+                    found += 1
+
+        _dbg(debug, f"[mangataro] page {page}: +{found} slugs (total: {len(result)})")
+
+        if found == 0:
+            break
+
         if delay:
             time.sleep(delay)
 
-    return ordered
+    if result:
+        return result
+
+    # Fallback to playwright if API fails completely
+    if use_playwright:
+        slugs = _playwright_scroll_scrape(
+            start_url,
+            max_scrolls=max_scrolls,
+            debug=debug,
+            scroll_wait_ms=scroll_wait_ms,
+            growth_timeout_ms=growth_timeout_ms,
+        )
+        return {s: "" for s in slugs}
+
+    return result
 
 
 def _default_output_path() -> Path:
@@ -436,11 +394,36 @@ def _write_lines(path: Path, lines: Iterable[str]) -> None:
             f.write(f"{line}\n")
 
 
+def _load_existing_pairs(path: Path) -> tuple[list[str], dict[str, str]]:
+    """Load existing slug|cover pairs from file"""
+    if not path.exists():
+        return [], {}
+    order: list[str] = []
+    mapping: dict[str, str] = {}
+    with path.open("r", encoding="utf-8") as f:
+        for raw in f:
+            line = (raw or "").strip()
+            if not line:
+                continue
+            if "|" in line:
+                slug, cover = line.split("|", 1)
+                slug = slug.strip()
+                cover = cover.strip()
+            else:
+                slug = line
+                cover = ""
+            if slug and slug not in mapping:
+                order.append(slug)
+            if slug:
+                mapping[slug] = cover
+    return order, mapping
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--start-url", default="https://mangataro.org/browse")
     ap.add_argument("--max-pages", type=int, default=10_000)
-    ap.add_argument("--delay", type=float, default=0.5)
+    ap.add_argument("--delay", type=float, default=0.15)
     ap.add_argument("--timeout", type=float, default=30.0)
     ap.add_argument("--output", type=Path, default=_default_output_path())
     ap.add_argument("--debug", action="store_true")
@@ -459,8 +442,7 @@ def main() -> None:
     if not parsed.scheme or not parsed.netloc:
         raise SystemExit("--start-url must be an absolute URL")
 
-    existing = _load_existing_lines(out)
-    existing_set = set(existing)
+    existing_order, existing_map = _load_existing_pairs(out)
 
     scraped = scrape_slugs(
         args.start_url,
@@ -474,13 +456,20 @@ def main() -> None:
         scroll_wait_ms=args.scroll_wait_ms,
         growth_timeout_ms=args.growth_timeout_ms,
     )
-    new_slugs = [s for s in scraped if s not in existing_set]
 
-    merged = existing + new_slugs
-    _write_lines(out, merged)
+    new_count = 0
+    for slug, cover in scraped.items():
+        if slug not in existing_map:
+            existing_order.append(slug)
+            existing_map[slug] = cover
+            new_count += 1
 
-    print(f"[mangataro] new slugs this run: {len(new_slugs)}")
-    print(f"[mangataro] total slugs in file: {len(merged)}")
+    # Write slug|cover format
+    lines = [f"{slug}|{existing_map.get(slug, '')}" for slug in existing_order]
+    _write_lines(out, lines)
+
+    print(f"[mangataro] new slugs this run: {new_count}")
+    print(f"[mangataro] total slugs in file: {len(existing_order)}")
     print(f"[mangataro] wrote {out}")
 
 

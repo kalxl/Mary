@@ -1074,6 +1074,30 @@
         overflow-y: auto;
         flex: 1;
       }
+      .slug-source-tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 14px;
+      }
+      .slug-source-tab {
+        padding: 6px 14px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.04);
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+      .slug-source-tab:hover {
+        background: rgba(255, 255, 255, 0.08);
+      }
+      .slug-source-tab.active {
+        background: rgba(var(--accent-rgb), 0.15);
+        border-color: rgba(var(--accent-rgb), 0.35);
+        color: var(--accent);
+      }
       .slug-search {
         display: flex;
         align-items: center;
@@ -1211,9 +1235,15 @@
       }
       .slug-modal-footer {
         display: flex;
+        align-items: center;
         gap: 12px;
         padding: 18px 24px;
         border-top: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .slug-selection-count {
+        flex: 1;
+        font-size: 0.85rem;
+        color: var(--muted);
       }
       .slug-modal-btn {
         flex: 1;
@@ -2414,7 +2444,7 @@
     </div>
 
     <div id="slug-modal-overlay" class="slug-modal-overlay" aria-hidden="true">
-      <div class="slug-modal" role="dialog" aria-modal="true" aria-label="Select Asura series">
+      <div class="slug-modal" role="dialog" aria-modal="true" aria-label="Select series">
         <div class="slug-modal-header">
           <h3 class="slug-modal-title">Select series</h3>
           <button id="slug-modal-close" class="slug-modal-close" type="button" aria-label="Close">
@@ -2425,6 +2455,11 @@
           </button>
         </div>
         <div class="slug-modal-body">
+          <div class="slug-source-tabs">
+            <button class="slug-source-tab active" data-source="all">All</button>
+            <button class="slug-source-tab" data-source="asura">Asura</button>
+            <button class="slug-source-tab" data-source="mangataro">Mangataro</button>
+          </div>
           <div class="slug-search">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             <input id="slug-modal-search" type="search" placeholder="Search slug or name..." autocomplete="off" />
@@ -2432,6 +2467,7 @@
           <div id="slug-modal-results" class="slug-results"></div>
         </div>
         <div class="slug-modal-footer">
+          <span id="slug-selection-count" class="slug-selection-count"></span>
           <button id="slug-modal-cancel" class="slug-modal-btn slug-modal-btn-secondary" type="button">Cancel</button>
           <button id="slug-modal-done" class="slug-modal-btn slug-modal-btn-primary" type="button" disabled>Done</button>
         </div>
@@ -2534,6 +2570,8 @@
       let currentSource = isComickMode ? "comick" : (ENABLE_COMIX_SOURCE ? "comix" : "comick");
       let currentLanguageFilter = "en";
       let currentChapterPage = 0;
+      let currentAsuraSlug = null;
+      let currentMangataroSlug = null;
       let chapterSearchQuery = "";
       let chapterSortDescending = true;
       let seriesMeta = null;
@@ -2558,7 +2596,9 @@
       let comixLinksIndex = null;
 
       let asuraPickerIndex = null;
-      let asuraPickerSelectedSlug = null;
+      let sourcesPickerIndex = null;
+      let currentSourceFilter = "all";
+      let selectedItems = []; // [{slug, source, cover, title}]
 
       const slugModalOverlay = document.getElementById("slug-modal-overlay");
       const slugModalClose = document.getElementById("slug-modal-close");
@@ -2566,6 +2606,23 @@
       const slugModalDone = document.getElementById("slug-modal-done");
       const slugModalSearch = document.getElementById("slug-modal-search");
       const slugModalResults = document.getElementById("slug-modal-results");
+      const slugSelectionCount = document.getElementById("slug-selection-count");
+      const sourceTabs = document.querySelectorAll(".slug-source-tab");
+
+      async function loadSourcesPickerIndex(source = "all") {
+        if (sourcesPickerIndex === null || source !== currentSourceFilter) {
+          try {
+            const res = await fetch(`/api/sources/index?source=${source}`, { cache: 'no-cache' });
+            if (!res.ok) throw new Error(await res.text());
+            const data = await res.json();
+            sourcesPickerIndex = Array.isArray(data) ? data : [];
+          } catch (err) {
+            console.warn('Failed to load sources picker index', err);
+            sourcesPickerIndex = [];
+          }
+        }
+        return sourcesPickerIndex;
+      }
 
       async function loadAsuraPickerIndex() {
         if (asuraPickerIndex !== null) return asuraPickerIndex;
@@ -2592,15 +2649,44 @@
         return base || slug;
       }
 
+      function updateSelectionCount() {
+        if (slugSelectionCount) {
+          const count = selectedItems.length;
+          slugSelectionCount.textContent = count > 0 ? `${count} selected` : '';
+        }
+        if (slugModalDone) slugModalDone.disabled = selectedItems.length === 0;
+      }
+
+      function isItemSelected(slug, source) {
+        return selectedItems.some(item => item.slug === slug && item.source === source);
+      }
+
+      function toggleItem(slug, source, cover, title) {
+        const idx = selectedItems.findIndex(item => item.slug === slug && item.source === source);
+        if (idx >= 0) {
+          selectedItems.splice(idx, 1);
+        } else {
+          selectedItems.push({ slug, source, cover, title });
+        }
+        updateSelectionCount();
+      }
+
       function openAsuraSlugModal(existingSlug = "") {
         if (!slugModalOverlay) return;
-        asuraPickerSelectedSlug = existingSlug || null;
+        selectedItems = [];
+        if (existingSlug) {
+          selectedItems.push({ slug: existingSlug, source: "asura", cover: "", title: "" });
+        }
         if (slugModalSearch) slugModalSearch.value = "";
-        if (slugModalDone) slugModalDone.disabled = !asuraPickerSelectedSlug;
+        currentSourceFilter = "all";
+        sourceTabs.forEach(tab => {
+          tab.classList.toggle('active', tab.dataset.source === "all");
+        });
+        updateSelectionCount();
         slugModalOverlay.classList.add('active');
         slugModalOverlay.setAttribute('aria-hidden', 'false');
         setTimeout(() => slugModalSearch?.focus(), 50);
-        renderAsuraPickerResults('');
+        renderSourcesPickerResults('');
       }
 
       function closeAsuraSlugModal() {
@@ -2609,31 +2695,33 @@
         slugModalOverlay.setAttribute('aria-hidden', 'true');
       }
 
-      async function renderAsuraPickerResults(query) {
+      async function renderSourcesPickerResults(query) {
         if (!slugModalResults) return;
         const q = String(query || '').trim().toLowerCase();
-        // Normalize query: replace spaces with hyphens to match slug format
         const qNormalized = q.replace(/\s+/g, '-');
-        const index = await loadAsuraPickerIndex();
+        const index = await loadSourcesPickerIndex(currentSourceFilter);
         const filtered = !q
-          ? index.slice(0, 40)
+          ? index.slice(0, 60)
           : index.filter((it) => {
               const slug = String(it.slug || '').toLowerCase();
               const title = String(it.title || '').toLowerCase();
-              // Match against both original query and normalized (spaces->hyphens)
               return slug.includes(q) || slug.includes(qNormalized) || title.includes(q) || title.includes(qNormalized);
-            }).slice(0, 60);
+            }).slice(0, 80);
 
         slugModalResults.innerHTML = filtered.map((it) => {
           const slug = String(it.slug || '');
           const cover = String(it.cover || '');
+          const source = String(it.source || 'asura');
           const name = toCleanSeriesName(it);
-          const selected = asuraPickerSelectedSlug === slug ? 'selected' : '';
+          const selected = isItemSelected(slug, source) ? 'selected' : '';
+          const sourceIcon = source === 'mangataro' 
+            ? `<span class="slug-tag corner mangataro">Mangataro</span>`
+            : `<span class="slug-tag corner"><img src="/static/img/asura.png" alt="Asura" /> Asura</span>`;
           return `
-            <div class="slug-result ${selected}" data-slug="${slug}">
+            <div class="slug-result ${selected}" data-slug="${slug}" data-source="${source}">
               <div class="slug-result-media">
                 ${cover ? `<img class="slug-cover" src="${cover}" alt="${name}" loading="lazy" />` : `<div class="slug-cover"></div>`}
-                <span class="slug-tag corner"><img src="/static/img/asura.png" alt="Asura" /> Asura</span>
+                ${sourceIcon}
               </div>
               <div class="slug-result-main">
                 <div class="slug-name">${name}</div>
@@ -2646,12 +2734,24 @@
         slugModalResults.querySelectorAll('.slug-result').forEach((el) => {
           el.addEventListener('click', () => {
             const slug = el.getAttribute('data-slug') || '';
-            asuraPickerSelectedSlug = slug || null;
-            if (slugModalDone) slugModalDone.disabled = !asuraPickerSelectedSlug;
-            renderAsuraPickerResults(slugModalSearch?.value || '');
+            const source = el.getAttribute('data-source') || 'asura';
+            const cover = el.querySelector('.slug-cover')?.src || '';
+            const title = el.querySelector('.slug-name')?.textContent || '';
+            toggleItem(slug, source, cover, title);
+            renderSourcesPickerResults(slugModalSearch?.value || '');
           });
         });
       }
+
+      // Source tab click handlers
+      sourceTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          currentSourceFilter = tab.dataset.source || 'all';
+          sourceTabs.forEach(t => t.classList.toggle('active', t === tab));
+          sourcesPickerIndex = null; // Force reload
+          renderSourcesPickerResults(slugModalSearch?.value || '');
+        });
+      });
 
       slugModalClose?.addEventListener('click', closeAsuraSlugModal);
       slugModalCancel?.addEventListener('click', closeAsuraSlugModal);
@@ -2664,32 +2764,54 @@
         }
       });
       slugModalSearch?.addEventListener('input', () => {
-        renderAsuraPickerResults(slugModalSearch.value);
+        renderSourcesPickerResults(slugModalSearch.value);
       });
       slugModalDone?.addEventListener('click', async () => {
-        if (!asuraPickerSelectedSlug) return;
+        if (selectedItems.length === 0) return;
         const mdId = getSlugStorageKey();
         if (!mdId) return;
-        const map = loadAsuraSlugMap();
-        map[mdId] = asuraPickerSelectedSlug;
-        saveAsuraSlugMap(map);
-        currentAsuraSlug = asuraPickerSelectedSlug;
-        try {
-          if (comickSlug) {
-            await fetch('/api/series-map', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ comick_slug: String(comickSlug), asura_slug: String(asuraPickerSelectedSlug) }),
-            });
+        
+        // Save each selected item to appropriate map
+        const asuraMap = loadAsuraSlugMap();
+        const mangataroMap = loadMangataroSlugMap();
+        
+        for (const item of selectedItems) {
+          if (item.source === 'asura') {
+            asuraMap[mdId] = item.slug;
+          } else if (item.source === 'mangataro') {
+            mangataroMap[mdId] = item.slug;
           }
-        } catch (err) {
-          console.warn('Failed to persist series mapping', err);
         }
+        
+        saveAsuraSlugMap(asuraMap);
+        saveMangataroSlugMap(mangataroMap);
+        
+        // Use first selected item for immediate load
+        const firstItem = selectedItems[0];
+        if (firstItem.source === 'asura') {
+          currentAsuraSlug = firstItem.slug;
+          try {
+            if (comickSlug) {
+              await fetch('/api/series-map', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ comick_slug: String(comickSlug), asura_slug: String(firstItem.slug) }),
+              });
+            }
+          } catch (err) {
+            console.warn('Failed to persist series mapping', err);
+          }
+          currentSource = "asura";
+          updateSourceDisplay();
+          await loadAsuraSeries(firstItem.slug);
+        } else if (firstItem.source === 'mangataro') {
+          currentMangataroSlug = firstItem.slug;
+          currentSource = "mangataro";
+          updateSourceDisplay();
+          await loadMangataroSeries(firstItem.slug);
+        }
+        
         closeAsuraSlugModal();
-        // Switch to Asura source before loading so renderSeries gets called
-        currentSource = "asura";
-        updateSourceDisplay();
-        await loadAsuraSeries(asuraPickerSelectedSlug);
       });
 
       async function loadGlobalSeriesIndex() {
