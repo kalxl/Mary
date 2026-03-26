@@ -1795,8 +1795,9 @@
     <footer class="site-footer">
       <div class="footer-content">
         <div class="footer-brand">
-          <img src="/static/img/zoro.png" alt="Ary" class="footer-logo">
+          <img src="/static/img/zoro.png" alt="Ary" class="footer-logo" id="footer-logo">
           <span class="footer-title">Ary</span>
+          <span class="footer-copy-inline">© 2025 Ary. All rights reserved.</span>
         </div>
         
         <div class="footer-links">
@@ -1817,12 +1818,15 @@
             <span class="footer-link-text">Downloads</span>
           </a>
         </div>
-        
-        <div class="footer-bottom">
-          <p class="footer-copy">© 2025 Ary. All rights reserved.</p>
-        </div>
       </div>
     </footer>
+    <script>
+      document.getElementById('footer-logo')?.addEventListener('click', function() {
+        this.classList.remove('spinning');
+        void this.offsetWidth;
+        this.classList.add('spinning');
+      });
+    </script>
 
     <script>
       const trendingGrid = document.getElementById("trending-grid");
