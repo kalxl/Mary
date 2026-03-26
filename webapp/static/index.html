@@ -132,6 +132,11 @@
         grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
         gap: 1.25rem;
       }
+      .card-grid.trending-strip,
+      .card-grid.library-updates-strip {
+        display: flex;
+        overflow-x: auto;
+      }
       @media (max-width: 768px) {
         main {
           gap: 0.95rem;
@@ -447,6 +452,25 @@
         background: transparent;
       }
       #trending-grid.trending-strip {
+        scrollbar-color: transparent transparent;
+        scrollbar-width: none;
+      }
+      
+      #followed-grid.trending-strip {
+        display: flex;
+        gap: 1rem;
+        overflow-x: auto;
+        padding-bottom: 0.2rem;
+        scrollbar-gutter: stable;
+      }
+      #followed-grid.trending-strip::-webkit-scrollbar {
+        height: 0;
+        display: none;
+      }
+      #followed-grid.trending-strip::-webkit-scrollbar-thumb {
+        background: transparent;
+      }
+      #followed-grid.trending-strip {
         scrollbar-color: transparent transparent;
         scrollbar-width: none;
       }
@@ -2470,29 +2494,27 @@
         grid.innerHTML = items
           .map((item) => {
             const safeTitle = truncateText(item.title || "Untitled", 45);
-            const slug = item.slug || "";
-            const targetHref = `/series?slug=${encodeURIComponent(slug)}`;
-            const cover = (item.cover || "https://placehold.co/240x360?text=No+Cover").replace(/'/g, "%27");
+            const slug = item.slug || item.id || "";
+            const cover = item.cover_url || item.cover || "https://placehold.co/400x600?text=No+Cover";
             const readsLabel = item.followers
               ? `${formatCount(item.followers)} follows`
               : "";
             return `
-              <a class="trending-card" href="${targetHref}">
+              <a class="trending-card" href="/series?slug=${encodeURIComponent(slug)}">
                 <div class="trending-cover">
                   <img src="${cover}" alt="${safeTitle.replace(/"/g, '&quot;')}" loading="lazy" />
                 </div>
-                <div class="trending-info latest-info">
-                  <div class="latest-meta-row">
-                    <span class="trending-chapter">${readsLabel}</span>
-                  </div>
-                  <strong class="latest-title">${safeTitle}</strong>
+                <div class="trending-info">
+                  <span class="trending-chapter">Most Followed</span>
+                  <strong>${safeTitle}</strong>
+                  ${readsLabel ? `<span class="trending-reads">${readsLabel}</span>` : ""}
                 </div>
               </a>
             `;
           })
           .join("");
         setupFollowedArrows();
-        setFollowedArrowsVisibility(true);
+        setFollowedArrowsVisibility(false);
       }
 
       function renderHistorySkeletonsHtml(count = 8) {
