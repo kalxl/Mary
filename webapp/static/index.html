@@ -2853,23 +2853,34 @@
             allItems.push(normalized);
           }
 
-          // Sort by newest time first, then remove duplicate series (keep first occurrence after sorting)
-          allItems.sort((a, b) => {
+          // For each series, keep only the highest chapter number (not most recently released)
+          const latestBySeries = new Map();
+          for (const item of allItems) {
+            const seriesId = item.series_hid || item.slug || item.id;
+            if (!seriesId) continue;
+
+            const current = latestBySeries.get(seriesId);
+            if (!current) {
+              latestBySeries.set(seriesId, item);
+              continue;
+            }
+
+            // Parse chapter numbers to compare
+            const currentChap = parseFloat(current.chapterLabel?.replace(/[^0-9.]/g, '') || '0');
+            const newChap = parseFloat(item.chapterLabel?.replace(/[^0-9.]/g, '') || '0');
+
+            if (newChap > currentChap) {
+              latestBySeries.set(seriesId, item);
+            }
+          }
+
+          // Convert map to array and sort by release time
+          const uniqueItems = Array.from(latestBySeries.values());
+          uniqueItems.sort((a, b) => {
             const timeA = a.releasedAt ? new Date(a.releasedAt).getTime() : 0;
             const timeB = b.releasedAt ? new Date(b.releasedAt).getTime() : 0;
             return timeB - timeA;
           });
-
-          // After sorting, remove duplicate series (keep first occurrence = most recent)
-          const seenLibrarySeriesIds = new Set();
-          const uniqueItems = [];
-          for (const item of allItems) {
-            const seriesId = item.series_hid || item.slug || item.id;
-            if (!seriesId) continue;
-            if (seenLibrarySeriesIds.has(seriesId)) continue;
-            seenLibrarySeriesIds.add(seriesId);
-            uniqueItems.push(item);
-          }
 
           if (!uniqueItems.length) {
             // No matching chapters found: show section with "no new chapters" message
