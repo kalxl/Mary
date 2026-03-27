@@ -2834,7 +2834,7 @@
           const allItems = [];
           const chaptersPayload = await fetchComickJson("/chapter", {
             page: 1,
-            order: "hot",
+            order: "new",
             lang: "en",
             accept_erotic_content: "false",
           });
@@ -2865,10 +2865,14 @@
               continue;
             }
 
-            // Parse chapter numbers to compare
-            const currentChap = parseFloat(current.chapterLabel?.replace(/[^0-9.]/g, '') || '0');
-            const newChap = parseFloat(item.chapterLabel?.replace(/[^0-9.]/g, '') || '0');
+            // Parse chapter numbers to compare - extract the main chapter number
+            const currentChapStr = current.chapterLabel?.replace(/[^0-9.]/g, '') || '0';
+            const newChapStr = item.chapterLabel?.replace(/[^0-9.]/g, '') || '0';
+            
+            const currentChap = parseFloat(currentChapStr);
+            const newChap = parseFloat(newChapStr);
 
+            // Only update if the new chapter is strictly higher
             if (newChap > currentChap) {
               latestBySeries.set(seriesId, item);
             }
