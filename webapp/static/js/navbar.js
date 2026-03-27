@@ -787,6 +787,38 @@ function initNavbar() {
     const bestBySeries = new Map();
     const MAX_PAGES = 10;
 
+    // First pass: collect lastChapter values per series across all pages
+    const lastChapterBySeries = new Map();
+    for (let page = 1; page <= MAX_PAGES; page += 1) {
+      let chaptersPayload = null;
+      try {
+        chaptersPayload = await fetchComickJson('/chapter', {
+          page,
+          order: 'new',
+          lang: 'en',
+          accept_erotic_content: 'false',
+        });
+      } catch (_) {
+        chaptersPayload = null;
+      }
+      const rawList = Array.isArray(chaptersPayload) ? chaptersPayload : [];
+      if (!rawList.length) break;
+
+      for (const entry of rawList) {
+        const manga = entry.md_comics || {};
+        const seriesId = manga.hid || manga.id || manga.slug;
+        if (!seriesId) continue;
+        const lc = manga.last_chapter != null ? Number(manga.last_chapter) : null;
+        if (lc !== null && Number.isFinite(lc)) {
+          const prev = lastChapterBySeries.get(seriesId);
+          if (prev === undefined || lc > prev) {
+            lastChapterBySeries.set(seriesId, lc);
+          }
+        }
+      }
+    }
+
+    // Second pass: process and filter
     for (let page = 1; page <= MAX_PAGES; page += 1) {
       let chaptersPayload = null;
       try {
@@ -808,7 +840,11 @@ function initNavbar() {
         .filter((item) => {
           // Skip backfilled chapters: only show if chapter >= lastChapter
           const chapNum = typeof item.chapterNumber === 'number' ? item.chapterNumber : null;
-          const lastChap = typeof item.lastChapter === 'number' ? item.lastChapter : null;
+          let lastChap = typeof item.lastChapter === 'number' ? item.lastChapter : null;
+          // Use cached lastChapter if this entry's is null
+          if (lastChap === null) {
+            lastChap = lastChapterBySeries.get(item.series_hid) ?? null;
+          }
           console.log('[DEBUG] Notif:', item.title, 'chapNum:', chapNum, 'lastChap:', lastChap, 'skip:', chapNum !== null && lastChap !== null && chapNum < lastChap);
           if (chapNum !== null && lastChap !== null && chapNum < lastChap) return false;
           return true;
