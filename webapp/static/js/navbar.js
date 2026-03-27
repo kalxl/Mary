@@ -826,7 +826,7 @@ function initNavbar() {
         } else if (chapNum === maxChapNum && bestChapter) {
           const currTime = Date.parse(ch.releasedAt || 0) || 0;
           const bestTime = Date.parse(bestChapter.releasedAt || 0) || 0;
-          if (currTime > bestTime) {
+          if (currTime >= bestTime) {
             bestChapter = ch;
           }
         }
