@@ -2874,7 +2874,6 @@
             if (lastChap === null) {
               lastChap = lastChapterBySeries.get(seriesId) ?? null;
             }
-            console.log('[DEBUG] Library:', normalized.title, 'chapNum:', chapNum, 'lastChap:', lastChap, 'skip:', chapNum !== null && lastChap !== null && chapNum < lastChap);
             if (chapNum !== null && lastChap !== null && chapNum < lastChap) continue;
 
             const prev = bestBySeries.get(seriesId);

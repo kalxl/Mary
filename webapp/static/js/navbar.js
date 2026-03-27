@@ -845,7 +845,6 @@ function initNavbar() {
           if (lastChap === null) {
             lastChap = lastChapterBySeries.get(item.series_hid) ?? null;
           }
-          console.log('[DEBUG] Notif:', item.title, 'chapNum:', chapNum, 'lastChap:', lastChap, 'skip:', chapNum !== null && lastChap !== null && chapNum < lastChap);
           if (chapNum !== null && lastChap !== null && chapNum < lastChap) return false;
           return true;
         });
@@ -886,7 +885,7 @@ function initNavbar() {
       const chapterLabel = safeText(it.chapterLabel || (chapN != null ? `Ch. ${chapN}` : ''));
       const timeLabel = formatCompactRelativeTimeFromIso(it.releasedAt);
       const releasedMs = Date.parse(it.releasedAt || 0) || 0;
-      const key = `chapter::${hid}::${chapterLabel}::${releasedMs}`;
+      const key = `chapter::${hid}::${chapterLabel}`;
       if (cleared[key]) continue;
       out.push({
         key,
