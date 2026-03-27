@@ -2813,7 +2813,7 @@
             const st = normalizeLibraryStatus(row?.status);
             return allowedStatuses.has(st);
           });
-          const seriesIds = Arra.from(new Set(filteredRows.map((row) => row.series_hid).filter(Boolean)));
+          const seriesIds = Array.from(new Set(filteredRows.map((row) => row.series_hid).filter(Boolean)));
           if (!seriesIds.length) {
             // User signed in but no series in library: show centered message without card placeholder
             libraryUpdatesSection.hidden = false;
