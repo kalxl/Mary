@@ -2830,9 +2830,8 @@
             return;
           }
 
-          // Keep the API's order, only remove duplicate series (keep first occurrence)
-          const seenLibrarySeriesIds = new Set();
-          const allItems = [];
+          // Pick highest chapter number per series, then sort by release time (newest first)
+          const bestBySeries = new Map();
 
           const orderParam = latestMode === 'new' ? 'new' : 'hot';
           const chaptersPayload = await fetchComickJson("/chapter", {
@@ -2846,19 +2845,34 @@
           for (const entry of rawList) {
             const normalized = normalizeChapterCard(entry);
             if (!normalized) continue;
-            
+
             const seriesId = normalized.series_hid || normalized.slug || normalized.id;
             if (!seriesId) continue;
-            
+
             // Only include chapters from series in the user's library
             if (!seriesIds.includes(seriesId)) continue;
-            
-            // Skip if we've already seen this series (keep first occurrence to respect API order)
-            if (seenLibrarySeriesIds.has(seriesId)) continue;
-            seenLibrarySeriesIds.add(seriesId);
-            
-            allItems.push(normalized);
+
+            const prev = bestBySeries.get(seriesId);
+            if (!prev) {
+              bestBySeries.set(seriesId, normalized);
+              continue;
+            }
+
+            // Pick the highest chapter number, use release time as tiebreaker
+            const prevChap = typeof prev.chapterNumber === 'number' ? prev.chapterNumber : -Infinity;
+            const currChap = typeof normalized.chapterNumber === 'number' ? normalized.chapterNumber : -Infinity;
+            if (currChap > prevChap) {
+              bestBySeries.set(seriesId, normalized);
+            } else if (currChap === prevChap) {
+              const prevTime = Date.parse(prev.releasedAt || 0) || 0;
+              const currTime = Date.parse(normalized.releasedAt || 0) || 0;
+              if (currTime > prevTime) bestBySeries.set(seriesId, normalized);
+            }
           }
+
+          // Sort by release time (newest first)
+          const allItems = Array.from(bestBySeries.values())
+            .sort((a, b) => (Date.parse(b.releasedAt || 0) || 0) - (Date.parse(a.releasedAt || 0) || 0));
           if (!allItems.length) {
             // No matching chapters found: show section with "no new chapters" message
             libraryUpdatesSection.hidden = false;
@@ -3370,6 +3384,7 @@
           slug: comicCard.slug,
           series_hid: seriesKey ? String(seriesKey) : "",
           chapterLabel: entry.chap ? `Ch. ${entry.chap}` : "",
+          chapterNumber: entry.chap != null ? Number(entry.chap) : null,
           description: entry.title || comicCard.description,
           releasedAt,
         };
