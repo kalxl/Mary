@@ -2852,6 +2852,11 @@
             // Only include chapters from series in the user's library
             if (!seriesIds.includes(seriesId)) continue;
 
+            // Skip backfilled chapters: only show if chapter >= lastChapter
+            const chapNum = typeof normalized.chapterNumber === 'number' ? normalized.chapterNumber : null;
+            const lastChap = typeof normalized.lastChapter === 'number' ? normalized.lastChapter : null;
+            if (chapNum !== null && lastChap !== null && chapNum < lastChap) continue;
+
             const prev = bestBySeries.get(seriesId);
             if (!prev) {
               bestBySeries.set(seriesId, normalized);

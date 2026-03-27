@@ -804,7 +804,14 @@ function initNavbar() {
 
       const normalized = rawList
         .map(normalizeChapterFeedItem)
-        .filter((item) => item && item.series_hid && seriesIds.includes(item.series_hid));
+        .filter((item) => item && item.series_hid && seriesIds.includes(item.series_hid))
+        .filter((item) => {
+          // Skip backfilled chapters: only show if chapter >= lastChapter
+          const chapNum = typeof item.chapterNumber === 'number' ? item.chapterNumber : null;
+          const lastChap = typeof item.lastChapter === 'number' ? item.lastChapter : null;
+          if (chapNum !== null && lastChap !== null && chapNum < lastChap) return false;
+          return true;
+        });
 
       for (const item of normalized) {
         const key = String(item.series_hid || '');
