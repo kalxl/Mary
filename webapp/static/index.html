@@ -2254,21 +2254,47 @@
             ...chapterParams,
           });
           const rawList = Array.isArray(data) ? data : [];
-          const seenChapterKeys = new Set();
-          const list = [];
-
+          
+          // Group chapters by series and find the best chapter per series
+          const chaptersBySeries = new Map();
+          
           for (const entry of rawList) {
             const normalized = normalizeChapterCard(entry);
             if (!normalized) continue;
-            const baseKey = normalized.series_hid || normalized.slug || normalized.id;
-            const chapLabel = normalized.chapterLabel || "";
-            if (!baseKey) continue;
-            const key = `${String(baseKey)}|${chapLabel}`;
-            if (seenChapterKeys.has(key)) continue;
-            seenChapterKeys.add(key);
-            list.push(normalized);
-            if (list.length >= CHAPTERS_PER_PAGE) break;
+            
+            const seriesId = normalized.series_hid || normalized.slug || normalized.id;
+            if (!seriesId) continue;
+            
+            // Parse chapter number from chapterLabel (e.g., "Ch. 50" -> 50)
+            const chapMatch = normalized.chapterLabel.match(/Ch\.\s*([\d.]+)/);
+            const chapNumber = chapMatch ? parseFloat(chapMatch[1]) : 0;
+            
+            const existing = chaptersBySeries.get(seriesId);
+            
+            // If no existing chapter, or this one has higher chapter number, add it
+            // If same chapter number, keep the one with earlier release time
+            if (!existing) {
+              chaptersBySeries.set(seriesId, { ...normalized, chapNumber });
+            } else if (chapNumber > existing.chapNumber) {
+              chaptersBySeries.set(seriesId, { ...normalized, chapNumber });
+            } else if (chapNumber === existing.chapNumber) {
+              // Same chapter number - pick the one released earlier
+              const existingTime = new Date(existing.releasedAt || 0).getTime();
+              const newTime = new Date(normalized.releasedAt || 0).getTime();
+              if (newTime < existingTime) {
+                chaptersBySeries.set(seriesId, { ...normalized, chapNumber });
+              }
+            }
           }
+          
+          // Convert map to array and sort by release time (newest first)
+          const list = Array.from(chaptersBySeries.values())
+            .sort((a, b) => {
+              const timeA = new Date(a.releasedAt || 0).getTime();
+              const timeB = new Date(b.releasedAt || 0).getTime();
+              return timeB - timeA;
+            })
+            .slice(0, CHAPTERS_PER_PAGE);
 
           const rawPageCount = Math.min(rawList.length, CHAPTERS_PER_PAGE);
           chaptersLastBatchCount = rawPageCount;
