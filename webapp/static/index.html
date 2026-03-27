@@ -1990,7 +1990,7 @@
       const CHAPTERS_PER_PAGE = 18;
       const TRENDING_LIMIT = 12;
       const LIBRARY_UPDATES_LIMIT = 18;
-      const MAX_LIBRARY_UPDATES_PAGES = 10;
+      const MAX_LIBRARY_UPDATES_PAGES = 100;
       const FOLLOWED_LIMIT = 12;
       let searchMode = false;
       let currentSearchQuery = "";
@@ -2833,7 +2833,7 @@
           // Pick highest chapter number per series, then sort by release time (newest first)
           const bestBySeries = new Map();
           const lastChapterBySeries = new Map(); // Track highest lastChapter seen per series
-          const MAX_PAGES = 10;
+          const MAX_PAGES = 100;
 
           const orderParam = latestMode === 'new' ? 'new' : 'hot';
           
@@ -2892,6 +2892,11 @@
 
             // Only include chapters from series in the user's library
             if (!seriesIds.includes(seriesId)) continue;
+
+            // Skip chapters older than 5 days
+            const releaseTime = Date.parse(normalized.releasedAt || 0) || 0;
+            const FIVE_DAYS_MS = 5 * 24 * 60 * 60 * 1000;
+            if (releaseTime && (Date.now() - releaseTime) > FIVE_DAYS_MS) continue;
 
             // Skip backfilled chapters: only show if chapter >= lastChapter
             const chapNum = typeof normalized.chapterNumber === 'number' ? normalized.chapterNumber : null;
