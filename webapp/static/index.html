@@ -2830,10 +2830,8 @@
             return;
           }
 
-          // Keep the API's order, only remove duplicate series (keep first occurrence)
-          const seenLibrarySeriesIds = new Set();
+          // Fetch all chapters and normalize them
           const allItems = [];
-
           const chaptersPayload = await fetchComickJson("/chapter", {
             page: 1,
             order: "hot",
@@ -2852,20 +2850,28 @@
             // Only include chapters from series in the user's library
             if (!seriesIds.includes(seriesId)) continue;
 
-            // Skip if we've already seen this series (keep first occurrence to respect API order)
-            if (seenLibrarySeriesIds.has(seriesId)) continue;
-            seenLibrarySeriesIds.add(seriesId);
-
             allItems.push(normalized);
           }
 
-          // Sort by newest time first
+          // Sort by newest time first, then remove duplicate series (keep first occurrence after sorting)
           allItems.sort((a, b) => {
             const timeA = a.releasedAt ? new Date(a.releasedAt).getTime() : 0;
             const timeB = b.releasedAt ? new Date(b.releasedAt).getTime() : 0;
             return timeB - timeA;
           });
-          if (!allItems.length) {
+
+          // After sorting, remove duplicate series (keep first occurrence = most recent)
+          const seenLibrarySeriesIds = new Set();
+          const uniqueItems = [];
+          for (const item of allItems) {
+            const seriesId = item.series_hid || item.slug || item.id;
+            if (!seriesId) continue;
+            if (seenLibrarySeriesIds.has(seriesId)) continue;
+            seenLibrarySeriesIds.add(seriesId);
+            uniqueItems.push(item);
+          }
+
+          if (!uniqueItems.length) {
             // No matching chapters found: show section with "no new chapters" message
             libraryUpdatesSection.hidden = false;
             libraryUpdatesGrid.classList.add("library-updates-strip");
@@ -2882,7 +2888,7 @@
             return;
           }
 
-          const limited = allItems.slice(0, LIBRARY_UPDATES_LIMIT);
+          const limited = uniqueItems.slice(0, LIBRARY_UPDATES_LIMIT);
 
           libraryUpdatesSection.hidden = false;
           libraryUpdatesGrid.classList.add("library-updates-strip");
