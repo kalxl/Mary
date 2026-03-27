@@ -782,7 +782,7 @@ function initNavbar() {
     ).map((v) => String(v));
     if (!seriesIds.length) return [];
 
-    const bestBySeries = new Map();
+    const chaptersBySeries = new Map();
     const MAX_PAGES = 10;
 
     for (let page = 1; page <= MAX_PAGES; page += 1) {
@@ -807,20 +807,32 @@ function initNavbar() {
       for (const item of normalized) {
         const key = String(item.series_hid || '');
         if (!key) continue;
-        const prev = bestBySeries.get(key);
-        if (!prev) {
-          bestBySeries.set(key, item);
-          continue;
+        if (!chaptersBySeries.has(key)) {
+          chaptersBySeries.set(key, []);
         }
-        const prevChap = typeof prev.chapterNumber === 'number' ? prev.chapterNumber : -Infinity;
-        const currChap = typeof item.chapterNumber === 'number' ? item.chapterNumber : -Infinity;
-        if (currChap > prevChap) {
-          bestBySeries.set(key, item);
-        } else if (currChap === prevChap) {
-          const prevTime = Date.parse(prev.releasedAt || 0) || 0;
-          const currTime = Date.parse(item.releasedAt || 0) || 0;
-          if (currTime >= prevTime) bestBySeries.set(key, item);
+        chaptersBySeries.get(key).push(item);
+      }
+    }
+
+    const bestBySeries = new Map();
+    for (const [seriesHid, chapters] of chaptersBySeries.entries()) {
+      let maxChapNum = -Infinity;
+      let bestChapter = null;
+      for (const ch of chapters) {
+        const chapNum = typeof ch.chapterNumber === 'number' ? ch.chapterNumber : -Infinity;
+        if (chapNum > maxChapNum) {
+          maxChapNum = chapNum;
+          bestChapter = ch;
+        } else if (chapNum === maxChapNum && bestChapter) {
+          const currTime = Date.parse(ch.releasedAt || 0) || 0;
+          const bestTime = Date.parse(bestChapter.releasedAt || 0) || 0;
+          if (currTime > bestTime) {
+            bestChapter = ch;
+          }
         }
+      }
+      if (bestChapter) {
+        bestBySeries.set(seriesHid, bestChapter);
       }
     }
 
