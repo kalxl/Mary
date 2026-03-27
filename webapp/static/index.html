@@ -2259,20 +2259,20 @@
           
           // Keep the API's order, only remove duplicate series (keep first occurrence)
           const list = [];
-
+          
           for (const entry of rawList) {
             const normalized = normalizeChapterCard(entry);
             if (!normalized) continue;
-
+            
             const seriesId = normalized.series_hid || normalized.slug || normalized.id;
             if (!seriesId) continue;
-
+            
             // Skip if we've already seen this series (keep first occurrence to respect API order)
             if (seenChapterSeriesIds.has(seriesId)) continue;
             seenChapterSeriesIds.add(seriesId);
-
+            
             list.push(normalized);
-            if (list.length >= CHAPTERS_PER_PAGE) break;
+            if (!append && list.length >= CHAPTERS_PER_PAGE) break;
           }
 
           const rawPageCount = Math.min(rawList.length, CHAPTERS_PER_PAGE);
@@ -2830,11 +2830,14 @@
             return;
           }
 
-          // Fetch all chapters and normalize them
+          // Keep the API's order, only remove duplicate series (keep first occurrence)
+          const seenLibrarySeriesIds = new Set();
           const allItems = [];
+
+          const orderParam = latestMode === 'new' ? 'new' : 'hot';
           const chaptersPayload = await fetchComickJson("/chapter", {
             page: 1,
-            order: "new",
+            order: orderParam,
             lang: "en",
             accept_erotic_content: "false",
           });
@@ -2843,46 +2846,20 @@
           for (const entry of rawList) {
             const normalized = normalizeChapterCard(entry);
             if (!normalized) continue;
-
+            
             const seriesId = normalized.series_hid || normalized.slug || normalized.id;
             if (!seriesId) continue;
-
+            
             // Only include chapters from series in the user's library
             if (!seriesIds.includes(seriesId)) continue;
-
+            
+            // Skip if we've already seen this series (keep first occurrence to respect API order)
+            if (seenLibrarySeriesIds.has(seriesId)) continue;
+            seenLibrarySeriesIds.add(seriesId);
+            
             allItems.push(normalized);
           }
-
-          // For each series, keep only the highest chapter number
-          const latestBySeries = new Map();
-          for (const item of allItems) {
-            const seriesId = item.series_hid || item.slug || item.id;
-            if (!seriesId) continue;
-
-            const current = latestBySeries.get(seriesId);
-            if (!current) {
-              latestBySeries.set(seriesId, item);
-              continue;
-            }
-
-            // Parse chapter numbers to compare
-            const currentChap = parseFloat(current.chapterLabel?.replace(/[^0-9.]/g, '') || '0');
-            const newChap = parseFloat(item.chapterLabel?.replace(/[^0-9.]/g, '') || '0');
-
-            if (newChap > currentChap) {
-              latestBySeries.set(seriesId, item);
-            }
-          }
-
-          // Convert map to array and sort by release time
-          const list = Array.from(latestBySeries.values());
-          list.sort((a, b) => {
-            const timeA = a.releasedAt ? new Date(a.releasedAt).getTime() : 0;
-            const timeB = b.releasedAt ? new Date(b.releasedAt).getTime() : 0;
-            return timeB - timeA;
-          });
-
-          if (!list.length) {
+          if (!allItems.length) {
             // No matching chapters found: show section with "no new chapters" message
             libraryUpdatesSection.hidden = false;
             libraryUpdatesGrid.classList.add("library-updates-strip");
@@ -2899,7 +2876,7 @@
             return;
           }
 
-          const limited = list.slice(0, LIBRARY_UPDATES_LIMIT);
+          const limited = allItems.slice(0, LIBRARY_UPDATES_LIMIT);
 
           libraryUpdatesSection.hidden = false;
           libraryUpdatesGrid.classList.add("library-updates-strip");

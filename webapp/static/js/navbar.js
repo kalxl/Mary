@@ -814,14 +814,11 @@ function initNavbar() {
           bestBySeries.set(key, item);
           continue;
         }
-        const prevLastChap = typeof prev.lastChapter === 'number' ? prev.lastChapter : -Infinity;
-        const currLastChap = typeof item.lastChapter === 'number' ? item.lastChapter : -Infinity;
-        if (currLastChap > prevLastChap) {
+        // Pick the most recently released chapter for this series
+        const prevTime = Date.parse(prev.releasedAt || 0) || 0;
+        const currTime = Date.parse(item.releasedAt || 0) || 0;
+        if (currTime > prevTime) {
           bestBySeries.set(key, item);
-        } else if (currLastChap === prevLastChap) {
-          const prevTime = Date.parse(prev.releasedAt || 0) || 0;
-          const currTime = Date.parse(item.releasedAt || 0) || 0;
-          if (currTime >= prevTime) bestBySeries.set(key, item);
         }
       }
     }
