@@ -2997,7 +2997,7 @@
           }
           return;
         }
-        const isChaptersGrid = gridEl === chaptersGrid;
+        const isChaptersGrid = gridEl === chaptersGrid || gridEl === libraryUpdatesGrid;
         const cardsHtml = items
           .map((item) => {
             const safeTitle = truncateText(item.title || "Untitled", 60);
@@ -3012,7 +3012,7 @@
               return `
                 <a class="trending-card latest-card" href="/series?slug=${encodeURIComponent(slug)}">
                   <div class="trending-cover">
-                    <img src="${cover}" alt="${safeTitle}" />
+                    <img src="${cover}" alt="${safeTitle}" loading="lazy" decoding="async" width="400" height="560" />
                   </div>
                   <div class="trending-info latest-info">
                     <div class="latest-meta-row">
