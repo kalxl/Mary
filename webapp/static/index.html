@@ -2840,6 +2840,10 @@
           });
           const rawList = Array.isArray(chaptersPayload) ? chaptersPayload : [];
 
+          // Keep the API's order, only remove duplicate series (keep first occurrence)
+          const list = [];
+          const seenSeriesIds = new Set();
+
           for (const entry of rawList) {
             const normalized = normalizeChapterCard(entry);
             if (!normalized) continue;
@@ -2850,43 +2854,21 @@
             // Only include chapters from series in the user's library
             if (!seriesIds.includes(seriesId)) continue;
 
-            allItems.push(normalized);
+            // Skip if we've already seen this series (keep first occurrence to respect API order)
+            if (seenSeriesIds.has(seriesId)) continue;
+            seenSeriesIds.add(seriesId);
+
+            list.push(normalized);
           }
 
-          // For each series, keep only the highest chapter number (not most recently released)
-          const latestBySeries = new Map();
-          for (const item of allItems) {
-            const seriesId = item.series_hid || item.slug || item.id;
-            if (!seriesId) continue;
-
-            const current = latestBySeries.get(seriesId);
-            if (!current) {
-              latestBySeries.set(seriesId, item);
-              continue;
-            }
-
-            // Parse chapter numbers to compare - extract the main chapter number
-            const currentChapStr = current.chapterLabel?.replace(/[^0-9.]/g, '') || '0';
-            const newChapStr = item.chapterLabel?.replace(/[^0-9.]/g, '') || '0';
-            
-            const currentChap = parseFloat(currentChapStr);
-            const newChap = parseFloat(newChapStr);
-
-            // Only update if the new chapter is strictly higher
-            if (newChap > currentChap) {
-              latestBySeries.set(seriesId, item);
-            }
-          }
-
-          // Convert map to array and sort by release time
-          const uniqueItems = Array.from(latestBySeries.values());
-          uniqueItems.sort((a, b) => {
+          // Sort by release time (newest first)
+          list.sort((a, b) => {
             const timeA = a.releasedAt ? new Date(a.releasedAt).getTime() : 0;
             const timeB = b.releasedAt ? new Date(b.releasedAt).getTime() : 0;
             return timeB - timeA;
           });
 
-          if (!uniqueItems.length) {
+          if (!list.length) {
             // No matching chapters found: show section with "no new chapters" message
             libraryUpdatesSection.hidden = false;
             libraryUpdatesGrid.classList.add("library-updates-strip");
@@ -2903,7 +2885,7 @@
             return;
           }
 
-          const limited = uniqueItems.slice(0, LIBRARY_UPDATES_LIMIT);
+          const limited = list.slice(0, LIBRARY_UPDATES_LIMIT);
 
           libraryUpdatesSection.hidden = false;
           libraryUpdatesGrid.classList.add("library-updates-strip");
