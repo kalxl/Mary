@@ -2834,9 +2834,10 @@
           const seenLibrarySeriesIds = new Set();
           const allItems = [];
 
+          const orderParam = latestMode === 'new' ? 'new' : 'hot';
           const chaptersPayload = await fetchComickJson("/chapter", {
             page: 1,
-            order: "new",
+            order: orderParam,
             lang: "en",
             accept_erotic_content: "false",
           });
@@ -2879,7 +2880,7 @@
 
           libraryUpdatesSection.hidden = false;
           libraryUpdatesGrid.classList.add("library-updates-strip");
-          renderLatestCards(libraryUpdatesGrid, limited);
+          renderCards(libraryUpdatesGrid, limited);
           setLibraryUpdatesArrowsVisibility(false);
         } catch (err) {
           console.warn("loadLibraryUpdates failed", err);
