@@ -2558,7 +2558,7 @@
           })
           .join("");
         setupFollowedArrows();
-        setFollowedArrowsVisibility(false);
+        setFollowedArrowsVisibility(true);
       }
 
       function renderHistorySkeletonsHtml(count = 8) {
@@ -2834,32 +2834,27 @@
           const seenLibrarySeriesIds = new Set();
           const allItems = [];
 
-          for (let page = 1; page <= MAX_LIBRARY_UPDATES_PAGES; page++) {
-            const chaptersPayload = await fetchComickJson("/chapter", {
-              page,
-              order: "new",
-              lang: "en",
-              accept_erotic_content: "false",
-            });
-            const rawList = Array.isArray(chaptersPayload) ? chaptersPayload : [];
-            if (!rawList.length) break;
+          const chaptersPayload = await fetchComickJson("/chapter", {
+            page: 1,
+            order: "new",
+            lang: "en",
+            accept_erotic_content: "false",
+          });
+          const rawList = Array.isArray(chaptersPayload) ? chaptersPayload : [];
 
-            const normalized = rawList
-              .map(normalizeChapterCard)
-              .filter((item) => item && item.series_hid && seriesIds.includes(item.series_hid));
+          const normalized = rawList
+            .map(normalizeChapterCard)
+            .filter((item) => item && item.series_hid && seriesIds.includes(item.series_hid));
 
-            for (const item of normalized) {
-              const seriesId = item.series_hid;
-              if (!seriesId) continue;
-              
-              // Skip if we've already seen this series (keep first occurrence to respect API order)
-              if (seenLibrarySeriesIds.has(seriesId)) continue;
-              seenLibrarySeriesIds.add(seriesId);
-              
-              allItems.push(item);
-              if (allItems.length >= LIBRARY_UPDATES_LIMIT) break;
-            }
+          for (const item of normalized) {
+            const seriesId = item.series_hid;
+            if (!seriesId) continue;
             
+            // Skip if we've already seen this series (keep first occurrence to respect API order)
+            if (seenLibrarySeriesIds.has(seriesId)) continue;
+            seenLibrarySeriesIds.add(seriesId);
+            
+            allItems.push(item);
             if (allItems.length >= LIBRARY_UPDATES_LIMIT) break;
           }
           if (!allItems.length) {
