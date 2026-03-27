@@ -2834,97 +2834,96 @@
           const bestBySeries = new Map();
           const lastChapterBySeries = new Map(); // Track highest lastChapter seen per series
           const MAX_PAGES = 100;
+          const BATCH_SIZE = 10; // Fetch 10 pages in parallel
+          const FIVE_DAYS_MS = 5 * 24 * 60 * 60 * 1000;
 
           const orderParam = latestMode === 'new' ? 'new' : 'hot';
           
-          // First pass: collect lastChapter values per series across all pages
-          for (let page = 1; page <= MAX_PAGES; page += 1) {
-            let chaptersPayload = null;
-            try {
-              chaptersPayload = await fetchComickJson("/chapter", {
-                page,
-                order: orderParam,
-                lang: "en",
-                accept_erotic_content: "false",
-              });
-            } catch (_) {
-              chaptersPayload = null;
-            }
-            const rawList = Array.isArray(chaptersPayload) ? chaptersPayload : [];
-            if (!rawList.length) break;
-
-            for (const entry of rawList) {
-              const manga = entry.md_comics || {};
-              const seriesId = manga.hid || manga.id || manga.slug;
-              if (!seriesId) continue;
-              const lc = manga.last_chapter != null ? Number(manga.last_chapter) : null;
-              if (lc !== null && Number.isFinite(lc)) {
-                const prev = lastChapterBySeries.get(seriesId);
-                if (prev === undefined || lc > prev) {
-                  lastChapterBySeries.set(seriesId, lc);
+          // Fetch pages in parallel batches, process in single pass
+          let emptyBatches = 0;
+          for (let batchStart = 1; batchStart <= MAX_PAGES; batchStart += BATCH_SIZE) {
+            const batchEnd = Math.min(batchStart + BATCH_SIZE - 1, MAX_PAGES);
+            const pageNumbers = [];
+            for (let p = batchStart; p <= batchEnd; p++) pageNumbers.push(p);
+            
+            // Fetch all pages in this batch in parallel
+            const batchResults = await Promise.all(
+              pageNumbers.map(page => 
+                fetchComickJson("/chapter", {
+                  page,
+                  order: orderParam,
+                  lang: "en",
+                  accept_erotic_content: "false",
+                }).catch(() => null)
+              )
+            );
+            
+            let foundAnyInBatch = false;
+            
+            for (const chaptersPayload of batchResults) {
+              const rawList = Array.isArray(chaptersPayload) ? chaptersPayload : [];
+              if (!rawList.length) continue;
+              foundAnyInBatch = true;
+              
+              for (const entry of rawList) {
+                const manga = entry.md_comics || {};
+                const seriesId = manga.hid || manga.id || manga.slug;
+                if (!seriesId) continue;
+                
+                // Collect lastChapter values
+                const lc = manga.last_chapter != null ? Number(manga.last_chapter) : null;
+                if (lc !== null && Number.isFinite(lc)) {
+                  const prev = lastChapterBySeries.get(seriesId);
+                  if (prev === undefined || lc > prev) {
+                    lastChapterBySeries.set(seriesId, lc);
+                  }
+                }
+                
+                // Only include chapters from series in the user's library
+                if (!seriesIds.includes(seriesId)) continue;
+                
+                const normalized = normalizeChapterCard(entry);
+                if (!normalized) continue;
+                
+                // Skip chapters older than 5 days
+                const releaseTime = Date.parse(normalized.releasedAt || 0) || 0;
+                if (releaseTime && (Date.now() - releaseTime) > FIVE_DAYS_MS) continue;
+                
+                // Skip backfilled chapters: only show if chapter >= lastChapter
+                const chapNum = typeof normalized.chapterNumber === 'number' ? normalized.chapterNumber : null;
+                let lastChap = typeof normalized.lastChapter === 'number' ? normalized.lastChapter : null;
+                if (lastChap === null) {
+                  lastChap = lastChapterBySeries.get(seriesId) ?? null;
+                }
+                if (chapNum !== null && lastChap !== null && chapNum < lastChap) continue;
+                
+                const prev = bestBySeries.get(seriesId);
+                if (!prev) {
+                  bestBySeries.set(seriesId, normalized);
+                  continue;
+                }
+                
+                // Pick the highest chapter number, use release time as tiebreaker
+                const prevChap = typeof prev.chapterNumber === 'number' ? prev.chapterNumber : -Infinity;
+                const currChap = typeof normalized.chapterNumber === 'number' ? normalized.chapterNumber : -Infinity;
+                if (currChap > prevChap) {
+                  bestBySeries.set(seriesId, normalized);
+                } else if (currChap === prevChap) {
+                  const prevTime = Date.parse(prev.releasedAt || 0) || 0;
+                  const currTime = Date.parse(normalized.releasedAt || 0) || 0;
+                  if (currTime < prevTime) bestBySeries.set(seriesId, normalized);
                 }
               }
             }
-          }
-
-          // Second pass: process and filter
-          for (let page = 1; page <= MAX_PAGES; page += 1) {
-            let chaptersPayload = null;
-            try {
-              chaptersPayload = await fetchComickJson("/chapter", {
-                page,
-                order: orderParam,
-                lang: "en",
-                accept_erotic_content: "false",
-              });
-            } catch (_) {
-              chaptersPayload = null;
-            }
-            const rawList = Array.isArray(chaptersPayload) ? chaptersPayload : [];
-            if (!rawList.length) break;
-
-            for (const entry of rawList) {
-            const normalized = normalizeChapterCard(entry);
-            if (!normalized) continue;
-
-            const seriesId = normalized.series_hid || normalized.slug || normalized.id;
-            if (!seriesId) continue;
-
-            // Only include chapters from series in the user's library
-            if (!seriesIds.includes(seriesId)) continue;
-
-            // Skip chapters older than 5 days
-            const releaseTime = Date.parse(normalized.releasedAt || 0) || 0;
-            const FIVE_DAYS_MS = 5 * 24 * 60 * 60 * 1000;
-            if (releaseTime && (Date.now() - releaseTime) > FIVE_DAYS_MS) continue;
-
-            // Skip backfilled chapters: only show if chapter >= lastChapter
-            const chapNum = typeof normalized.chapterNumber === 'number' ? normalized.chapterNumber : null;
-            let lastChap = typeof normalized.lastChapter === 'number' ? normalized.lastChapter : null;
-            // Use cached lastChapter if this entry's is null
-            if (lastChap === null) {
-              lastChap = lastChapterBySeries.get(seriesId) ?? null;
-            }
-            if (chapNum !== null && lastChap !== null && chapNum < lastChap) continue;
-
-            const prev = bestBySeries.get(seriesId);
-            if (!prev) {
-              bestBySeries.set(seriesId, normalized);
-              continue;
-            }
-
-            // Pick the highest chapter number, use release time as tiebreaker
-            const prevChap = typeof prev.chapterNumber === 'number' ? prev.chapterNumber : -Infinity;
-            const currChap = typeof normalized.chapterNumber === 'number' ? normalized.chapterNumber : -Infinity;
-            if (currChap > prevChap) {
-              bestBySeries.set(seriesId, normalized);
-            } else if (currChap === prevChap) {
-              const prevTime = Date.parse(prev.releasedAt || 0) || 0;
-              const currTime = Date.parse(normalized.releasedAt || 0) || 0;
-              if (currTime < prevTime) bestBySeries.set(seriesId, normalized);
+            
+            // Early exit: if 2 consecutive batches have no data, stop
+            if (!foundAnyInBatch) {
+              emptyBatches++;
+              if (emptyBatches >= 2) break;
+            } else {
+              emptyBatches = 0;
             }
           }
-          } // end page loop
 
           // Sort by release time (newest first)
           const allItems = Array.from(bestBySeries.values())
