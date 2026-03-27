@@ -2855,6 +2855,7 @@
             // Skip backfilled chapters: only show if chapter >= lastChapter
             const chapNum = typeof normalized.chapterNumber === 'number' ? normalized.chapterNumber : null;
             const lastChap = typeof normalized.lastChapter === 'number' ? normalized.lastChapter : null;
+            console.log('[DEBUG] Library:', normalized.title, 'chapNum:', chapNum, 'lastChap:', lastChap, 'skip:', chapNum !== null && lastChap !== null && chapNum < lastChap);
             if (chapNum !== null && lastChap !== null && chapNum < lastChap) continue;
 
             const prev = bestBySeries.get(seriesId);

@@ -809,6 +809,7 @@ function initNavbar() {
           // Skip backfilled chapters: only show if chapter >= lastChapter
           const chapNum = typeof item.chapterNumber === 'number' ? item.chapterNumber : null;
           const lastChap = typeof item.lastChapter === 'number' ? item.lastChapter : null;
+          console.log('[DEBUG] Notif:', item.title, 'chapNum:', chapNum, 'lastChap:', lastChap, 'skip:', chapNum !== null && lastChap !== null && chapNum < lastChap);
           if (chapNum !== null && lastChap !== null && chapNum < lastChap) return false;
           return true;
         });
