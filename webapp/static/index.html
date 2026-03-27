@@ -2013,6 +2013,7 @@
       let homeRestoredFromCache = false;
       let homeAuthListenerBound = false;
       let libraryUpdatesLoading = false;
+      let seenChapterSeriesIds = new Set(); // Track seen series across pagination
 
       window.addEventListener("DOMContentLoaded", init);
 
@@ -2240,6 +2241,7 @@
         if (!append) {
           if (!homeRestoredFromCache) chaptersGrid.innerHTML = renderLatestSkeletonsHtml(12);
           chaptersPage = Math.max(1, chaptersPage);
+          seenChapterSeriesIds.clear(); // Reset seen series when loading fresh
         }
         updateChapterControls();
         try {
@@ -2256,7 +2258,6 @@
           const rawList = Array.isArray(data) ? data : [];
           
           // Keep the API's order, only remove duplicate series (keep first occurrence)
-          const seenSeriesIds = new Set();
           const list = [];
           
           for (const entry of rawList) {
@@ -2267,8 +2268,8 @@
             if (!seriesId) continue;
             
             // Skip if we've already seen this series (keep first occurrence to respect API order)
-            if (seenSeriesIds.has(seriesId)) continue;
-            seenSeriesIds.add(seriesId);
+            if (seenChapterSeriesIds.has(seriesId)) continue;
+            seenChapterSeriesIds.add(seriesId);
             
             list.push(normalized);
             if (list.length >= CHAPTERS_PER_PAGE) break;
@@ -2829,8 +2830,9 @@
             return;
           }
 
-          // For each library series, track the latest chapter (by numeric chapter + time)
-          const bestBySeries = new Map();
+          // Keep the API's order, only remove duplicate series (keep first occurrence)
+          const seenLibrarySeriesIds = new Set();
+          const allItems = [];
 
           for (let page = 1; page <= MAX_LIBRARY_UPDATES_PAGES; page++) {
             const chaptersPayload = await fetchComickJson("/chapter", {
@@ -2847,29 +2849,19 @@
               .filter((item) => item && item.series_hid && seriesIds.includes(item.series_hid));
 
             for (const item of normalized) {
-              const key = String(item.series_hid);
-              if (!key) continue;
-              const prev = bestBySeries.get(key);
-              if (!prev) {
-                bestBySeries.set(key, item);
-                continue;
-              }
-
-              const prevChap = typeof prev.chapterNumber === "number" ? prev.chapterNumber : -Infinity;
-              const currChap = typeof item.chapterNumber === "number" ? item.chapterNumber : -Infinity;
-              if (currChap > prevChap) {
-                bestBySeries.set(key, item);
-              } else if (currChap === prevChap) {
-                const prevTime = Date.parse(prev.releasedAt || 0) || 0;
-                const currTime = Date.parse(item.releasedAt || 0) || 0;
-                if (currTime >= prevTime) {
-                  bestBySeries.set(key, item);
-                }
-              }
+              const seriesId = item.series_hid;
+              if (!seriesId) continue;
+              
+              // Skip if we've already seen this series (keep first occurrence to respect API order)
+              if (seenLibrarySeriesIds.has(seriesId)) continue;
+              seenLibrarySeriesIds.add(seriesId);
+              
+              allItems.push(item);
+              if (allItems.length >= LIBRARY_UPDATES_LIMIT) break;
             }
+            
+            if (allItems.length >= LIBRARY_UPDATES_LIMIT) break;
           }
-
-          const allItems = Array.from(bestBySeries.values());
           if (!allItems.length) {
             // No matching chapters found: show section with "no new chapters" message
             libraryUpdatesSection.hidden = false;
