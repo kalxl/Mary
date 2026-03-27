@@ -174,12 +174,12 @@ function normalizeChapterFeedItem(entry) {
     const comicCard = normalizeComicCard(manga);
     if (!comicCard) return null;
     const releasedAt =
+      entry.publish_at ||
+      entry.published_at ||
       entry.created_at ||
       entry.createdAt ||
       entry.updated_at ||
-      entry.updatedAt ||
-      entry.publish_at ||
-      entry.published_at;
+      entry.updatedAt;
     const seriesKey =
       manga.hid ||
       manga.id ||
