@@ -2879,10 +2879,7 @@
             return;
           }
 
-          const sorted = allItems.sort(
-            (a, b) => (Date.parse(b.releasedAt || 0) || 0) - (Date.parse(a.releasedAt || 0) || 0)
-          );
-          const limited = sorted.slice(0, LIBRARY_UPDATES_LIMIT);
+          const limited = allItems.slice(0, LIBRARY_UPDATES_LIMIT);
 
           libraryUpdatesSection.hidden = false;
           libraryUpdatesGrid.classList.add("library-updates-strip");
