@@ -2272,6 +2272,7 @@
             seenChapterSeriesIds.add(seriesId);
             
             list.push(normalized);
+            if (!append && list.length >= CHAPTERS_PER_PAGE) break;
           }
 
           const rawPageCount = Math.min(rawList.length, CHAPTERS_PER_PAGE);
