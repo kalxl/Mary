@@ -187,11 +187,13 @@ function normalizeChapterFeedItem(entry) {
       comicCard.slug ||
       comicCard.id;
     const chapterNumber = entry.chap != null ? Number(entry.chap) : null;
+    const lastChapter = manga.last_chapter != null ? Number(manga.last_chapter) : null;
     return {
       ...comicCard,
       series_hid: seriesKey ? String(seriesKey) : '',
       chapterLabel: entry.chap ? `Ch. ${entry.chap}` : '',
       chapterNumber: Number.isFinite(chapterNumber) ? chapterNumber : null,
+      lastChapter: Number.isFinite(lastChapter) ? lastChapter : null,
       releasedAt: releasedAt ? String(releasedAt) : '',
     };
   } catch (_) {
@@ -782,8 +784,7 @@ function initNavbar() {
     ).map((v) => String(v));
     if (!seriesIds.length) return [];
 
-    const seenSeries = new Set();
-    const allItems = [];
+    const bestBySeries = new Map();
     const MAX_PAGES = 10;
 
     for (let page = 1; page <= MAX_PAGES; page += 1) {
@@ -808,15 +809,24 @@ function initNavbar() {
       for (const item of normalized) {
         const key = String(item.series_hid || '');
         if (!key) continue;
-        if (seenSeries.has(key)) continue;
-        seenSeries.add(key);
-        allItems.push(item);
-        if (allItems.length >= 18) break;
+        const prev = bestBySeries.get(key);
+        if (!prev) {
+          bestBySeries.set(key, item);
+          continue;
+        }
+        const prevLastChap = typeof prev.lastChapter === 'number' ? prev.lastChapter : -Infinity;
+        const currLastChap = typeof item.lastChapter === 'number' ? item.lastChapter : -Infinity;
+        if (currLastChap > prevLastChap) {
+          bestBySeries.set(key, item);
+        } else if (currLastChap === prevLastChap) {
+          const prevTime = Date.parse(prev.releasedAt || 0) || 0;
+          const currTime = Date.parse(item.releasedAt || 0) || 0;
+          if (currTime >= prevTime) bestBySeries.set(key, item);
+        }
       }
-
-      if (allItems.length >= 18) break;
     }
 
+    const allItems = Array.from(bestBySeries.values());
     if (!allItems.length) return [];
 
     const sorted = allItems
