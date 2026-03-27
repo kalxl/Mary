@@ -2833,31 +2833,57 @@
           // Pick highest chapter number per series, then sort by release time (newest first)
           const bestBySeries = new Map();
           const lastChapterBySeries = new Map(); // Track highest lastChapter seen per series
+          const MAX_PAGES = 10;
 
           const orderParam = latestMode === 'new' ? 'new' : 'hot';
-          const chaptersPayload = await fetchComickJson("/chapter", {
-            page: 1,
-            order: orderParam,
-            lang: "en",
-            accept_erotic_content: "false",
-          });
-          const rawList = Array.isArray(chaptersPayload) ? chaptersPayload : [];
+          
+          // First pass: collect lastChapter values per series across all pages
+          for (let page = 1; page <= MAX_PAGES; page += 1) {
+            let chaptersPayload = null;
+            try {
+              chaptersPayload = await fetchComickJson("/chapter", {
+                page,
+                order: orderParam,
+                lang: "en",
+                accept_erotic_content: "false",
+              });
+            } catch (_) {
+              chaptersPayload = null;
+            }
+            const rawList = Array.isArray(chaptersPayload) ? chaptersPayload : [];
+            if (!rawList.length) break;
 
-          // First pass: collect lastChapter values per series
-          for (const entry of rawList) {
-            const manga = entry.md_comics || {};
-            const seriesId = manga.hid || manga.id || manga.slug;
-            if (!seriesId) continue;
-            const lc = manga.last_chapter != null ? Number(manga.last_chapter) : null;
-            if (lc !== null && Number.isFinite(lc)) {
-              const prev = lastChapterBySeries.get(seriesId);
-              if (prev === undefined || lc > prev) {
-                lastChapterBySeries.set(seriesId, lc);
+            for (const entry of rawList) {
+              const manga = entry.md_comics || {};
+              const seriesId = manga.hid || manga.id || manga.slug;
+              if (!seriesId) continue;
+              const lc = manga.last_chapter != null ? Number(manga.last_chapter) : null;
+              if (lc !== null && Number.isFinite(lc)) {
+                const prev = lastChapterBySeries.get(seriesId);
+                if (prev === undefined || lc > prev) {
+                  lastChapterBySeries.set(seriesId, lc);
+                }
               }
             }
           }
 
-          for (const entry of rawList) {
+          // Second pass: process and filter
+          for (let page = 1; page <= MAX_PAGES; page += 1) {
+            let chaptersPayload = null;
+            try {
+              chaptersPayload = await fetchComickJson("/chapter", {
+                page,
+                order: orderParam,
+                lang: "en",
+                accept_erotic_content: "false",
+              });
+            } catch (_) {
+              chaptersPayload = null;
+            }
+            const rawList = Array.isArray(chaptersPayload) ? chaptersPayload : [];
+            if (!rawList.length) break;
+
+            for (const entry of rawList) {
             const normalized = normalizeChapterCard(entry);
             if (!normalized) continue;
 
@@ -2893,6 +2919,7 @@
               if (currTime > prevTime) bestBySeries.set(seriesId, normalized);
             }
           }
+          } // end page loop
 
           // Sort by release time (newest first)
           const allItems = Array.from(bestBySeries.values())
