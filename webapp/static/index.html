@@ -2916,7 +2916,7 @@
             } else if (currChap === prevChap) {
               const prevTime = Date.parse(prev.releasedAt || 0) || 0;
               const currTime = Date.parse(normalized.releasedAt || 0) || 0;
-              if (currTime > prevTime) bestBySeries.set(seriesId, normalized);
+              if (currTime < prevTime) bestBySeries.set(seriesId, normalized);
             }
           }
           } // end page loop

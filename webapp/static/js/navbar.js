@@ -857,7 +857,7 @@ function initNavbar() {
           bestBySeries.set(key, item);
           continue;
         }
-        // Pick the highest chapter number, use release time as tiebreaker
+        // Pick the highest chapter number, use oldest release time as tiebreaker
         const prevChap = typeof prev.chapterNumber === 'number' ? prev.chapterNumber : -Infinity;
         const currChap = typeof item.chapterNumber === 'number' ? item.chapterNumber : -Infinity;
         if (currChap > prevChap) {
@@ -865,7 +865,7 @@ function initNavbar() {
         } else if (currChap === prevChap) {
           const prevTime = Date.parse(prev.releasedAt || 0) || 0;
           const currTime = Date.parse(item.releasedAt || 0) || 0;
-          if (currTime > prevTime) bestBySeries.set(key, item);
+          if (currTime < prevTime) bestBySeries.set(key, item); // pick older
         }
       }
     }
