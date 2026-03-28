@@ -1072,8 +1072,8 @@
         margin-bottom: 14px;
       }
       .slug-source-tab {
-        padding: 6px 14px;
-        border-radius: 999px;
+        padding: 6px 12px;
+        border-radius: 10px;
         border: 1px solid rgba(255, 255, 255, 0.12);
         background: rgba(255, 255, 255, 0.04);
         color: rgba(255, 255, 255, 0.7);
@@ -1117,47 +1117,42 @@
       }
       .slug-results {
         margin-top: 14px;
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        display: flex;
         gap: 12px;
-      }
-      @media (max-width: 520px) {
-        .slug-results {
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-      }
-      @media (min-width: 980px) {
-        .slug-results {
-          grid-template-columns: repeat(4, minmax(0, 1fr));
-        }
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        padding-bottom: 8px;
       }
       .slug-result {
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        background: rgba(255, 255, 255, 0.03);
-        border-radius: 16px;
-        padding: 10px;
+        border: none;
+        background: transparent;
+        border-radius: 12px;
+        padding: 0;
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 6px;
         align-items: stretch;
         cursor: pointer;
-        transition: border-color 0.15s ease, background 0.15s ease;
+        transition: transform 0.15s ease;
         overflow: hidden;
+        min-width: 130px;
+        width: 130px;
+        flex-shrink: 0;
+        scroll-snap-align: start;
       }
       .slug-result:hover {
-        border-color: rgba(var(--accent-rgb), 0.4);
-        background: rgba(var(--accent-rgb), 0.06);
+        transform: translateY(-2px);
       }
       .slug-result.selected {
-        border-color: rgba(var(--accent-rgb), 0.7);
-        background: rgba(var(--accent-rgb), 0.10);
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
       }
       .slug-result-media {
         position: relative;
-        border-radius: 14px;
+        border-radius: 10px;
         overflow: hidden;
-        border: 1px solid rgba(255, 255, 255, 0.10);
-        background: rgba(255, 255, 255, 0.04);
+        border: none;
+        background: transparent;
         aspect-ratio: 2 / 3;
       }
       .slug-cover {
@@ -1176,21 +1171,20 @@
       }
   
       .slug-name {
-        font-weight: 900;
+        font-weight: 600;
         font-family: "Outfit", system-ui, sans-serif;
-        letter-spacing: -0.02em;
-        font-size: 0.95rem;
-        line-height: 1.25;
+        letter-spacing: -0.01em;
+        font-size: 0.8rem;
+        line-height: 1.3;
         overflow: hidden;
         display: -webkit-box;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
+        white-space: nowrap;
+        text-overflow: ellipsis;
       }
       .slug-sub {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        flex-wrap: wrap;
+        display: none;
       }
       .slug-tag {
         display: inline-flex;
@@ -2532,7 +2526,7 @@
         .mobile-similar-card img {
           width: 100%;
           aspect-ratio: 2/3;
-          max-height: 140px;
+          height: auto;
           object-fit: cover;
           object-position: center top;
           border-radius: 8px;
@@ -3706,11 +3700,11 @@
               const asuraMap = loadAsuraSlugMap();
               const asuraSlug = mdId && asuraMap[mdId] ? asuraMap[mdId] : null;
               if (!asuraSlug) {
-                if (sourceCache.comick) {
-                  currentSource = "comick";
-                  allChapters = sourceCache.comick.chapters || [];
-                  renderSeries(sourceCache.comick, "comick");
-                }
+                // Open slug modal to let user select an asura series
+                openAsuraSlugModal();
+                // Revert to current source
+                currentSource = "comick";
+                updateSourceControlsState();
                 return;
               }
               await loadAsuraSeries(asuraSlug);
@@ -3721,11 +3715,11 @@
               const mangataroMap = loadMangataroSlugMap();
               const mangataroSlug = mdId && mangataroMap[mdId] ? mangataroMap[mdId] : null;
               if (!mangataroSlug) {
-                if (sourceCache.comick) {
-                  currentSource = "comick";
-                  allChapters = sourceCache.comick.chapters || [];
-                  renderSeries(sourceCache.comick, "comick");
-                }
+                // Open slug modal to let user select a mangataro series
+                openAsuraSlugModal();
+                // Revert to current source
+                currentSource = "comick";
+                updateSourceControlsState();
                 return;
               }
               await loadMangataroSeries(mangataroSlug);
