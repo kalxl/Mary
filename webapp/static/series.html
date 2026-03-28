@@ -322,9 +322,9 @@
         flex-wrap: wrap;
       }
       .links-label {
-        font-size: 0.85rem;
-        color: rgba(255, 255, 255, 0.6);
+        font-size: 0.75rem;
         font-weight: 500;
+        color: rgba(255, 255, 255, 0.6);
       }
       .link-btn {
         display: flex;
@@ -2271,26 +2271,34 @@
         }
 
         .mobile-external-links .links-label {
-          font-size: 1.1rem;
-          font-weight: 700;
-          color: #f1f5f2;
-          letter-spacing: -0.01em;
-          margin-bottom: 0.25rem;
+          font-size: 0.75rem;
+          font-weight: 500;
+          color: rgba(255, 255, 255, 0.6);
+        }
+
+        .mobile-external-links {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 0.6rem;
         }
 
         .mobile-external-links .link-btn {
-          padding: 0.75rem 1rem;
-          border-radius: 12px;
+          width: 40px;
+          height: 40px;
+          border-radius: 10px;
           background: rgba(255, 255, 255, 0.06);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          font-size: 0.9rem;
-          font-weight: 600;
-          min-width: 120px;
+          border: 1px solid rgba(255, 255, 255, 0.12);
         }
 
         .mobile-external-links .link-btn img {
-          width: 22px;
-          height: 22px;
+          width: 26px;
+          height: 26px;
+        }
+
+        .mobile-external-links .links-row {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.6rem;
         }
 
         .chapter-search-wrapper input {
@@ -4231,6 +4239,7 @@
           </div>
           <div class="meta-block">
             <h1>${heroData.title}</h1>
+            <span class="links-label">Stats</span>
             <div class="stats-row">
               ${heroData.rating ? `<span><svg class="icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg> ${parseFloat(heroData.rating).toFixed(2)}</span>` : ''}
               ${heroData.followers ? `<span><svg class="icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> ${Number(heroData.followers).toLocaleString()}</span>` : ''}
@@ -4421,6 +4430,12 @@
         // Populate details grid
         const detailsGrid = document.getElementById('mobile-details-grid');
         if (detailsGrid) {
+          // Add Stats label before the grid
+          const statsLabel = document.createElement('span');
+          statsLabel.className = 'links-label';
+          statsLabel.textContent = 'Stats';
+          detailsGrid.parentNode.insertBefore(statsLabel, detailsGrid);
+          
           const details = [
             { label: 'Rank', value: heroData.follow_rank ? `#${heroData.follow_rank}` : '—', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>' },
             { label: 'Follows', value: heroData.user_follow_count ? Number(heroData.user_follow_count).toLocaleString() : '—', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>' },
@@ -4443,7 +4458,7 @@
         // Populate mobile external links
         const mobileLinks = document.getElementById('mobile-external-links');
         if (mobileLinks) {
-          let linksHtml = '<span class="links-label">Links:</span>';
+          let linksHtml = '<span class="links-label">Links</span><div class="links-row">';
           linksHtml += `<a href="https://comick.io/comic/${heroData.slug || ''}" target="_blank" rel="noopener" class="link-btn comick-link" title="Comick">
             <img src="/static/img/comick.png" alt="Comick"/>
           </a>`;
@@ -4462,6 +4477,7 @@
               <img src="/static/img/myanimelist.png" alt="MyAnimeList"/>
             </a>`;
           }
+          linksHtml += '</div>';
           mobileLinks.innerHTML = linksHtml;
         }
 
