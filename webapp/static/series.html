@@ -316,42 +316,37 @@
       }
       .external-links {
         display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.6rem;
+        align-items: center;
+        gap: 0.5rem;
         margin-top: 0.6rem;
+        flex-wrap: wrap;
       }
       .links-label {
-        font-size: 0.9rem;
-        color: var(--muted);
-        font-weight: 600;
-      }
-      .external-links-row {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.6rem;
+        font-size: 0.85rem;
+        color: rgba(255, 255, 255, 0.6);
+        font-weight: 500;
       }
       .link-btn {
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 36px;
-        height: 36px;
-        border-radius: 8px;
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
         background: rgba(255, 255, 255, 0.06);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.12);
         transition: all 0.15s ease;
         text-decoration: none;
       }
       .link-btn:hover {
         background: rgba(255, 255, 255, 0.12);
-        border-color: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.25);
         transform: translateY(-1px);
       }
       .link-btn img {
-        width: 24px;
-        height: 24px;
-        border-radius: 4px;
+        width: 20px;
+        height: 20px;
+        border-radius: 3px;
         object-fit: contain;
       }
 
@@ -4249,8 +4244,7 @@
               <span>Chapters: <strong>${heroChapterTotal}</strong></span>
             </div>
             <div class="external-links">
-              <span class="links-label">Links</span>
-              <div class="external-links-row">
+              <span class="links-label">Links:</span>
               <a href="https://comick.io/comic/${heroData.slug || ''}" target="_blank" rel="noopener" class="link-btn comick-link" title="Comick">
                 <img src="/static/img/comick.png" alt="Comick"/>
               </a>
@@ -4263,7 +4257,6 @@
               ${heroData.mal ? `<a href="https://myanimelist.net/manga/${heroData.mal}" target="_blank" rel="noopener" class="link-btn mal-link" title="MyAnimeList">
                 <img src="/static/img/myanimelist.png" alt="MyAnimeList"/>
               </a>` : ''}
-              </div>
             </div>
             <div id="description-desktop-mount">
               <div class="description-block">
@@ -4450,7 +4443,7 @@
         // Populate mobile external links
         const mobileLinks = document.getElementById('mobile-external-links');
         if (mobileLinks) {
-          let linksHtml = '<span class="links-label">Links</span><div class="external-links-row">';
+          let linksHtml = '<span class="links-label">Links:</span>';
           linksHtml += `<a href="https://comick.io/comic/${heroData.slug || ''}" target="_blank" rel="noopener" class="link-btn comick-link" title="Comick">
             <img src="/static/img/comick.png" alt="Comick"/>
           </a>`;
@@ -4469,7 +4462,6 @@
               <img src="/static/img/myanimelist.png" alt="MyAnimeList"/>
             </a>`;
           }
-          linksHtml += '</div>';
           mobileLinks.innerHTML = linksHtml;
         }
 
@@ -4620,7 +4612,7 @@
             }
 
             // Attach comick click handlers for mobile chapter list
-            if (isComickSource) {
+            if (currentSource === "comick") {
               const mobileChapterList = document.getElementById('mobile-chapter-list');
               if (mobileChapterList) {
                 attachComickChapterClickHandlers(mobileChapterList);
@@ -7286,10 +7278,6 @@ We'll reuse it next time.`,
     <script>
       document.getElementById('footer-logo')?.addEventListener('dblclick', function() {
         this.classList.toggle('spinning');
-      });
-    </script>
-  </body>
-</html>
       });
     </script>
   </body>
