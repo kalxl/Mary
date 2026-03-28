@@ -710,6 +710,7 @@
         display: block;
       }
       .status-menu.mobile-open {
+        display: block !important;
         position: fixed;
         top: auto;
         bottom: 80px;
@@ -1113,6 +1114,23 @@
         color: #dfe4e1;
         border: 1px solid rgba(255, 255, 255, 0.1);
         margin-bottom: 14px;
+      }
+      .slug-search input {
+        border: none !important;
+        background: transparent !important;
+        background-color: transparent !important;
+        color: inherit;
+        width: 100%;
+        font-size: 0.98rem;
+        font-weight: 600;
+        outline: none;
+        box-shadow: none !important;
+        -webkit-appearance: none;
+        appearance: none;
+      }
+      .slug-search input:focus {
+        outline: none;
+        box-shadow: none;
       }
       .slug-source-tabs {
         display: flex;
@@ -2799,6 +2817,11 @@
             <!-- Populated dynamically -->
           </div>
 
+          <!-- External Links -->
+          <div class="external-links" id="mobile-external-links">
+            <!-- Populated dynamically -->
+          </div>
+
           <!-- Similar Section -->
           <div class="mobile-similar-section">
             <div class="mobile-similar-header">
@@ -3302,7 +3325,7 @@
           } catch (err) {
             console.warn('Failed to persist series mapping', err);
           }
-          let currentSource = isComickMode ? "comick" : (ENABLE_COMIX_SOURCE ? "comix" : "comick");
+          currentSource = "asura";
           updateSourceOptions();
           await loadAsuraSeries(firstItem.slug);
         } else if (firstItem.source === 'mangataro') {
@@ -4356,6 +4379,31 @@
           `).join('');
         }
 
+        // Populate mobile external links
+        const mobileLinks = document.getElementById('mobile-external-links');
+        if (mobileLinks) {
+          let linksHtml = '<span class="links-label">Links:</span>';
+          linksHtml += `<a href="https://comick.io/comic/${heroData.slug || ''}" target="_blank" rel="noopener" class="link-btn comick-link" title="Comick">
+            <img src="/static/img/comick.png" alt="Comick"/>
+          </a>`;
+          if (heroData.al) {
+            linksHtml += `<a href="https://anilist.co/manga/${heroData.al}" target="_blank" rel="noopener" class="link-btn anilist-link" title="AniList">
+              <img src="/static/img/anilist.png" alt="AniList"/>
+            </a>`;
+          }
+          if (heroData.mu) {
+            linksHtml += `<a href="https://www.mangaupdates.com/series/${heroData.mu}" target="_blank" rel="noopener" class="link-btn mangaupdates-link" title="MangaUpdates">
+              <img src="/static/img/mangaupdate.png" alt="MangaUpdates"/>
+            </a>`;
+          }
+          if (heroData.mal) {
+            linksHtml += `<a href="https://myanimelist.net/manga/${heroData.mal}" target="_blank" rel="noopener" class="link-btn mal-link" title="MyAnimeList">
+              <img src="/static/img/myanimelist.png" alt="MyAnimeList"/>
+            </a>`;
+          }
+          mobileLinks.innerHTML = linksHtml;
+        }
+
         // Update mobile start reading button
         const mobileReadBtn = document.getElementById('mobile-start-reading');
         if (mobileReadBtn) {
@@ -4382,10 +4430,8 @@
             e.preventDefault();
             const statusMenu = document.getElementById('status-menu');
             if (statusMenu) {
-              const isOpen = statusMenu.classList.contains('mobile-open');
-              statusMenu.classList.remove('open', 'mobile-open');
-              if (!isOpen) {
-                statusMenu.classList.add('open', 'mobile-open');
+              statusMenu.classList.toggle('mobile-open');
+              if (statusMenu.classList.contains('mobile-open')) {
                 statusMenu.style.display = 'block';
               } else {
                 statusMenu.style.display = 'none';
