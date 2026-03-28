@@ -2520,22 +2520,22 @@
         .mobile-similar-grid {
           display: grid;
           grid-template-columns: repeat(2, 1fr);
-          gap: 0.75rem;
+          gap: 0.5rem;
         }
         .mobile-similar-card {
           display: flex;
           flex-direction: column;
-          gap: 0.4rem;
+          gap: 0.3rem;
           text-decoration: none;
           color: inherit;
         }
         .mobile-similar-card img {
           width: 100%;
           aspect-ratio: 2/3;
-          height: auto;
+          max-height: 140px;
           object-fit: cover;
           object-position: center top;
-          border-radius: 10px;
+          border-radius: 8px;
         }
         .mobile-similar-title {
           font-size: 0.75rem;
@@ -2592,7 +2592,7 @@
         /* Mobile Action Buttons - Below Cover */
         .mobile-action-bar {
           display: flex;
-          gap: 0.75rem;
+          gap: 0.4rem;
           padding: 1rem 0;
         }
         .mobile-read-btn {
@@ -4302,8 +4302,8 @@
         const detailsGrid = document.getElementById('mobile-details-grid');
         if (detailsGrid) {
           const details = [
-            { label: 'Author', value: heroData.author || heroData.authors?.[0] || 'Unknown' },
-            { label: 'Artist', value: heroData.artist || heroData.authors?.[1] || 'Unknown' },
+            { label: 'Rank', value: heroData.follow_rank ? `#${heroData.follow_rank}` : '—' },
+            { label: 'Follows', value: heroData.user_follow_count ? Number(heroData.user_follow_count).toLocaleString() : '—' },
             { label: 'Year', value: heroData.year ? String(heroData.year) : '—' },
             { label: 'Type', value: heroData.type || 'Manga' },
             { label: 'Status', value: heroData.status || 'Unknown' },
