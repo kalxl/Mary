@@ -2580,7 +2580,7 @@
           flex-direction: row;
           align-items: center;
           gap: 0.6rem;
-          padding: 0.5rem 0;
+          padding: 0.25rem 0;
         }
         .mobile-detail-icon {
           width: 20px;
@@ -3850,6 +3850,10 @@
                 // Revert to current source
                 currentSource = "comick";
                 updateSourceControlsState();
+                // Restore chapters from comick cache
+                if (sourceCache.comick && sourceCache.comick.chapters) {
+                  allChapters = sourceCache.comick.chapters;
+                }
                 return;
               }
               await loadAsuraSeries(asuraSlug);
@@ -3865,6 +3869,10 @@
                 // Revert to current source
                 currentSource = "comick";
                 updateSourceControlsState();
+                // Restore chapters from comick cache
+                if (sourceCache.comick && sourceCache.comick.chapters) {
+                  allChapters = sourceCache.comick.chapters;
+                }
                 return;
               }
               await loadMangataroSeries(mangataroSlug);
@@ -5967,6 +5975,20 @@
 
         statusBtn.addEventListener("click", (event) => {
           event.stopPropagation();
+          
+          // Check if user is logged in
+          const uid = getLastKnownUserId();
+          const client = typeof getSupabaseClient === 'function' ? getSupabaseClient() : null;
+          const isLoggedIn = uid && client;
+
+          if (!isLoggedIn) {
+            // Show login UI instead
+            if (typeof openLoginModal === 'function') {
+              openLoginModal();
+            }
+            return;
+          }
+          
           statusMenu.classList.toggle("open");
         });
 
@@ -5977,6 +5999,8 @@
             const currentKey = getSlugStorageKey() || initialSeriesKey;
             await saveLibraryStatus(String(currentKey), heroData, value || null);
             statusMenu.classList.remove("open");
+            statusMenu.classList.remove("mobile-open");
+            statusMenu.style.display = 'none';
           });
         });
 
