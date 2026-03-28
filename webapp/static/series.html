@@ -1065,30 +1065,8 @@
         padding: 18px 24px;
         overflow-y: auto;
         flex: 1;
-      }
-      .slug-source-tabs {
         display: flex;
-        gap: 8px;
-        margin-bottom: 14px;
-      }
-      .slug-source-tab {
-        padding: 6px 12px;
-        border-radius: 10px;
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        background: rgba(255, 255, 255, 0.04);
-        color: rgba(255, 255, 255, 0.7);
-        font-size: 0.85rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s ease;
-      }
-      .slug-source-tab:hover {
-        background: rgba(255, 255, 255, 0.08);
-      }
-      .slug-source-tab.active {
-        background: rgba(var(--accent-rgb), 0.15);
-        border-color: rgba(var(--accent-rgb), 0.35);
-        color: var(--accent);
+        flex-direction: column;
       }
       .slug-search {
         display: flex;
@@ -1099,21 +1077,39 @@
         padding: 0.75rem 1rem;
         color: #dfe4e1;
         border: 1px solid rgba(255, 255, 255, 0.1);
+        margin-bottom: 14px;
       }
-      .slug-search:focus-within {
-        border-color: rgba(var(--accent-rgb), 0.5);
-        box-shadow: 0 0 0 4px rgba(var(--accent-rgb), 0.12);
+      .slug-source-tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 14px;
       }
-      .slug-search input {
-        border: none;
-        background: transparent;
-        color: inherit;
-        width: 100%;
-        font-size: 0.98rem;
+      .slug-source-tab {
+        padding: 8px 14px;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.04);
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.85rem;
         font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 6px;
       }
-      .slug-search input:focus {
-        outline: none;
+      .slug-source-tab img {
+        width: 18px;
+        height: 18px;
+        border-radius: 4px;
+      }
+      .slug-source-tab:hover {
+        background: rgba(255, 255, 255, 0.08);
+      }
+      .slug-source-tab.active {
+        background: rgba(var(--accent-rgb), 0.15);
+        border-color: rgba(var(--accent-rgb), 0.35);
+        color: var(--accent);
       }
       .slug-results {
         margin-top: 14px;
@@ -2526,7 +2522,7 @@
         .mobile-similar-card img {
           width: 100%;
           aspect-ratio: 2/3;
-          height: auto;
+          max-height: 180px;
           object-fit: cover;
           object-position: center top;
           border-radius: 8px;
@@ -2922,14 +2918,14 @@
           </button>
         </div>
         <div class="slug-modal-body">
-          <div class="slug-source-tabs">
-            <button class="slug-source-tab active" data-source="all">All</button>
-            <button class="slug-source-tab" data-source="asura">Asura</button>
-            <button class="slug-source-tab" data-source="mangataro">Mangataro</button>
-          </div>
           <div class="slug-search">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             <input id="slug-modal-search" type="search" placeholder="Search slug or name..." autocomplete="off" />
+          </div>
+          <div class="slug-source-tabs">
+            <button class="slug-source-tab active" data-source="all">All</button>
+            <button class="slug-source-tab" data-source="asura"><img src="/static/img/asura.png" alt="Asura"/>Asura</button>
+            <button class="slug-source-tab" data-source="mangataro"><img src="/static/img/mangataro.png" alt="Mangataro"/>Mangataro</button>
           </div>
           <div id="slug-modal-results" class="slug-results"></div>
         </div>
@@ -6574,6 +6570,8 @@ We'll reuse it next time.`,
           status: formatComickStatus(comic.status),
           tags,
           followers: comic.user_follow_count,
+          follow_rank: comic.follow_rank || comic.rank || null,
+          user_follow_count: comic.user_follow_count || null,
           rating: comic.bayesian_rating || comic.rating,
           year: comic.year || comic.year_released || comic.yearReleased || comic.release_year || "",
           source: "comick",
