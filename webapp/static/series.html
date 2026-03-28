@@ -2630,6 +2630,52 @@
           width: 20px;
           height: 20px;
         }
+        .mobile-bookmark-btn {
+          width: 48px;
+          height: 48px;
+          background: rgba(255, 255, 255, 0.08);
+          color: rgba(255, 255, 255, 0.6);
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          border-radius: 12px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: transform 0.15s ease, background 0.15s ease;
+        }
+        .mobile-bookmark-btn:active {
+          transform: scale(0.92);
+          background: rgba(255, 255, 255, 0.12);
+        }
+        .mobile-bookmark-btn svg {
+          width: 20px;
+          height: 20px;
+        }
+        .mobile-bookmark-btn.status-reading {
+          background: rgba(34, 197, 94, 0.18);
+          color: #22c55e;
+          border-color: rgba(34, 197, 94, 0.3);
+        }
+        .mobile-bookmark-btn.status-completed {
+          background: rgba(59, 130, 246, 0.18);
+          color: #3b82f6;
+          border-color: rgba(59, 130, 246, 0.3);
+        }
+        .mobile-bookmark-btn.status-onhold {
+          background: rgba(234, 179, 8, 0.2);
+          color: #eab308;
+          border-color: rgba(234, 179, 8, 0.3);
+        }
+        .mobile-bookmark-btn.status-dropped {
+          background: rgba(248, 113, 113, 0.2);
+          color: #ff3e3e;
+          border-color: rgba(248, 113, 113, 0.3);
+        }
+        .mobile-bookmark-btn.status-plantoread {
+          background: rgba(156, 163, 175, 0.2);
+          color: rgb(173, 92, 253);
+          border-color: rgba(173, 92, 253, 0.3);
+        }
 
         /* Hide old series-description-block on mobile */
         #series-description-block {
@@ -2679,6 +2725,11 @@
               <polygon points="5 3 19 12 5 21 5 3"></polygon>
             </svg>
             Start reading
+          </button>
+          <button class="mobile-bookmark-btn" id="mobile-bookmark-btn" title="Library status">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+            </svg>
           </button>
           <button class="mobile-download-btn" id="mobile-download-btn" title="Download">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -4276,6 +4327,18 @@
           };
         }
 
+        // Mobile bookmark button - opens status menu
+        const mobileBookmarkBtn = document.getElementById('mobile-bookmark-btn');
+        if (mobileBookmarkBtn) {
+          mobileBookmarkBtn.onclick = (e) => {
+            e.stopPropagation();
+            const statusMenu = document.getElementById('status-menu');
+            if (statusMenu) {
+              statusMenu.classList.toggle('open');
+            }
+          };
+        }
+
         // Bind mobile description toggle
         const mobileToggle = document.getElementById('mobile-desc-toggle');
         if (mobileToggle && !mobileToggle._bound) {
@@ -5516,26 +5579,37 @@
 
       function updateStatusButtonLabel(status) {
         const btn = document.getElementById("status-btn");
-        if (!btn) return;
+        const mobileBtn = document.getElementById("mobile-bookmark-btn");
         const normalized = (status || "").toLowerCase();
-        btn.classList.remove(
+        const classes = [
           "status-none",
           "status-reading",
           "status-completed",
           "status-onhold",
           "status-dropped",
           "status-plantoread",
-        );
-        if (!normalized) {
-          btn.classList.add("status-none");
-          return;
+        ];
+        if (btn) {
+          btn.classList.remove(...classes);
+          if (!normalized) {
+            btn.classList.add("status-none");
+          } else if (normalized === "reading") btn.classList.add("status-reading");
+          else if (normalized === "completed") btn.classList.add("status-completed");
+          else if (normalized === "on hold") btn.classList.add("status-onhold");
+          else if (normalized === "dropped") btn.classList.add("status-dropped");
+          else if (normalized === "plan to read") btn.classList.add("status-plantoread");
+          else btn.classList.add("status-none");
         }
-        if (normalized === "reading") btn.classList.add("status-reading");
-        else if (normalized === "completed") btn.classList.add("status-completed");
-        else if (normalized === "on hold") btn.classList.add("status-onhold");
-        else if (normalized === "dropped") btn.classList.add("status-dropped");
-        else if (normalized === "plan to read") btn.classList.add("status-plantoread");
-        else btn.classList.add("status-none");
+        if (mobileBtn) {
+          mobileBtn.classList.remove(...classes);
+          if (!normalized) {
+            // Keep default styling (no status class)
+          } else if (normalized === "reading") mobileBtn.classList.add("status-reading");
+          else if (normalized === "completed") mobileBtn.classList.add("status-completed");
+          else if (normalized === "on hold") mobileBtn.classList.add("status-onhold");
+          else if (normalized === "dropped") mobileBtn.classList.add("status-dropped");
+          else if (normalized === "plan to read") mobileBtn.classList.add("status-plantoread");
+        }
       }
 
       async function loadLibraryStatus(seriesKey) {
@@ -6011,7 +6085,7 @@
 
       function updateReadButton() {
         const readBtn = document.getElementById('read-btn');
-        if (!readBtn) return;
+        const mobileReadBtn = document.getElementById('mobile-start-reading');
 
         if (!remoteSeriesContinueLoaded) {
           loadRemoteSeriesContinueEntry().then(() => updateReadButton());
@@ -6022,6 +6096,9 @@
 
         const effectiveEntry = (entry && entry.clearedAt) ? entry : (entry || getRemoteContinueFallbackEntry());
 
+        let label = "Start reading";
+        let mode = "read";
+
         if (effectiveEntry) {
           const hasProgress =
             (typeof effectiveEntry.lastVisitedNumber === "number" && effectiveEntry.lastVisitedNumber > 0) ||
@@ -6029,40 +6106,48 @@
             Boolean(effectiveEntry.lastReaderUrl) ||
             Boolean(effectiveEntry.lastChapterId);
 
-          if (!hasProgress) {
-            readBtn.textContent = "Start reading";
-            readBtn.disabled = false;
-            readBtn.dataset.mode = "read";
-            return;
-          }
+          if (hasProgress) {
+            const lastVisited = typeof effectiveEntry.lastVisitedNumber === "number" ? effectiveEntry.lastVisitedNumber : null;
+            const lastRead = typeof effectiveEntry.lastRead === "number" ? effectiveEntry.lastRead : null;
+            let continueNumber = lastVisited !== null ? lastVisited : lastRead;
+            if (continueNumber === null && (lastVisited !== null || lastRead !== null)) {
+              continueNumber = lastVisited || lastRead || null;
+            }
 
-          const lastVisited = typeof effectiveEntry.lastVisitedNumber === "number" ? effectiveEntry.lastVisitedNumber : null;
-          const lastRead = typeof effectiveEntry.lastRead === "number" ? effectiveEntry.lastRead : null;
-          // Use the most recently visited chapter for Continue, not the max
-          let continueNumber = lastVisited !== null ? lastVisited : lastRead;
-          if (continueNumber === null && (lastVisited !== null || lastRead !== null)) {
-            continueNumber = lastVisited || lastRead || null;
-          }
+            const continueLabel =
+              continueNumber !== null ? formatChapterNumber(continueNumber) : null;
+            const progressBaseline = effectiveEntry.lastRead || continueNumber || 0;
 
-          const continueLabel =
-            continueNumber !== null ? formatChapterNumber(continueNumber) : null;
-          const progressBaseline = effectiveEntry.lastRead || continueNumber || 0;
-          readBtn.disabled = false;
-
-          let label = "Continue reading";
-          if (continueLabel && latestChapter && latestChapter > progressBaseline) {
-            label = `Continue (Ch. ${continueLabel} / ${formatChapterNumber(latestChapter)})`;
-          } else if (continueLabel) {
-            label = `Continue (Ch. ${continueLabel})`;
+            label = "Continue reading";
+            if (continueLabel && latestChapter && latestChapter > progressBaseline) {
+              label = `Continue (Ch. ${continueLabel} / ${formatChapterNumber(latestChapter)})`;
+            } else if (continueLabel) {
+              label = `Continue (Ch. ${continueLabel})`;
+            }
+            mode = "continue";
           }
-          readBtn.textContent = label;
-          readBtn.dataset.mode = "continue";
-          return;
         }
 
-        readBtn.textContent = "Start reading";
-        readBtn.disabled = false;
-        readBtn.dataset.mode = "read";
+        if (readBtn) {
+          readBtn.textContent = label;
+          readBtn.disabled = false;
+          readBtn.dataset.mode = mode;
+        }
+
+        if (mobileReadBtn) {
+          // Mobile button has SVG icon, so update the text node
+          const textNode = mobileReadBtn.childNodes[mobileReadBtn.childNodes.length - 1];
+          if (textNode && textNode.nodeType === Node.TEXT_NODE) {
+            textNode.textContent = label;
+          } else {
+            // Fallback: clear and re-add
+            const svg = mobileReadBtn.querySelector('svg');
+            mobileReadBtn.innerHTML = '';
+            if (svg) mobileReadBtn.appendChild(svg);
+            mobileReadBtn.appendChild(document.createTextNode(label));
+          }
+          mobileReadBtn.dataset.mode = mode;
+        }
       }
 
       function getLatestChapterNumber() {
