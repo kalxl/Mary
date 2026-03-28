@@ -2089,6 +2089,11 @@
           padding: 0.25rem 1rem 2.25rem;
         }
 
+        /* Hide desktop series-hero when mobile layout is active */
+        #series-hero {
+          display: none !important;
+        }
+
         .toolbar {
           font-size: 0.85rem;
           gap: 0.4rem;
@@ -2340,6 +2345,314 @@
           text-overflow: ellipsis;
         }
       }
+
+      /* Mobile App-Style Layout (max-width: 640px) */
+      @media (max-width: 640px) {
+        /* Mobile Header Banner */
+        .mobile-header-banner {
+          position: relative;
+          width: 100%;
+          height: 280px;
+          overflow: hidden;
+          margin: -1rem -1rem 0 -1rem;
+          width: calc(100% + 2rem);
+        }
+        .mobile-header-content {
+          position: relative;
+          height: 100%;
+        }
+        .mobile-header-banner img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          object-position: center top;
+        }
+        .mobile-header-overlay {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(to bottom, rgba(10, 10, 10, 0) 0%, rgba(10, 10, 10, 0.6) 60%, rgba(10, 10, 10, 0.95) 100%);
+        }
+
+        /* Mobile Title Section - positioned at bottom left of banner */
+        .mobile-title-section {
+          position: absolute;
+          bottom: 1rem;
+          left: 1rem;
+          right: 1rem;
+          text-align: left;
+          z-index: 2;
+        }
+        .mobile-title-section h1 {
+          font-size: 1.35rem;
+          font-weight: 700;
+          margin: 0 0 0.2rem;
+          line-height: 1.2;
+          color: #fff;
+          text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+        }
+        .mobile-title-sub {
+          color: rgba(255,255,255,0.85);
+          font-size: 0.75rem;
+          margin: 0;
+          text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+        }
+
+        /* Mobile Tabs */
+        .mobile-tabs {
+          display: flex;
+          gap: 0.5rem;
+          padding: 0.75rem 0;
+          margin: 0 -1rem;
+          padding-left: 1rem;
+          padding-right: 1rem;
+          border-bottom: 1px solid var(--border);
+          overflow-x: auto;
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+        }
+        .mobile-tabs::-webkit-scrollbar {
+          display: none;
+        }
+        .mobile-tab {
+          flex-shrink: 0;
+          padding: 0.5rem 1rem;
+          border-radius: 999px;
+          border: 1px solid var(--border);
+          background: transparent;
+          color: var(--muted);
+          font-size: 0.85rem;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          white-space: nowrap;
+        }
+        .mobile-tab.active {
+          background: rgba(var(--accent-rgb), 0.15);
+          border-color: rgba(var(--accent-rgb), 0.5);
+          color: var(--accent);
+        }
+
+        /* Mobile Tab Content */
+        .mobile-tab-content {
+          display: none;
+          padding: 1rem 0;
+          animation: fadeIn 0.2s ease;
+        }
+        .mobile-tab-content.active {
+          display: block;
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(5px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Mobile Description */
+        .mobile-description {
+          color: #c6d2cb;
+          line-height: 1.7;
+          font-size: 0.9rem;
+          margin-bottom: 1.5rem;
+        }
+        .mobile-description.collapsed {
+          display: -webkit-box;
+          -webkit-line-clamp: 4;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+        .mobile-description-toggle {
+          background: none;
+          border: none;
+          color: var(--accent);
+          font-size: 0.85rem;
+          font-weight: 500;
+          cursor: pointer;
+          padding: 0;
+          margin-top: 0.5rem;
+        }
+
+        /* Mobile Details Grid */
+        .mobile-details-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 0.75rem;
+          padding: 0.75rem 0;
+          margin-top: 0.5rem;
+        }
+        .mobile-detail-item {
+          display: flex;
+          flex-direction: column;
+          gap: 0.2rem;
+        }
+        .mobile-detail-label {
+          font-size: 0.7rem;
+          color: var(--muted);
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+        .mobile-detail-value {
+          font-size: 0.85rem;
+          color: #f1f5f2;
+          font-weight: 500;
+        }
+
+        /* Mobile Similar Section */
+        .mobile-similar-section {
+          padding: 1rem 0;
+        }
+        .mobile-similar-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 0.75rem;
+        }
+        .mobile-similar-header h3 {
+          font-size: 0.9rem;
+          font-weight: 700;
+          margin: 0;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+        .mobile-similar-header a {
+          font-size: 0.8rem;
+          color: var(--accent);
+          text-decoration: none;
+        }
+        .mobile-similar-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 0.75rem;
+        }
+        .mobile-similar-card {
+          display: flex;
+          flex-direction: column;
+          gap: 0.4rem;
+          text-decoration: none;
+          color: inherit;
+        }
+        .mobile-similar-card img {
+          width: 100%;
+          aspect-ratio: 2/3;
+          object-fit: cover;
+          border-radius: 10px;
+        }
+        .mobile-similar-title {
+          font-size: 0.75rem;
+          font-weight: 500;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          margin: 0;
+        }
+
+        /* Mobile Reviews Section */
+        .mobile-reviews-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 1rem;
+        }
+        .mobile-reviews-header h3 {
+          font-size: 0.9rem;
+          font-weight: 700;
+          margin: 0;
+        }
+        .mobile-reviews-header a {
+          font-size: 0.8rem;
+          color: var(--accent);
+          text-decoration: none;
+        }
+        .mobile-reviews-empty {
+          text-align: center;
+          padding: 2rem 1rem;
+          color: var(--muted);
+          font-size: 0.9rem;
+        }
+
+        /* Mobile Reviews Button (in header) */
+        .mobile-reviews-btn {
+          background: rgba(var(--accent-rgb), 0.15);
+          border: 1px solid rgba(var(--accent-rgb), 0.4);
+          color: var(--accent);
+          padding: 0.4rem 0.9rem;
+          border-radius: 999px;
+          font-size: 0.8rem;
+          font-weight: 500;
+          cursor: pointer;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.4rem;
+        }
+        .mobile-reviews-btn svg {
+          width: 14px;
+          height: 14px;
+        }
+
+        /* Mobile Bottom Bar - Square Icon Buttons */
+        .mobile-bottom-bar {
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          padding: 0.6rem 1rem calc(0.6rem + env(safe-area-inset-bottom));
+          background: rgba(17, 17, 17, 0.95);
+          backdrop-filter: blur(10px);
+          border-top: 1px solid var(--border);
+          z-index: 100;
+          display: flex;
+          gap: 0.75rem;
+        }
+        .mobile-action-btn {
+          flex: 1;
+          aspect-ratio: 1;
+          max-width: 56px;
+          height: 48px;
+          border: none;
+          border-radius: 12px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: transform 0.15s ease, opacity 0.15s ease;
+        }
+        .mobile-action-btn:active {
+          transform: scale(0.92);
+        }
+        .mobile-action-btn svg {
+          width: 22px;
+          height: 22px;
+        }
+        .mobile-read-btn {
+          background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+          color: #0f1512;
+        }
+        .mobile-download-btn {
+          background: rgba(255, 255, 255, 0.1);
+          color: rgba(255, 255, 255, 0.7);
+          border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        .mobile-download-btn:active {
+          background: rgba(255, 255, 255, 0.15);
+        }
+
+        /* Hide desktop elements on mobile */
+        @media (max-width: 640px) {
+          .desktop-only {
+            display: none !important;
+          }
+        }
+
+        /* Hide mobile elements on desktop */
+        @media (min-width: 641px) {
+          .mobile-only {
+            display: none !important;
+          }
+        }
+
+        /* Add padding to main when mobile layout is active */
+        main:has(#mobile-layout:not([hidden])) {
+          padding-bottom: calc(5rem + env(safe-area-inset-bottom));
+        }
+      }
     </style>
   </head>
   <body>
@@ -2350,8 +2663,80 @@
       <section id="series-banner"></section>
       <section class="series-hero" id="series-hero" hidden></section>
 
+      <!-- Mobile App-Style Layout -->
+      <div id="mobile-layout" class="mobile-only" hidden>
+        <!-- Mobile Header Banner -->
+        <div class="mobile-header-banner">
+          <img id="mobile-banner-img" src="" alt="">
+          <div class="mobile-header-overlay"></div>
+          <!-- Mobile Title Section - positioned at bottom left of banner -->
+          <div class="mobile-title-section">
+            <h1 id="mobile-title"></h1>
+            <p id="mobile-subtitle" class="mobile-title-sub"></p>
+          </div>
+        </div>
 
-      <div class="chapter-section-grid">
+        <!-- Mobile Tabs -->
+        <div class="mobile-tabs">
+          <button class="mobile-tab active" data-tab="about">About title</button>
+          <button class="mobile-tab" data-tab="chapters">Chapters</button>
+          <button class="mobile-tab" data-tab="reviews">Reviews</button>
+        </div>
+
+        <!-- Mobile Tab Content: About -->
+        <div class="mobile-tab-content active" id="mobile-tab-about">
+          <p id="mobile-description" class="mobile-description collapsed"></p>
+          <button class="mobile-description-toggle" id="mobile-desc-toggle">Show more</button>
+
+          <!-- Similar Section -->
+          <div class="mobile-similar-section">
+            <div class="mobile-similar-header">
+              <h3>SIMILAR</h3>
+              <a href="#" id="mobile-similar-see-all">See all</a>
+            </div>
+            <div class="mobile-similar-grid" id="mobile-similar-grid">
+              <!-- Populated dynamically -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Mobile Tab Content: Chapters -->
+        <div class="mobile-tab-content" id="mobile-tab-chapters">
+          <!-- Chapter content will be moved here on mobile -->
+          <div id="mobile-chapters-mount"></div>
+        </div>
+
+        <!-- Mobile Tab Content: Reviews -->
+        <div class="mobile-tab-content" id="mobile-tab-reviews">
+          <div class="mobile-reviews-header">
+            <h3>Reviews</h3>
+            <a href="#" id="mobile-reviews-see-all">See all</a>
+          </div>
+          <div class="mobile-reviews-empty" id="mobile-reviews-empty">
+            No reviews yet. Be the first to write a review!
+          </div>
+          <div id="mobile-reviews-list" hidden></div>
+        </div>
+
+        <!-- Mobile Bottom Bar - Square Icon Buttons -->
+        <div class="mobile-bottom-bar">
+          <button class="mobile-action-btn mobile-read-btn" id="mobile-start-reading" title="Start reading">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+          </button>
+          <button class="mobile-action-btn mobile-download-btn" id="mobile-download-btn" title="Download">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Desktop Layout -->
+      <div class="desktop-only" id="desktop-layout">
         <section class="panel" id="chapter-panel" hidden>
           <div class="chapter-panel-header">
             <h2>Chapters</h2>
@@ -2409,6 +2794,7 @@
           </div>
         </section>
       </div>
+      <!-- End Desktop Layout -->
 
     </main>
 
@@ -3752,6 +4138,8 @@
         descriptionExpanded = false;
         updateDescription();
 
+        // Populate Mobile Layout
+        populateMobileLayout(heroData, heroChapterTotal);
 
         populateGroupFilter();
         updateSourceDisplay();
@@ -3791,6 +4179,174 @@
             updateDescription();
           };
         }
+      }
+
+      // Mobile Layout Functions
+      let mobileDescExpanded = false;
+
+      function populateMobileLayout(heroData, chapterTotal) {
+        const mobileLayout = document.getElementById('mobile-layout');
+        if (!mobileLayout) return;
+
+        // Show mobile layout
+        mobileLayout.hidden = false;
+
+        // Populate banner
+        const bannerImg = document.getElementById('mobile-banner-img');
+        if (bannerImg && heroData.cover_url) {
+          bannerImg.src = heroData.cover_url;
+          bannerImg.alt = heroData.title || '';
+        }
+
+        // Populate title
+        const titleEl = document.getElementById('mobile-title');
+        if (titleEl) titleEl.textContent = heroData.title || 'Untitled';
+
+        // Populate subtitle (author/artist info)
+        const subtitleEl = document.getElementById('mobile-subtitle');
+        if (subtitleEl) {
+          const parts = [];
+          if (heroData.authors?.length) parts.push(heroData.authors.join(', '));
+          else if (heroData.author) parts.push(heroData.author);
+          else if (heroData.artist) parts.push(heroData.artist);
+          else if (heroData.year) parts.push(String(heroData.year));
+          subtitleEl.textContent = parts.join(' • ') || 'Unknown author';
+        }
+
+        // Populate description
+        const descEl = document.getElementById('mobile-description');
+        if (descEl) {
+          descEl.textContent = heroData.description || 'No synopsis available.';
+          // Check if description needs toggle
+          const needsToggle = (heroData.description || '').length > 150;
+          const toggleBtn = document.getElementById('mobile-desc-toggle');
+          if (toggleBtn) {
+            toggleBtn.hidden = !needsToggle;
+            toggleBtn.textContent = 'Show more';
+            mobileDescExpanded = false;
+            descEl.classList.add('collapsed');
+          }
+        }
+
+        // Update mobile start reading button
+        const mobileReadBtn = document.getElementById('mobile-start-reading');
+        if (mobileReadBtn) {
+          mobileReadBtn.onclick = () => handlePrimaryReadAction();
+        }
+
+        // Mobile download button - opens offline download modal
+        const mobileDownloadBtn = document.getElementById('mobile-download-btn');
+        if (mobileDownloadBtn) {
+          mobileDownloadBtn.onclick = () => {
+            const offlineModal = document.getElementById('offline-download-modal');
+            if (offlineModal) {
+              offlineModal.classList.add('open');
+              document.body.classList.add('nav-locked');
+            }
+          };
+        }
+
+        // Bind mobile description toggle
+        const mobileToggle = document.getElementById('mobile-desc-toggle');
+        if (mobileToggle && !mobileToggle._bound) {
+          mobileToggle._bound = true;
+          mobileToggle.addEventListener('click', () => {
+            mobileDescExpanded = !mobileDescExpanded;
+            const desc = document.getElementById('mobile-description');
+            if (desc) {
+              desc.classList.toggle('collapsed', !mobileDescExpanded);
+            }
+            mobileToggle.textContent = mobileDescExpanded ? 'Show less' : 'Show more';
+          });
+        }
+
+        // Bind mobile tabs
+        bindMobileTabs();
+      }
+
+      function bindMobileTabs() {
+        const tabs = document.querySelectorAll('.mobile-tab');
+        tabs.forEach(tab => {
+          if (tab._bound) return;
+          tab._bound = true;
+          tab.addEventListener('click', () => {
+            const targetTab = tab.dataset.tab;
+            if (!targetTab) return;
+
+            // Update active tab
+            tabs.forEach(t => t.classList.toggle('active', t === tab));
+
+            // Update active content
+            document.querySelectorAll('.mobile-tab-content').forEach(content => {
+              content.classList.toggle('active', content.id === `mobile-tab-${targetTab}`);
+            });
+
+            // If chapters tab, ensure chapter panel content is moved there
+            if (targetTab === 'chapters') {
+              moveChaptersToMobile();
+            }
+          });
+        });
+      }
+
+      let chaptersMovedToMobile = false;
+      function moveChaptersToMobile() {
+        if (chaptersMovedToMobile) return;
+        const mobileMount = document.getElementById('mobile-chapters-mount');
+        const chapterPanel = document.getElementById('chapter-panel');
+        if (mobileMount && chapterPanel) {
+          // Clone the chapter controls and list to mobile
+          const chapterControls = chapterPanel.querySelector('.chapter-controls');
+          const chapterTable = document.getElementById('chapter-list');
+          const pagination = document.querySelector('.chapter-pagination-row');
+
+          if (chapterControls && chapterTable) {
+            mobileMount.innerHTML = '';
+            // Copy controls
+            mobileMount.appendChild(chapterControls.cloneNode(true));
+            // Copy chapter list container
+            const mobileList = document.createElement('div');
+            mobileList.className = 'chapter-table';
+            mobileList.id = 'mobile-chapter-list';
+            mobileList.innerHTML = chapterTable.innerHTML;
+            mobileMount.appendChild(mobileList);
+            // Copy pagination
+            if (pagination) {
+              mobileMount.appendChild(pagination.cloneNode(true));
+            }
+            chaptersMovedToMobile = true;
+          }
+        }
+      }
+
+      function updateMobileSimilarSection(recommendations) {
+        const grid = document.getElementById('mobile-similar-grid');
+        if (!grid || !recommendations?.length) return;
+
+        const items = recommendations.slice(0, 4);
+        grid.innerHTML = items.map(item => {
+          const base = item || {};
+          const relates = base.relates || base.comic || {};
+          const slug = base?.comic?.slug || base?.slug || relates?.slug || relates?.hid || '';
+          const title = base?.comic?.title || base?.title || relates?.title || 'Untitled';
+          let cover = base?.comic?.cover_url || base?.cover_url || relates?.cover_url || '';
+          if (!cover && Array.isArray(relates?.md_covers) && relates.md_covers.length) {
+            const first = relates.md_covers[0] || {};
+            const key = first.b2key || first.b2Key || first.key;
+            if (key) {
+              cover = key.startsWith('http') ? key : `https://meo.comick.pictures/${key}`;
+            }
+          }
+          if (!cover) cover = 'https://placehold.co/120x180?text=No+Cover';
+          const href = slug ? `/series?slug=${encodeURIComponent(slug)}` : '#';
+
+          return `
+            <a class="mobile-similar-card" href="${href}">
+              <img src="${cover}" alt="${title}" loading="lazy" />
+              <p class="mobile-similar-title">${title}</p>
+            </a>
+          `;
+        }).join('');
       }
 
       let descriptionMountInitialized = false;
@@ -4516,6 +5072,9 @@
         recommendationPanel.hidden = false;
 
         renderRecommendationPage();
+
+        // Also update mobile similar section
+        updateMobileSimilarSection(list);
       }
 
       function isMobileRecommendationsView() {
