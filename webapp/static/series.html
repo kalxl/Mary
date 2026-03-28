@@ -5299,9 +5299,10 @@
         });
       }
 
-      function attachComickChapterClickHandlers(pageItems) {
-        if (!chapterList) return;
-        const rows = chapterList.querySelectorAll('.chapter-row.is-comick');
+      function attachComickChapterClickHandlers(pageItems, targetList = null) {
+        const listToUse = targetList || chapterList;
+        if (!listToUse) return;
+        const rows = listToUse.querySelectorAll('.chapter-row.is-comick');
         if (!rows.length) return;
 
         rows.forEach((row) => {
