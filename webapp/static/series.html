@@ -2262,8 +2262,10 @@
         }
 
         .mobile-external-links {
-          flex-direction: column;
-          align-items: flex-start;
+          display: flex !important;
+          flex-direction: column !important;
+          align-items: flex-start !important;
+          flex-wrap: nowrap !important;
           gap: 0.6rem;
           margin-top: 1rem;
           padding: 1rem;
@@ -2278,6 +2280,7 @@
           color: #ffffff;
           text-transform: uppercase;
           letter-spacing: 0.05em;
+          margin-bottom: 0.25rem;
         }
 
         .mobile-external-links .link-btn {
@@ -2294,11 +2297,13 @@
         }
 
         .mobile-external-links .links-row {
-          display: flex;
-          flex-wrap: wrap;
+          display: flex !important;
+          flex-direction: row !important;
+          flex-wrap: nowrap !important;
           gap: 0.6rem;
-          flex-direction: row;
           align-items: center;
+          overflow-x: auto;
+          width: 100%;
         }
 
         .chapter-search-wrapper input {
