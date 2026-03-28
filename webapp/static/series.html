@@ -322,9 +322,11 @@
         flex-wrap: wrap;
       }
       .links-label {
-        font-size: 0.75rem;
-        font-weight: 500;
-        color: rgba(255, 255, 255, 0.6);
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: #ffffff;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
       }
       .link-btn {
         display: flex;
@@ -2271,9 +2273,11 @@
         }
 
         .mobile-external-links .links-label {
-          font-size: 0.75rem;
-          font-weight: 500;
-          color: rgba(255, 255, 255, 0.6);
+          font-size: 0.95rem;
+          font-weight: 700;
+          color: #ffffff;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
         }
 
         .mobile-external-links {
@@ -2283,16 +2287,16 @@
         }
 
         .mobile-external-links .link-btn {
-          width: 40px;
-          height: 40px;
+          width: 44px;
+          height: 44px;
           border-radius: 10px;
-          background: rgba(255, 255, 255, 0.06);
-          border: 1px solid rgba(255, 255, 255, 0.12);
+          background: rgba(255, 255, 255, 0.08);
+          border: 1px solid rgba(255, 255, 255, 0.15);
         }
 
         .mobile-external-links .link-btn img {
-          width: 26px;
-          height: 26px;
+          width: 28px;
+          height: 28px;
         }
 
         .mobile-external-links .links-row {
@@ -4590,18 +4594,21 @@
             const mobileSearchInput = mobileMount.querySelector('#chapter-search-input');
 
             if (mobileOrderToggle) {
-              mobileOrderToggle.addEventListener('click', () => {
-                chapterSortDescending = !chapterSortDescending;
-                currentChapterPage = 0;
-                updateChapterSortUI();
-                renderChapterTable();
-                // Also update mobile list
-                const mobileChapterList = document.getElementById('mobile-chapter-list');
-                if (mobileChapterList) {
-                  const desktopList = document.getElementById('chapter-list');
-                  if (desktopList) mobileChapterList.innerHTML = desktopList.innerHTML;
-                }
-              });
+              if (!mobileOrderToggle._bound) {
+                mobileOrderToggle._bound = true;
+                mobileOrderToggle.addEventListener('click', () => {
+                  chapterSortDescending = !chapterSortDescending;
+                  currentChapterPage = 0;
+                  updateChapterSortUI();
+                  renderChapterTable();
+                  // Also update mobile list
+                  const mobileChapterList = document.getElementById('mobile-chapter-list');
+                  if (mobileChapterList) {
+                    const desktopList = document.getElementById('chapter-list');
+                    if (desktopList) mobileChapterList.innerHTML = desktopList.innerHTML;
+                  }
+                });
+              }
             }
 
             if (mobileSlugBtn) {
@@ -4621,7 +4628,7 @@
                   if (desktopList) mobileChapterList.innerHTML = desktopList.innerHTML;
                   // Re-attach comick click handlers for mobile
                   if (currentSource === "comick") {
-                    attachComickChapterClickHandlers(mobileChapterList);
+                    attachComickChapterClickHandlers(null, mobileChapterList);
                   }
                 }
               }, 300));
@@ -4631,7 +4638,7 @@
             if (currentSource === "comick") {
               const mobileChapterList = document.getElementById('mobile-chapter-list');
               if (mobileChapterList) {
-                attachComickChapterClickHandlers(mobileChapterList);
+                attachComickChapterClickHandlers(null, mobileChapterList);
               }
             }
           }
@@ -7270,7 +7277,7 @@ We'll reuse it next time.`,
     <footer class="site-footer">
       <div class="footer-content">
         <div class="footer-brand">
-          <img src="/static/img/zoro.png" alt="Ary" class="footer-logo" id="footer-logo">
+          <img src="/static/img/zoro.png" alt="Ary" class="footer-logo" id="footer-logo" data-default-src="/static/img/zoro.png" data-themed-src="/static/img/zoro2.png">
           <span class="footer-title">Ary</span>
           <span class="footer-copy-inline"> 2025 Ary. All rights reserved.</span>
         </div>
@@ -7295,6 +7302,28 @@ We'll reuse it next time.`,
       document.getElementById('footer-logo')?.addEventListener('dblclick', function() {
         this.classList.toggle('spinning');
       });
+      
+      // Footer logo theming
+      const footerLogo = document.getElementById('footer-logo');
+      if (footerLogo) {
+        const updateFooterLogo = () => {
+          const isThemed = localStorage.getItem('aryTheme') === 'themed';
+          const defaultSrc = footerLogo.getAttribute('data-default-src');
+          const themedSrc = footerLogo.getAttribute('data-themed-src');
+          if (isThemed && themedSrc) {
+            footerLogo.src = themedSrc;
+          } else if (defaultSrc) {
+            footerLogo.src = defaultSrc;
+          }
+        };
+        updateFooterLogo();
+        window.addEventListener('storage', (e) => {
+          if (e.key === 'aryTheme') updateFooterLogo();
+        });
+      }
+    </script>
+  </body>
+</html>
     </script>
   </body>
 </html>
