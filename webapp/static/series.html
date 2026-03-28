@@ -1278,7 +1278,7 @@
       .chapter-filter-row {
         display: flex;
         flex-wrap: nowrap;
-        gap: 0.75rem;
+        gap: 0.4rem;
         align-items: center;
         width: 100%;
       }
@@ -3273,12 +3273,12 @@
             console.warn('Failed to persist series mapping', err);
           }
           let currentSource = isComickMode ? "comick" : (ENABLE_COMIX_SOURCE ? "comix" : "comick");
-          updateSourceDisplay();
+          updateSourceOptions();
           await loadAsuraSeries(firstItem.slug);
         } else if (firstItem.source === 'mangataro') {
           currentMangataroSlug = firstItem.slug;
           currentSource = "mangataro";
-          updateSourceDisplay();
+          updateSourceOptions();
           await loadMangataroSeries(firstItem.slug);
         }
         
@@ -4332,17 +4332,17 @@
         // Mobile bookmark button - opens status menu
         const mobileBookmarkBtn = document.getElementById('mobile-bookmark-btn');
         if (mobileBookmarkBtn) {
-          mobileBookmarkBtn.onclick = (e) => {
+          mobileBookmarkBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             const statusMenu = document.getElementById('status-menu');
             if (statusMenu) {
-              const isOpen = statusMenu.classList.contains('open') || statusMenu.classList.contains('mobile-open');
-              statusMenu.classList.remove('open', 'mobile-open');
-              if (!isOpen) {
+              if (statusMenu.classList.contains('mobile-open')) {
+                statusMenu.classList.remove('open', 'mobile-open');
+              } else {
                 statusMenu.classList.add('open', 'mobile-open');
               }
             }
-          };
+          });
         }
 
         // Bind mobile description toggle
@@ -5812,6 +5812,7 @@
         chapterState.selectedChapterNumber = chapterNumber ? String(chapterNumber).trim() : null;
         populatePopup();
         chapterSelectPopup.classList.remove('hidden');
+        chapterSelectPopup.style.display = 'flex';
       }
 
       function closeChapterSelectPopup() {
