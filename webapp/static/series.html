@@ -329,7 +329,6 @@
         font-size: 0.95rem;
         font-weight: 700;
         color: #ffffff;
-        text-transform: uppercase;
         letter-spacing: 0.05em;
       }
       .link-btn {
@@ -2623,8 +2622,6 @@
           font-size: 0.9rem;
           font-weight: 700;
           margin: 0;
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
         }
         .mobile-similar-header a {
           font-size: 0.8rem;
@@ -2646,6 +2643,7 @@
         .mobile-similar-card img {
           width: 100%;
           aspect-ratio: 2 / 3;
+          max-height: 200px;
           height: auto;
           object-fit: cover;
           object-position: center top;
@@ -2897,7 +2895,7 @@
           <!-- Similar Section -->
           <div class="mobile-similar-section">
             <div class="mobile-similar-header">
-              <h3>SIMILAR</h3>
+              <h3>Similar</h3>
             </div>
             <div class="mobile-similar-grid" id="mobile-similar-grid">
               <!-- Populated dynamically -->
@@ -4496,8 +4494,8 @@
           if (heroData.tags && heroData.tags.length > 0) {
             const tagsLabel = document.createElement('span');
             tagsLabel.className = 'links-label';
-            tagsLabel.style.marginTop = '1rem';
-            tagsLabel.style.marginBottom = '0.5rem';
+            tagsLabel.style.marginTop = '0.75rem';
+            tagsLabel.style.marginBottom = '0.4rem';
             tagsLabel.style.display = 'block';
             tagsLabel.textContent = 'Tags';
             detailsGrid.parentNode.insertBefore(tagsLabel, detailsGrid);
