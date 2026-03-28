@@ -349,6 +349,119 @@
         object-fit: contain;
       }
 
+      /* Footer Styles */
+      .site-footer {
+        background: linear-gradient(180deg, rgba(18, 20, 22, 0.95) 0%, rgba(12, 14, 16, 0.98) 100%);
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        padding: 2.5rem clamp(1rem, 4vw, 4rem) 1.5rem;
+        margin-top: auto;
+      }
+      .footer-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1.5rem;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+      .footer-brand {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .footer-logo {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        object-fit: contain;
+        opacity: 0.9;
+      }
+      .footer-title {
+        font-size: 1.5rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        color: rgba(255, 255, 255, 0.95);
+      }
+      .footer-links {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 1rem;
+      }
+      .footer-link {
+        color: rgba(255, 255, 255, 0.6);
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 600;
+        padding: 0.4rem 0.8rem;
+        border-radius: 8px;
+        transition: all 0.18s ease;
+      }
+      .footer-link:hover {
+        color: var(--accent);
+        background: rgba(255, 255, 255, 0.05);
+      }
+      .footer-bottom {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        padding-top: 1rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        width: 100%;
+        max-width: 600px;
+      }
+      .footer-copy {
+        font-size: 0.8rem;
+        color: rgba(255, 255, 255, 0.4);
+        text-align: center;
+      }
+      .footer-socials {
+        display: flex;
+        gap: 0.75rem;
+      }
+      .footer-social {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: rgba(255, 255, 255, 0.7);
+        text-decoration: none;
+        transition: all 0.18s ease;
+      }
+      .footer-social:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 255, 255, 0.12);
+        color: var(--accent);
+        transform: translateY(-2px);
+      }
+      .footer-social svg {
+        width: 18px;
+        height: 18px;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      @media (max-width: 768px) {
+        .site-footer {
+          padding: 2rem 1rem 1rem;
+        }
+        .footer-links {
+          gap: 0.5rem;
+        }
+        .footer-link {
+          font-size: 0.85rem;
+          padding: 0.35rem 0.6rem;
+        }
+      }
+
       #series-description-block {
         display: none;
         margin-top: 1.5rem;
@@ -2523,8 +2636,25 @@
         }
         .mobile-detail-item {
           display: flex;
+          flex-direction: row;
+          align-items: center;
+          gap: 0.6rem;
+          padding: 0.5rem 0;
+        }
+        .mobile-detail-icon {
+          width: 20px;
+          height: 20px;
+          flex-shrink: 0;
+          color: var(--accent);
+        }
+        .mobile-detail-icon svg {
+          width: 100%;
+          height: 100%;
+        }
+        .mobile-detail-content {
+          display: flex;
           flex-direction: column;
-          gap: 0.2rem;
+          gap: 0.15rem;
         }
         .mobile-detail-label {
           font-size: 0.7rem;
@@ -4364,17 +4494,20 @@
         const detailsGrid = document.getElementById('mobile-details-grid');
         if (detailsGrid) {
           const details = [
-            { label: 'Rank', value: heroData.follow_rank ? `#${heroData.follow_rank}` : '—' },
-            { label: 'Follows', value: heroData.user_follow_count ? Number(heroData.user_follow_count).toLocaleString() : '—' },
-            { label: 'Year', value: heroData.year ? String(heroData.year) : '—' },
-            { label: 'Type', value: heroData.type || 'Manga' },
-            { label: 'Status', value: heroData.status || 'Unknown' },
-            { label: 'Chapters', value: String(chapterTotal || '—') },
+            { label: 'Rank', value: heroData.follow_rank ? `#${heroData.follow_rank}` : '—', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>' },
+            { label: 'Follows', value: heroData.user_follow_count ? Number(heroData.user_follow_count).toLocaleString() : '—', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>' },
+            { label: 'Year', value: heroData.year ? String(heroData.year) : '—', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>' },
+            { label: 'Type', value: heroData.type || 'Manga', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>' },
+            { label: 'Status', value: heroData.status || 'Unknown', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>' },
+            { label: 'Chapters', value: String(chapterTotal || '—'), icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>' },
           ];
           detailsGrid.innerHTML = details.map(d => `
             <div class="mobile-detail-item">
-              <span class="mobile-detail-label">${d.label}</span>
-              <span class="mobile-detail-value">${d.value}</span>
+              <span class="mobile-detail-icon">${d.icon}</span>
+              <div class="mobile-detail-content">
+                <span class="mobile-detail-label">${d.label}</span>
+                <span class="mobile-detail-value">${d.value}</span>
+              </div>
             </div>
           `).join('');
         }
@@ -5225,7 +5358,14 @@
       function updateChapterSortUI() {
         const arrow = chapterOrderToggle?.querySelector('svg');
         if (arrow) {
-          arrow.style.transform = chapterSortDescending ? 'rotate(180deg)' : 'rotate(0deg)';
+          // Change arrow direction based on sort order
+          if (chapterSortDescending) {
+            // Descending: show down arrow
+            arrow.innerHTML = '<path d="M12 5v14"/><path d="m19 12-7 7-7-7"/>';
+          } else {
+            // Ascending: show up arrow
+            arrow.innerHTML = '<path d="M12 19V5"/><path d="m5 12 7-7 7 7"/>';
+          }
         }
       }
 
@@ -7155,18 +7295,32 @@ We'll reuse it next time.`,
         </div>
       </div>
     </div>
-  </body>
-</html>
-      </div>
-    </div>
-  </body>
-</html>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+      <div class="footer-content">
+        <div class="footer-brand">
+          <img src="/static/img/zoro.png" alt="Ary" class="footer-logo">
+          <span class="footer-title">Ary</span>
+        </div>
+        
+        <div class="footer-links">
+          <a href="/" class="footer-link">Home</a>
+          <a href="/browse" class="footer-link">Browse</a>
+          <a href="/library" class="footer-link">Library</a>
+          <a href="/downloads" class="footer-link">Downloads</a>
+          <a href="https://github.com/kalxl/Mary" class="footer-link" target="_blank" rel="noopener">GitHub</a>
+        </div>
+        
+        <div class="footer-bottom">
+          <div class="footer-socials">
+            <a href="https://github.com/kalxl/Mary" class="footer-social" target="_blank" rel="noopener" aria-label="GitHub">
+              <svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+            </a>
+          </div>
+          <p class="footer-copy">© 2025 Ary. All rights reserved.</p>
         </div>
       </div>
-    </div>
-  </body>
-</html>
-      </div>
-    </div>
+    </footer>
   </body>
 </html>
