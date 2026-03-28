@@ -4177,6 +4177,10 @@
           currentGroupFilter = "";
           currentChapterPage = 0;
         }
+        // Always update source display to show buttons even if not current source
+        if (sourceKey !== currentSource) {
+          updateSourceOptions();
+        }
         const heroData = sourceKey === "comick" ? title : (primarySeriesMeta || title);
         const sourceLabel =
           heroData?.source_label ||
@@ -4621,6 +4625,7 @@
             const mobileOrderToggle = mobileMount.querySelector('#chapter-order-toggle');
             const mobileSlugBtn = mobileMount.querySelector('#change-slug-btn');
             const mobileSearchInput = mobileMount.querySelector('#chapter-search-input');
+            const mobileSourceButtons = mobileMount.querySelector('#source-buttons');
 
             if (mobileOrderToggle) {
               if (!mobileOrderToggle._bound) {
@@ -4643,6 +4648,19 @@
             if (mobileSlugBtn) {
               mobileSlugBtn.addEventListener('click', () => {
                 openAsuraSlugModal();
+              });
+            }
+
+            // Re-attach source button click handlers
+            if (mobileSourceButtons) {
+              mobileSourceButtons.querySelectorAll('.source-btn').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                  const { source } = btn.dataset;
+                  if (source) {
+                    changeSource(source);
+                    renderRecommendations(currentRecommendations);
+                  }
+                });
               });
             }
 
