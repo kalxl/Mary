@@ -826,11 +826,13 @@
         display: block !important;
         position: fixed;
         top: auto;
-        bottom: 80px;
+        bottom: 100px;
         left: 50%;
         right: auto;
         transform: translateX(-50%);
-        z-index: 2000;
+        z-index: 9999;
+        width: 280px;
+        max-width: calc(100vw - 32px);
       }
       .status-option {
         width: 100%;
@@ -2367,6 +2369,40 @@
 
         .order-toggle span {
             display: none; /* Hide text on mobile */
+        }
+
+        .mobile-external-links {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 0.75rem;
+          margin-top: 1rem;
+          padding: 1rem;
+          background: rgba(255, 255, 255, 0.02);
+          border-radius: 16px;
+          border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .mobile-external-links .links-label {
+          font-size: 1.1rem;
+          font-weight: 700;
+          color: #f1f5f2;
+          letter-spacing: -0.01em;
+          margin-bottom: 0.25rem;
+        }
+
+        .mobile-external-links .link-btn {
+          padding: 0.75rem 1rem;
+          border-radius: 12px;
+          background: rgba(255, 255, 255, 0.06);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          font-size: 0.9rem;
+          font-weight: 600;
+          min-width: 120px;
+        }
+
+        .mobile-external-links .link-btn img {
+          width: 22px;
+          height: 22px;
         }
 
         .chapter-search-wrapper input {
@@ -7314,31 +7350,35 @@ We'll reuse it next time.`,
       </div>
     </div>
 
-    <!-- Footer -->
+    <link rel="stylesheet" href="/static/css/footer.css">
     <footer class="site-footer">
       <div class="footer-content">
         <div class="footer-brand">
-          <img src="/static/img/zoro.png" alt="Ary" class="footer-logo">
+          <img src="/static/img/zoro.png" alt="Ary" class="footer-logo" id="footer-logo">
           <span class="footer-title">Ary</span>
+          <span class="footer-copy-inline"> 2025 Ary. All rights reserved.</span>
         </div>
         
         <div class="footer-links">
-          <a href="/" class="footer-link">Home</a>
-          <a href="/browse" class="footer-link">Browse</a>
-          <a href="/library" class="footer-link">Library</a>
-          <a href="/downloads" class="footer-link">Downloads</a>
-          <a href="https://github.com/kalxl/Mary" class="footer-link" target="_blank" rel="noopener">GitHub</a>
-        </div>
-        
-        <div class="footer-bottom">
-          <div class="footer-socials">
-            <a href="https://github.com/kalxl/Mary" class="footer-social" target="_blank" rel="noopener" aria-label="GitHub">
-              <svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
-            </a>
-          </div>
-          <p class="footer-copy">© 2025 Ary. All rights reserved.</p>
+          <a href="/" class="footer-link">
+            <svg class="footer-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            <span class="footer-link-text">Home</span>
+          </a>
+          <a href="/browse" class="footer-link">
+            <svg class="footer-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <span class="footer-link-text">Browse</span>
+          </a>
+          <a href="/games" class="footer-link">
+            <svg class="footer-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><line x1="6" y1="12" x2="6" y2="12"/><line x1="10" y1="12" x2="10" y2="12"/><circle cx="17" cy="10" r="1"/><circle cx="17" cy="14" r="1"/></svg>
+            <span class="footer-link-text">Games</span>
+          </a>
         </div>
       </div>
     </footer>
+    <script>
+      document.getElementById('footer-logo')?.addEventListener('dblclick', function() {
+        this.classList.toggle('spinning');
+      });
+    </script>
   </body>
 </html>
