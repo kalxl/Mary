@@ -5363,47 +5363,8 @@
             const numberStr = String(numberRaw || '').trim();
             const num = parseFloat(numberStr);
 
-            function findChapterForSource(sourceKey) {
-              const entry = sourceCache && sourceCache[sourceKey] ? sourceCache[sourceKey] : null;
-              const chapters = entry && Array.isArray(entry.chapters) ? entry.chapters : [];
-              if (!chapters.length) return null;
-              if (!Number.isFinite(num)) return null;
-              return chapters.find((ch) => {
-                const v = parseFloat(ch.chapter);
-                return Number.isFinite(v) && v === num;
-              }) || null;
-            }
-
-            // Check if we have any linked sources (even if chapters aren't loaded yet)
-            const mdId = getSlugStorageKey();
-            const asuraMap = loadAsuraSlugMap();
-            const mangataroMap = loadMangataroSlugMap();
-            const comixMap = ENABLE_COMIX_SOURCE ? loadComixSlugMap() : {};
-            
-            const hasAsura = mdId && asuraMap[mdId];
-            const hasMangataro = mdId && mangataroMap[mdId];
-            const hasComix = mdId && comixMap[mdId];
-            
-            // Prefer opening the in-app reader for a configured source.
-            const asuraMatch = findChapterForSource('asura');
-            const mangataroMatch = findChapterForSource('mangataro');
-            const comixMatch = findChapterForSource('comix');
-            
-            // If we have any linked sources with this chapter, open the popup
-            if (asuraMatch || mangataroMatch || comixMatch) {
-              openChapterSelectPopup(num);
-              return;
-            }
-            
-            // If we have linked sources but they don't have this chapter yet, still open popup
-            if (hasAsura || hasMangataro || hasComix) {
-              openChapterSelectPopup(num);
-              return;
-            }
-
-            // Fallback: no configured source has this chapter
-            const label = numberStr || '?';
-            alert(`No configured source has chapter ${label} yet. Link an Asura/Mangataro series first.`);
+            // Always open the popup when clicking Comick chapters
+            openChapterSelectPopup(num);
           });
         });
       }
