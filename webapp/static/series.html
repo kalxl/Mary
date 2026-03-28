@@ -2544,7 +2544,9 @@
         .mobile-similar-card img {
           width: 100%;
           aspect-ratio: 2/3;
+          height: 180px;
           object-fit: cover;
+          object-position: center top;
           border-radius: 10px;
         }
         .mobile-similar-title {
@@ -4234,15 +4236,18 @@
         const titleEl = document.getElementById('mobile-title');
         if (titleEl) titleEl.textContent = heroData.title || 'Untitled';
 
-        // Populate subtitle (author/artist info)
+        // Populate subtitle (formatted slug title)
         const subtitleEl = document.getElementById('mobile-subtitle');
         if (subtitleEl) {
-          const parts = [];
-          if (heroData.authors?.length) parts.push(heroData.authors.join(', '));
-          else if (heroData.author) parts.push(heroData.author);
-          else if (heroData.artist) parts.push(heroData.artist);
-          else if (heroData.year) parts.push(String(heroData.year));
-          subtitleEl.textContent = parts.join(' • ') || 'Unknown author';
+          // Get slug and format it: remove numbers and dashes, capitalize words
+          const rawSlug = heroData.slug || comickSlug || '';
+          const formattedSlug = rawSlug
+            .replace(/^\d+[-]?/, '') // Remove leading numbers and optional dash
+            .replace(/-/g, ' ') // Replace dashes with spaces
+            .split(' ')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+            .join(' ');
+          subtitleEl.textContent = formattedSlug || 'Unknown';
         }
 
         // Populate description
@@ -4266,7 +4271,7 @@
           const details = [
             { label: 'Author', value: heroData.author || heroData.authors?.[0] || 'Unknown' },
             { label: 'Artist', value: heroData.artist || heroData.authors?.[1] || 'Unknown' },
-            { label: 'Publisher', value: heroData.publisher || '—' },
+            { label: 'Year', value: heroData.year ? String(heroData.year) : '—' },
             { label: 'Type', value: heroData.type || 'Manga' },
             { label: 'Status', value: heroData.status || 'Unknown' },
             { label: 'Chapters', value: String(chapterTotal || '—') },
