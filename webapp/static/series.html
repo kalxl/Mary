@@ -3823,15 +3823,17 @@
         if (mdId) savePreferredSource(mdId, nextSource);
         updateSourceControlsState();
         updateSourceDisplay();
-        
+
         // Check if we have cached data for this source
         const cached = sourceCache[nextSource];
         if (cached && cached.chapters) {
           allChapters = cached.chapters;
           populateGroupFilter();
           updateReadButton();
-          renderChapterTable();
         }
+
+        // Always render chapter table to update UI
+        renderChapterTable();
         
         async function loadSeriesForSource(source, options = {}) {
           const { fromInit = false } = options;
@@ -4570,24 +4572,78 @@
           };
         }
 
-        // Mobile bookmark button - opens status menu
+        // Mobile bookmark button - opens status menu or login UI
         const mobileBookmarkBtn = document.getElementById('mobile-bookmark-btn');
         if (mobileBookmarkBtn) {
           mobileBookmarkBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             e.preventDefault();
+
+            // Check if user is logged in
+            const uid = getLastKnownUserId();
+            const client = typeof getSupabaseClient === 'function' ? getSupabaseClient() : null;
+            const isLoggedIn = uid && client;
+
+            if (!isLoggedIn) {
+              // Show login UI instead
+              if (typeof openLoginModal === 'function') {
+                openLoginModal();
+              }
+              return;
+            }
+
             const statusMenu = document.getElementById('status-menu');
             if (statusMenu) {
-              // Move menu to body to avoid overflow issues
-              if (statusMenu.parentNode !== document.body) {
-                document.body.appendChild(statusMenu);
+              // Toggle menu visibility
+              if (statusMenu.classList.contains('mobile-open')) {
+                statusMenu.classList.remove('mobile-open');
+                statusMenu.style.display = 'none';
+              } else {
+                // Position above the button
+                const rect = mobileBookmarkBtn.getBoundingClientRect();
+                statusMenu.style.top = `${rect.top - 10}px`;
+                statusMenu.style.left = `${rect.left + (rect.width / 2) - 140}px`;
+
+                // Move menu to body to avoid overflow issues
+                if (statusMenu.parentNode !== document.body) {
+                  document.body.appendChild(statusMenu);
+                }
+                // Ensure menu is visible
+                statusMenu.style.display = 'block';
+                statusMenu.classList.add('mobile-open');
               }
-              // Ensure menu is visible
-              statusMenu.style.display = 'block';
-              statusMenu.classList.add('mobile-open');
             }
           });
+
+          // Add swipe left to close
+          let touchStartX = 0;
+          mobileBookmarkBtn.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+          }, { passive: true });
+
+          mobileBookmarkBtn.addEventListener('touchend', (e) => {
+            const touchEndX = e.changedTouches[0].clientX;
+            const diff = touchStartX - touchEndX;
+            if (diff > 50) { // Swipe left detected
+              const statusMenu = document.getElementById('status-menu');
+              if (statusMenu) {
+                statusMenu.classList.remove('mobile-open');
+                statusMenu.style.display = 'none';
+              }
+            }
+          }, { passive: true });
         }
+
+        // Close menu when clicking anywhere else
+        document.addEventListener('click', (e) => {
+          const statusMenu = document.getElementById('status-menu');
+          if (statusMenu && statusMenu.classList.contains('mobile-open')) {
+            if (!e.target.closest('#mobile-bookmark-btn') && !e.target.closest('#status-menu')) {
+              statusMenu.classList.remove('mobile-open');
+              statusMenu.style.display = 'none';
+            }
+          }
+        });
 
         // Bind mobile description toggle
         const mobileToggle = document.getElementById('mobile-desc-toggle');
