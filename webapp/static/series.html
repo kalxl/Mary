@@ -674,6 +674,15 @@
       .status-menu.open {
         display: block;
       }
+      .status-menu.mobile-open {
+        position: fixed;
+        top: auto;
+        bottom: 80px;
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%);
+        z-index: 2000;
+      }
       .status-option {
         width: 100%;
         text-align: left;
@@ -4333,7 +4342,11 @@
             e.stopPropagation();
             const statusMenu = document.getElementById('status-menu');
             if (statusMenu) {
-              statusMenu.classList.toggle('open');
+              const isOpen = statusMenu.classList.contains('open') || statusMenu.classList.contains('mobile-open');
+              statusMenu.classList.remove('open', 'mobile-open');
+              if (!isOpen) {
+                statusMenu.classList.add('open', 'mobile-open');
+              }
             }
           };
         }
@@ -4741,7 +4754,7 @@
                     <div class="chapter-number">Ch. ${ch.chapter ?? "?"}</div>
                     <div class="chapter-title">${ch.title || ""}</div>
                     <div class="chapter-meta">
-                      <span class="source-pill ${linkedSource ? linkedSource.toLowerCase() : sourceClass}">${linkedSourceLabel || sourceLabel}</span>
+                      <span class="source-pill ${sourceClass}">${sourceLabel}</span>
                     </div>
                   </div>
                   <div class="chapter-views">0</div>
