@@ -3830,10 +3830,8 @@
           allChapters = cached.chapters;
           populateGroupFilter();
           updateReadButton();
+          renderChapterTable();
         }
-
-        // Always render chapter table to update UI
-        renderChapterTable();
         
         async function loadSeriesForSource(source, options = {}) {
           const { fromInit = false } = options;
@@ -3893,6 +3891,9 @@
           }
         }
         await loadSeriesForSource(nextSource);
+        
+        // Render chapter table after async load completes
+        renderChapterTable();
       }
 
       function updateSourceControlsState() {
@@ -4504,7 +4505,7 @@
           const statsLabel = document.createElement('span');
           statsLabel.className = 'links-label';
           statsLabel.style.marginTop = '0.5rem';
-          statsLabel.style.marginBottom = '0.75rem';
+          statsLabel.style.marginBottom = '0.35rem';
           statsLabel.style.display = 'block';
           statsLabel.textContent = 'Stats';
           detailsGrid.parentNode.insertBefore(statsLabel, detailsGrid);
@@ -4594,51 +4595,62 @@
 
             const statusMenu = document.getElementById('status-menu');
             if (statusMenu) {
-              // Toggle menu visibility
-              if (statusMenu.classList.contains('mobile-open')) {
+              // Toggle menu open/close
+              const isOpen = statusMenu.classList.contains('mobile-open');
+              
+              if (isOpen) {
+                // Close the menu
                 statusMenu.classList.remove('mobile-open');
                 statusMenu.style.display = 'none';
-              } else {
-                // Position above the button
+                return;
+              }
+              
+              // Position above the button only if not already positioned
+              if (!statusMenu.dataset.positioned) {
                 const rect = mobileBookmarkBtn.getBoundingClientRect();
                 statusMenu.style.top = `${rect.top - 10}px`;
                 statusMenu.style.left = `${rect.left + (rect.width / 2) - 140}px`;
-
-                // Move menu to body to avoid overflow issues
-                if (statusMenu.parentNode !== document.body) {
-                  document.body.appendChild(statusMenu);
-                }
-                // Ensure menu is visible
-                statusMenu.style.display = 'block';
-                statusMenu.classList.add('mobile-open');
+                statusMenu.dataset.positioned = 'true';
               }
+
+              // Move menu to body to avoid overflow issues
+              if (statusMenu.parentNode !== document.body) {
+                document.body.appendChild(statusMenu);
+              }
+              // Ensure menu is visible
+              statusMenu.style.display = 'block';
+              statusMenu.classList.add('mobile-open');
             }
           });
-
-          // Add swipe left to close
+          
+          // Add swipe-left to close functionality
           let touchStartX = 0;
           mobileBookmarkBtn.addEventListener('touchstart', (e) => {
             touchStartX = e.touches[0].clientX;
-          }, { passive: true });
-
+          });
+          
           mobileBookmarkBtn.addEventListener('touchend', (e) => {
             const touchEndX = e.changedTouches[0].clientX;
             const diff = touchStartX - touchEndX;
-            if (diff > 50) { // Swipe left detected
+            
+            // Swipe left detection
+            if (diff > 50) {
               const statusMenu = document.getElementById('status-menu');
-              if (statusMenu) {
+              if (statusMenu && statusMenu.classList.contains('mobile-open')) {
                 statusMenu.classList.remove('mobile-open');
                 statusMenu.style.display = 'none';
               }
             }
-          }, { passive: true });
+          });
         }
-
-        // Close menu when clicking anywhere else
+        
+        // Click outside to close mobile status menu
         document.addEventListener('click', (e) => {
           const statusMenu = document.getElementById('status-menu');
+          const mobileBookmarkBtn = document.getElementById('mobile-bookmark-btn');
+          
           if (statusMenu && statusMenu.classList.contains('mobile-open')) {
-            if (!e.target.closest('#mobile-bookmark-btn') && !e.target.closest('#status-menu')) {
+            if (!statusMenu.contains(e.target) && !mobileBookmarkBtn.contains(e.target)) {
               statusMenu.classList.remove('mobile-open');
               statusMenu.style.display = 'none';
             }

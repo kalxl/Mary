@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ary-pwa-v19';
+const CACHE_NAME = 'ary-pwa-v20';
 const OFFLINE_CACHE = 'ary-offline-v1';
 
 self.addEventListener('install', (event) => {
