@@ -130,8 +130,9 @@
         }
 
         .series-hero {
+          display: grid;
           grid-template-columns: 1fr;
-          gap: 1.1rem;
+          gap: 1.25rem;
           align-items: center;
           justify-items: center;
           text-align: center;
@@ -139,7 +140,7 @@
           z-index: 1;
           margin-top: 44px;
           padding-top: 26px;
-          overflow: hidden;
+          overflow: visible;
         }
 
         .series-hero::before {
@@ -315,23 +316,28 @@
       }
       .external-links {
         display: flex;
-        align-items: center;
-        gap: 0.5rem;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.6rem;
         margin-top: 0.6rem;
-        flex-wrap: wrap;
       }
       .links-label {
-        font-size: 0.8rem;
+        font-size: 0.9rem;
         color: var(--muted);
-        font-weight: 500;
+        font-weight: 600;
+      }
+      .external-links-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
       }
       .link-btn {
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 28px;
-        height: 28px;
-        border-radius: 6px;
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
         background: rgba(255, 255, 255, 0.06);
         border: 1px solid rgba(255, 255, 255, 0.1);
         transition: all 0.15s ease;
@@ -343,15 +349,15 @@
         transform: translateY(-1px);
       }
       .link-btn img {
-        width: 20px;
-        height: 20px;
-        border-radius: 3px;
+        width: 24px;
+        height: 24px;
+        border-radius: 4px;
         object-fit: contain;
       }
 
       /* Footer Styles */
       .site-footer {
-        background: linear-gradient(180deg, rgba(18, 20, 22, 0.95) 0%, rgba(12, 14, 16, 0.98) 100%);
+        background: transparent;
         border-top: 1px solid rgba(255, 255, 255, 0.06);
         padding: 2.5rem clamp(1rem, 4vw, 4rem) 1.5rem;
         margin-top: auto;
@@ -4356,7 +4362,8 @@
               <span>Chapters: <strong>${heroChapterTotal}</strong></span>
             </div>
             <div class="external-links">
-              <span class="links-label">Links:</span>
+              <span class="links-label">Links</span>
+              <div class="external-links-row">
               <a href="https://comick.io/comic/${heroData.slug || ''}" target="_blank" rel="noopener" class="link-btn comick-link" title="Comick">
                 <img src="/static/img/comick.png" alt="Comick"/>
               </a>
@@ -4369,6 +4376,7 @@
               ${heroData.mal ? `<a href="https://myanimelist.net/manga/${heroData.mal}" target="_blank" rel="noopener" class="link-btn mal-link" title="MyAnimeList">
                 <img src="/static/img/myanimelist.png" alt="MyAnimeList"/>
               </a>` : ''}
+              </div>
             </div>
             <div id="description-desktop-mount">
               <div class="description-block">
@@ -4555,7 +4563,7 @@
         // Populate mobile external links
         const mobileLinks = document.getElementById('mobile-external-links');
         if (mobileLinks) {
-          let linksHtml = '<span class="links-label">Links:</span>';
+          let linksHtml = '<span class="links-label">Links</span><div class="external-links-row">';
           linksHtml += `<a href="https://comick.io/comic/${heroData.slug || ''}" target="_blank" rel="noopener" class="link-btn comick-link" title="Comick">
             <img src="/static/img/comick.png" alt="Comick"/>
           </a>`;
@@ -4574,6 +4582,7 @@
               <img src="/static/img/myanimelist.png" alt="MyAnimeList"/>
             </a>`;
           }
+          linksHtml += '</div>';
           mobileLinks.innerHTML = linksHtml;
         }
 
@@ -4715,8 +4724,20 @@
                 if (mobileChapterList) {
                   const desktopList = document.getElementById('chapter-list');
                   if (desktopList) mobileChapterList.innerHTML = desktopList.innerHTML;
+                  // Re-attach comick click handlers for mobile
+                  if (isComickSource) {
+                    attachComickChapterClickHandlers(mobileChapterList);
+                  }
                 }
               }, 300));
+            }
+
+            // Attach comick click handlers for mobile chapter list
+            if (isComickSource) {
+              const mobileChapterList = document.getElementById('mobile-chapter-list');
+              if (mobileChapterList) {
+                attachComickChapterClickHandlers(mobileChapterList);
+              }
             }
           }
         }
@@ -5363,8 +5384,47 @@
             const numberStr = String(numberRaw || '').trim();
             const num = parseFloat(numberStr);
 
-            // Always open the popup when clicking Comick chapters
-            openChapterSelectPopup(num);
+            function findChapterForSource(sourceKey) {
+              const entry = sourceCache && sourceCache[sourceKey] ? sourceCache[sourceKey] : null;
+              const chapters = entry && Array.isArray(entry.chapters) ? entry.chapters : [];
+              if (!chapters.length) return null;
+              if (!Number.isFinite(num)) return null;
+              return chapters.find((ch) => {
+                const v = parseFloat(ch.chapter);
+                return Number.isFinite(v) && v === num;
+              }) || null;
+            }
+
+            // Check if we have any linked sources (even if chapters aren't loaded yet)
+            const mdId = getSlugStorageKey();
+            const asuraMap = loadAsuraSlugMap();
+            const mangataroMap = loadMangataroSlugMap();
+            const comixMap = ENABLE_COMIX_SOURCE ? loadComixSlugMap() : {};
+            
+            const hasAsura = mdId && asuraMap[mdId];
+            const hasMangataro = mdId && mangataroMap[mdId];
+            const hasComix = mdId && comixMap[mdId];
+            
+            // Prefer opening the in-app reader for a configured source.
+            const asuraMatch = findChapterForSource('asura');
+            const mangataroMatch = findChapterForSource('mangataro');
+            const comixMatch = findChapterForSource('comix');
+            
+            // If we have any linked sources with this chapter, open the popup
+            if (asuraMatch || mangataroMatch || comixMatch) {
+              openChapterSelectPopup(num);
+              return;
+            }
+            
+            // If we have linked sources but they don't have this chapter yet, still open popup
+            if (hasAsura || hasMangataro || hasComix) {
+              openChapterSelectPopup(num);
+              return;
+            }
+
+            // Fallback: no configured source has this chapter
+            const label = numberStr || '?';
+            alert(`No configured source has chapter ${label} yet. Link an Asura/Mangataro series first.`);
           });
         });
       }
