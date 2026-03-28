@@ -4519,18 +4519,18 @@
           linksHtml += `<a href="https://comick.io/comic/${heroData.slug || ''}" target="_blank" rel="noopener" class="link-btn comick-link" title="Comick">
             <img src="/static/img/comick.png" alt="Comick"/>
           </a>`;
-          if (heroData.al) {
-            linksHtml += `<a href="https://anilist.co/manga/${heroData.al}" target="_blank" rel="noopener" class="link-btn anilist-link" title="AniList">
+          if (heroData.al || heroData.links?.al) {
+            linksHtml += `<a href="https://anilist.co/manga/${heroData.al || heroData.links?.al}" target="_blank" rel="noopener" class="link-btn anilist-link" title="AniList">
               <img src="/static/img/anilist.png" alt="AniList"/>
             </a>`;
           }
-          if (heroData.mu) {
-            linksHtml += `<a href="https://www.mangaupdates.com/series/${heroData.mu}" target="_blank" rel="noopener" class="link-btn mangaupdates-link" title="MangaUpdates">
+          if (heroData.mu || heroData.links?.mu) {
+            linksHtml += `<a href="https://www.mangaupdates.com/series/${heroData.mu || heroData.links?.mu}" target="_blank" rel="noopener" class="link-btn mangaupdates-link" title="MangaUpdates">
               <img src="/static/img/mangaupdate.png" alt="MangaUpdates"/>
             </a>`;
           }
-          if (heroData.mal) {
-            linksHtml += `<a href="https://myanimelist.net/manga/${heroData.mal}" target="_blank" rel="noopener" class="link-btn mal-link" title="MyAnimeList">
+          if (heroData.mal || heroData.links?.mal) {
+            linksHtml += `<a href="https://myanimelist.net/manga/${heroData.mal || heroData.links?.mal}" target="_blank" rel="noopener" class="link-btn mal-link" title="MyAnimeList">
               <img src="/static/img/myanimelist.png" alt="MyAnimeList"/>
             </a>`;
           }
@@ -4564,11 +4564,8 @@
             const statusMenu = document.getElementById('status-menu');
             if (statusMenu) {
               statusMenu.classList.toggle('mobile-open');
-              if (statusMenu.classList.contains('mobile-open')) {
-                statusMenu.style.display = 'block';
-              } else {
-                statusMenu.style.display = 'none';
-              }
+              // Remove inline style to let CSS class handle display
+              statusMenu.style.removeProperty('display');
             }
           });
         }
@@ -6813,9 +6810,10 @@ We'll reuse it next time.`,
           user_follow_count: comic.user_follow_count || null,
           rating: comic.bayesian_rating || comic.rating,
           year: comic.year || comic.year_released || comic.yearReleased || comic.release_year || "",
-          al: comic.al || null,
-          mu: comic.mu || null,
-          mal: comic.mal || null,
+          al: comic.al || comic.links?.al || null,
+          mu: comic.mu || comic.links?.mu || null,
+          mal: comic.mal || comic.links?.mal || null,
+          links: comic.links || null,
           source: "comick",
           source_label: "Comick",
           source_url: `https://comick.io/comic/${comic.slug || fallbackSlug}`,
