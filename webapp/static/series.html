@@ -3397,17 +3397,15 @@
             console.warn('Failed to persist series mapping', err);
           }
           currentSource = "asura";
-          updateSourceOptions();
           await loadAsuraSeries(firstItem.slug);
-          // Update display again after loading to ensure buttons show
-          updateSourceDisplay();
+          // Update display after loading to show buttons
+          updateSourceOptions();
         } else if (firstItem.source === 'mangataro') {
           currentMangataroSlug = firstItem.slug;
           currentSource = "mangataro";
-          updateSourceOptions();
           await loadMangataroSeries(firstItem.slug);
-          // Update display again after loading to ensure buttons show
-          updateSourceDisplay();
+          // Update display after loading to show buttons
+          updateSourceOptions();
         }
         
         closeAsuraSlugModal();
