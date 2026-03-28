@@ -2523,7 +2523,7 @@
         .mobile-similar-card img {
           width: 100%;
           aspect-ratio: 2/3;
-          height: 180px;
+          height: auto;
           object-fit: cover;
           object-position: center top;
           border-radius: 10px;
@@ -2770,7 +2770,6 @@
           <div class="mobile-similar-section">
             <div class="mobile-similar-header">
               <h3>SIMILAR</h3>
-              <a href="#" id="mobile-similar-see-all">See all</a>
             </div>
             <div class="mobile-similar-grid" id="mobile-similar-grid">
               <!-- Populated dynamically -->
@@ -4408,6 +4407,45 @@
               mobileMount.appendChild(pagination.cloneNode(true));
             }
             chaptersMovedToMobile = true;
+
+            // Rebind event handlers for cloned buttons
+            const mobileOrderToggle = mobileMount.querySelector('#chapter-order-toggle');
+            const mobileSlugBtn = mobileMount.querySelector('#change-slug-btn');
+            const mobileSearchInput = mobileMount.querySelector('#chapter-search-input');
+
+            if (mobileOrderToggle) {
+              mobileOrderToggle.addEventListener('click', () => {
+                chapterSortDescending = !chapterSortDescending;
+                currentChapterPage = 0;
+                updateChapterSortUI();
+                renderChapterTable();
+                // Also update mobile list
+                const mobileChapterList = document.getElementById('mobile-chapter-list');
+                if (mobileChapterList) {
+                  const desktopList = document.getElementById('chapter-list');
+                  if (desktopList) mobileChapterList.innerHTML = desktopList.innerHTML;
+                }
+              });
+            }
+
+            if (mobileSlugBtn) {
+              mobileSlugBtn.addEventListener('click', () => {
+                openAsuraSlugModal();
+              });
+            }
+
+            if (mobileSearchInput) {
+              mobileSearchInput.addEventListener('input', debounce(() => {
+                chapterSearchQuery = String(mobileSearchInput.value || '').trim();
+                currentChapterPage = 0;
+                renderChapterTable();
+                const mobileChapterList = document.getElementById('mobile-chapter-list');
+                if (mobileChapterList) {
+                  const desktopList = document.getElementById('chapter-list');
+                  if (desktopList) mobileChapterList.innerHTML = desktopList.innerHTML;
+                }
+              }, 300));
+            }
           }
         }
       }
