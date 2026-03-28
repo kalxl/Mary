@@ -2365,7 +2365,7 @@
           width: 100%;
           height: 100%;
           object-fit: cover;
-          object-position: center top;
+          object-position: center bottom;
         }
         .mobile-header-overlay {
           position: absolute;
@@ -2587,51 +2587,60 @@
           height: 14px;
         }
 
-        /* Mobile Bottom Bar - Square Icon Buttons */
-        .mobile-bottom-bar {
-          position: fixed;
-          bottom: 0;
-          left: 0;
-          right: 0;
-          padding: 0.6rem 1rem calc(0.6rem + env(safe-area-inset-bottom));
-          background: rgba(17, 17, 17, 0.95);
-          backdrop-filter: blur(10px);
-          border-top: 1px solid var(--border);
-          z-index: 100;
+        /* Mobile Action Buttons - Below Cover */
+        .mobile-action-bar {
           display: flex;
           gap: 0.75rem;
+          padding: 1rem 0;
         }
-        .mobile-action-btn {
+        .mobile-read-btn {
           flex: 1;
-          aspect-ratio: 1;
-          max-width: 56px;
-          height: 48px;
+          padding: 0.85rem 1.25rem;
+          background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+          color: #0f1512;
           border: none;
+          border-radius: 12px;
+          font-size: 0.95rem;
+          font-weight: 600;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.5rem;
+          transition: transform 0.15s ease;
+        }
+        .mobile-read-btn:active {
+          transform: scale(0.97);
+        }
+        .mobile-read-btn svg {
+          width: 18px;
+          height: 18px;
+        }
+        .mobile-download-btn {
+          width: 48px;
+          height: 48px;
+          background: rgba(255, 255, 255, 0.1);
+          color: rgba(255, 255, 255, 0.7);
+          border: 1px solid rgba(255, 255, 255, 0.15);
           border-radius: 12px;
           cursor: pointer;
           display: flex;
           align-items: center;
           justify-content: center;
-          transition: transform 0.15s ease, opacity 0.15s ease;
-        }
-        .mobile-action-btn:active {
-          transform: scale(0.92);
-        }
-        .mobile-action-btn svg {
-          width: 22px;
-          height: 22px;
-        }
-        .mobile-read-btn {
-          background: linear-gradient(135deg, var(--accent), var(--accent-dark));
-          color: #0f1512;
-        }
-        .mobile-download-btn {
-          background: rgba(255, 255, 255, 0.1);
-          color: rgba(255, 255, 255, 0.7);
-          border: 1px solid rgba(255, 255, 255, 0.15);
+          transition: transform 0.15s ease, background 0.15s ease;
         }
         .mobile-download-btn:active {
+          transform: scale(0.92);
           background: rgba(255, 255, 255, 0.15);
+        }
+        .mobile-download-btn svg {
+          width: 20px;
+          height: 20px;
+        }
+
+        /* Hide old series-description-block on mobile */
+        #series-description-block {
+          display: none !important;
         }
 
         /* Hide desktop elements on mobile */
@@ -2648,10 +2657,6 @@
           }
         }
 
-        /* Add padding to main when mobile layout is active */
-        main:has(#mobile-layout:not([hidden])) {
-          padding-bottom: calc(5rem + env(safe-area-inset-bottom));
-        }
       }
     </style>
   </head>
@@ -2676,6 +2681,23 @@
           </div>
         </div>
 
+        <!-- Mobile Action Buttons - Below Cover -->
+        <div class="mobile-action-bar">
+          <button class="mobile-read-btn" id="mobile-start-reading">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+            Start reading
+          </button>
+          <button class="mobile-download-btn" id="mobile-download-btn" title="Download">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+          </button>
+        </div>
+
         <!-- Mobile Tabs -->
         <div class="mobile-tabs">
           <button class="mobile-tab active" data-tab="about">About title</button>
@@ -2687,6 +2709,11 @@
         <div class="mobile-tab-content active" id="mobile-tab-about">
           <p id="mobile-description" class="mobile-description collapsed"></p>
           <button class="mobile-description-toggle" id="mobile-desc-toggle">Show more</button>
+
+          <!-- Details Grid -->
+          <div class="mobile-details-grid" id="mobile-details-grid">
+            <!-- Populated dynamically -->
+          </div>
 
           <!-- Similar Section -->
           <div class="mobile-similar-section">
@@ -2716,22 +2743,6 @@
             No reviews yet. Be the first to write a review!
           </div>
           <div id="mobile-reviews-list" hidden></div>
-        </div>
-
-        <!-- Mobile Bottom Bar - Square Icon Buttons -->
-        <div class="mobile-bottom-bar">
-          <button class="mobile-action-btn mobile-read-btn" id="mobile-start-reading" title="Start reading">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polygon points="5 3 19 12 5 21 5 3"></polygon>
-            </svg>
-          </button>
-          <button class="mobile-action-btn mobile-download-btn" id="mobile-download-btn" title="Download">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-              <polyline points="7 10 12 15 17 10"></polyline>
-              <line x1="12" y1="15" x2="12" y2="3"></line>
-            </svg>
-          </button>
         </div>
       </div>
 
@@ -4226,6 +4237,25 @@
             mobileDescExpanded = false;
             descEl.classList.add('collapsed');
           }
+        }
+
+        // Populate details grid
+        const detailsGrid = document.getElementById('mobile-details-grid');
+        if (detailsGrid) {
+          const details = [
+            { label: 'Author', value: heroData.author || heroData.authors?.[0] || 'Unknown' },
+            { label: 'Artist', value: heroData.artist || heroData.authors?.[1] || 'Unknown' },
+            { label: 'Publisher', value: heroData.publisher || '—' },
+            { label: 'Type', value: heroData.type || 'Manga' },
+            { label: 'Status', value: heroData.status || 'Unknown' },
+            { label: 'Chapters', value: String(chapterTotal || '—') },
+          ];
+          detailsGrid.innerHTML = details.map(d => `
+            <div class="mobile-detail-item">
+              <span class="mobile-detail-label">${d.label}</span>
+              <span class="mobile-detail-value">${d.value}</span>
+            </div>
+          `).join('');
         }
 
         // Update mobile start reading button
