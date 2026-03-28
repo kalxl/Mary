@@ -4171,10 +4171,10 @@
                 <img src="/static/img/anilist.png" alt="AniList"/>
               </a>` : ''}
               ${heroData.mu ? `<a href="https://www.mangaupdates.com/series/${heroData.mu}" target="_blank" rel="noopener" class="link-btn mangaupdates-link" title="MangaUpdates">
-                <img src="/static/img/mangaupdates.png" alt="MangaUpdates"/>
+                <img src="/static/img/mangaupdate.png" alt="MangaUpdates"/>
               </a>` : ''}
               ${heroData.mal ? `<a href="https://myanimelist.net/manga/${heroData.mal}" target="_blank" rel="noopener" class="link-btn mal-link" title="MyAnimeList">
-                <img src="/static/img/mal.png" alt="MyAnimeList"/>
+                <img src="/static/img/myanimelist.png" alt="MyAnimeList"/>
               </a>` : ''}
             </div>
             <div id="description-desktop-mount">
@@ -4379,12 +4379,16 @@
         if (mobileBookmarkBtn) {
           mobileBookmarkBtn.addEventListener('click', (e) => {
             e.stopPropagation();
+            e.preventDefault();
             const statusMenu = document.getElementById('status-menu');
             if (statusMenu) {
-              if (statusMenu.classList.contains('mobile-open')) {
-                statusMenu.classList.remove('open', 'mobile-open');
-              } else {
+              const isOpen = statusMenu.classList.contains('mobile-open');
+              statusMenu.classList.remove('open', 'mobile-open');
+              if (!isOpen) {
                 statusMenu.classList.add('open', 'mobile-open');
+                statusMenu.style.display = 'block';
+              } else {
+                statusMenu.style.display = 'none';
               }
             }
           });
@@ -7102,6 +7106,15 @@ We'll reuse it next time.`,
         </div>
         <div class="offline-modal-footer">
           <button type="button" class="btn ghost" onclick="try{document.getElementById('offline-progress-modal')?.classList.remove('open');document.getElementById('offline-progress-modal')?.setAttribute('aria-hidden','true');}catch(_){}">Hide</button>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+      </div>
+    </div>
+  </body>
+</html>
         </div>
       </div>
     </div>
