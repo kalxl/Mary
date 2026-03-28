@@ -223,7 +223,7 @@
         }
         .stats-row {
           font-size: 0.78rem;
-          gap: 0.55rem;
+          gap: 0.35rem;
           justify-content: center;
         }
         .chip-row {
@@ -3135,6 +3135,22 @@
         }
 
         updateSourceDisplay();
+
+        // Also update mobile source buttons if they exist
+        const mobileSourceButtons = document.querySelector('#mobile-chapters-mount #source-buttons');
+        if (mobileSourceButtons && sourceButtonsContainer) {
+          mobileSourceButtons.innerHTML = sourceButtonsContainer.innerHTML;
+          // Re-attach click handlers for mobile
+          mobileSourceButtons.querySelectorAll('.source-btn').forEach((btn) => {
+            btn.addEventListener('click', () => {
+              const { source } = btn.dataset;
+              if (source) {
+                changeSource(source);
+                renderRecommendations(currentRecommendations);
+              }
+            });
+          });
+        }
       }
       
       function savePreferredSource(seriesId, source) {
@@ -4177,9 +4193,20 @@
           currentGroupFilter = "";
           currentChapterPage = 0;
         }
-        // Always update source display to show buttons even if not current source
-        if (sourceKey !== currentSource) {
-          updateSourceOptions();
+        // Update mobile source buttons if they exist
+        const mobileSourceButtons = document.querySelector('#mobile-chapters-mount #source-buttons');
+        if (mobileSourceButtons) {
+          mobileSourceButtons.innerHTML = sourceButtonsContainer.innerHTML;
+          // Re-attach click handlers for mobile
+          mobileSourceButtons.querySelectorAll('.source-btn').forEach((btn) => {
+            btn.addEventListener('click', () => {
+              const { source } = btn.dataset;
+              if (source) {
+                changeSource(source);
+                renderRecommendations(currentRecommendations);
+              }
+            });
+          });
         }
         const heroData = sourceKey === "comick" ? title : (primarySeriesMeta || title);
         const sourceLabel =
@@ -4663,6 +4690,23 @@
                 });
               });
             }
+
+            // Update mobile source buttons with current state
+            setTimeout(() => {
+              const updatedMobileSourceButtons = document.querySelector('#mobile-chapters-mount #source-buttons');
+              if (updatedMobileSourceButtons && sourceButtonsContainer) {
+                updatedMobileSourceButtons.innerHTML = sourceButtonsContainer.innerHTML;
+                updatedMobileSourceButtons.querySelectorAll('.source-btn').forEach((btn) => {
+                  btn.addEventListener('click', () => {
+                    const { source } = btn.dataset;
+                    if (source) {
+                      changeSource(source);
+                      renderRecommendations(currentRecommendations);
+                    }
+                  });
+                });
+              }
+            }, 100);
 
             if (mobileSearchInput) {
               mobileSearchInput.addEventListener('input', debounce(() => {
@@ -5372,9 +5416,8 @@
               return;
             }
 
-            // Fallback: no configured source has this chapter
-            const label = numberStr || '?';
-            alert(`No configured source has chapter ${label} yet. Link an Asura/Mangataro series first.`);
+            // Fallback: no configured source has this chapter, open slug modal
+            openAsuraSlugModal();
           });
         });
       }
