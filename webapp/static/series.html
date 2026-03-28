@@ -4444,7 +4444,24 @@
           // Remove any existing stats labels to avoid duplicates
           const existingStatsLabels = detailsGrid.parentNode.querySelectorAll('.links-label');
           existingStatsLabels.forEach(label => label.remove());
-          
+
+          // Add Tags label and chips if tags exist
+          if (heroData.tags && heroData.tags.length > 0) {
+            const tagsLabel = document.createElement('span');
+            tagsLabel.className = 'links-label';
+            tagsLabel.style.marginTop = '1rem';
+            tagsLabel.style.marginBottom = '0.5rem';
+            tagsLabel.style.display = 'block';
+            tagsLabel.textContent = 'Tags';
+            detailsGrid.parentNode.insertBefore(tagsLabel, detailsGrid);
+
+            const chipRow = document.createElement('div');
+            chipRow.className = 'chip-row';
+            chipRow.style.marginBottom = '1rem';
+            chipRow.innerHTML = heroData.tags.slice(0, 6).map(tag => `<span class="chip">${tag}</span>`).join('');
+            detailsGrid.parentNode.insertBefore(chipRow, detailsGrid);
+          }
+
           // Add Stats label after show more button, before the grid
           const statsLabel = document.createElement('span');
           statsLabel.className = 'links-label';
