@@ -4604,7 +4604,7 @@
                   const desktopList = document.getElementById('chapter-list');
                   if (desktopList) mobileChapterList.innerHTML = desktopList.innerHTML;
                   // Re-attach comick click handlers for mobile
-                  if (isComickSource) {
+                  if (currentSource === "comick") {
                     attachComickChapterClickHandlers(mobileChapterList);
                   }
                 }
