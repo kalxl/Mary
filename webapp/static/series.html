@@ -886,39 +886,45 @@
         display: block;
       }
       .recommendation-list-wrapper {
-        overflow: hidden;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(var(--accent-rgb), 0.55) rgba(255, 255, 255, 0.08);
+        padding-bottom: 0.2rem;
       }
       .recommendation-list {
         display: flex;
-        flex-direction: column;
+        flex-direction: row;
         gap: 0.9rem;
+        scroll-snap-type: x mandatory;
+        scroll-behavior: smooth;
       }
       .recommendation-card {
         display: flex;
-        flex-direction: row;
-        align-items: center;
-        gap: 0.75rem;
-        padding: 0.6rem;
-        border-radius: 16px;
-        background: rgba(255, 255, 255, 0.02);
-        border: 1px solid rgba(255, 255, 255, 0.05);
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.4rem;
+        padding: 0;
+        border-radius: 14px;
+        background: transparent;
+        border: none;
         text-decoration: none;
         color: inherit;
-        transition: border-color 0.2s ease, background 0.2s ease, transform 0.15s ease;
-        width: 100%;
-        min-width: 0;
+        transition: transform 0.15s ease;
+        min-width: 130px;
+        width: 130px;
+        flex-shrink: 0;
+        scroll-snap-align: start;
       }
       .recommendation-card:hover {
-        border-color: rgba(var(--accent-rgb), 0.5);
-        background: rgba(var(--accent-rgb), 0.06);
         transform: translateY(-2px);
       }
       .recommendation-card img {
-        width: 64px;
-        height: 88px;
+        width: 100%;
+        aspect-ratio: 2 / 3;
+        height: auto;
         object-fit: cover;
         border-radius: 12px;
-        flex-shrink: 0;
       }
       .recommendation-meta {
         display: flex;
@@ -965,32 +971,9 @@
         gap: 1rem;
         align-items: center;
       }
+      /* Slug button uses chapter-action-btn styling - square-ish */
       #change-slug-btn {
-        border: none;
-        border-radius: 999px;
-        padding: 0.45rem 1rem;
-        background: rgba(255, 255, 255, 0.08);
-        color: #e6ede8;
-        font-weight: 600;
-        cursor: pointer;
-        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
-        transition: opacity 0.15s ease;
-        position: absolute;
-        top: 0;
-        right: 0;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.55rem;
-      }
-
-      #change-slug-btn svg {
-        width: 16px;
-        height: 16px;
-        flex: 0 0 auto;
-      }
-
-      #change-slug-btn span {
-        display: inline;
+        /* Inherits from .chapter-action-btn: 40x40px, border-radius: 10px */
       }
 
       .slug-modal-overlay {
@@ -2159,23 +2142,12 @@
           margin-bottom: 0.5rem;
         }
 
+        /* Slug button on mobile - square-ish like reorder */
         #change-slug-btn {
-          position: static; /* Override absolute positioning */
-          width: 36px;
-          height: 36px;
+          width: 40px;
+          height: 40px;
           padding: 0;
-          border-radius: 999px;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        #change-slug-btn span {
-          display: none; /* Hide text on mobile */
-        }
-
-        #change-slug-btn svg {
-          display: block; /* Show SVG */
+          border-radius: 10px;
         }
 
         .chapter-controls {
@@ -4296,7 +4268,7 @@
         const mobileDownloadBtn = document.getElementById('mobile-download-btn');
         if (mobileDownloadBtn) {
           mobileDownloadBtn.onclick = () => {
-            const offlineModal = document.getElementById('offline-download-modal');
+            const offlineModal = document.getElementById('offline-modal');
             if (offlineModal) {
               offlineModal.classList.add('open');
               document.body.classList.add('nav-locked');
