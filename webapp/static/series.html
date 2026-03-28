@@ -3821,6 +3821,7 @@
         const mdId = getSlugStorageKey();
         if (mdId) savePreferredSource(mdId, nextSource);
         updateSourceControlsState();
+        updateSourceDisplay();
         
         // Check if we have cached data for this source
         const cached = sourceCache[nextSource];
@@ -4495,7 +4496,7 @@
           // Add Stats label after show more button, before the grid
           const statsLabel = document.createElement('span');
           statsLabel.className = 'links-label';
-          statsLabel.style.marginTop = '1rem';
+          statsLabel.style.marginTop = '0.5rem';
           statsLabel.style.marginBottom = '0.75rem';
           statsLabel.style.display = 'block';
           statsLabel.textContent = 'Stats';
@@ -4572,9 +4573,9 @@
             e.preventDefault();
             const statusMenu = document.getElementById('status-menu');
             if (statusMenu) {
-              statusMenu.classList.toggle('mobile-open');
-              // Remove inline style to let CSS class handle display
-              statusMenu.style.removeProperty('display');
+              // Ensure menu is visible
+              statusMenu.style.display = 'block';
+              statusMenu.classList.add('mobile-open');
             }
           });
         }
