@@ -316,9 +316,13 @@
       }
       .external-links {
         display: flex;
-        align-items: center;
+        flex-direction: column;
         gap: 0.5rem;
         margin-top: 0.6rem;
+      }
+      .external-links .links-row {
+        display: flex;
+        gap: 0.5rem;
         flex-wrap: wrap;
       }
       .links-label {
@@ -332,9 +336,9 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 32px;
-        height: 32px;
-        border-radius: 6px;
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
         background: rgba(255, 255, 255, 0.06);
         border: 1px solid rgba(255, 255, 255, 0.12);
         transition: all 0.15s ease;
@@ -346,9 +350,9 @@
         transform: translateY(-1px);
       }
       .link-btn img {
-        width: 20px;
-        height: 20px;
-        border-radius: 3px;
+        width: 28px;
+        height: 28px;
+        border-radius: 5px;
         object-fit: contain;
       }
 
@@ -4259,18 +4263,20 @@
             </div>
             <div class="external-links">
               <span class="links-label">Links:</span>
-              <a href="https://comick.io/comic/${heroData.slug || ''}" target="_blank" rel="noopener" class="link-btn comick-link" title="Comick">
-                <img src="/static/img/comick.png" alt="Comick"/>
-              </a>
-              ${heroData.al ? `<a href="https://anilist.co/manga/${heroData.al}" target="_blank" rel="noopener" class="link-btn anilist-link" title="AniList">
-                <img src="/static/img/anilist.png" alt="AniList"/>
-              </a>` : ''}
-              ${heroData.mu ? `<a href="https://www.mangaupdates.com/series/${heroData.mu}" target="_blank" rel="noopener" class="link-btn mangaupdates-link" title="MangaUpdates">
-                <img src="/static/img/mangaupdate.png" alt="MangaUpdates"/>
-              </a>` : ''}
-              ${heroData.mal ? `<a href="https://myanimelist.net/manga/${heroData.mal}" target="_blank" rel="noopener" class="link-btn mal-link" title="MyAnimeList">
-                <img src="/static/img/myanimelist.png" alt="MyAnimeList"/>
-              </a>` : ''}
+              <div class="links-row">
+                <a href="https://comick.io/comic/${heroData.slug || ''}" target="_blank" rel="noopener" class="link-btn comick-link" title="Comick">
+                  <img src="/static/img/comick.png" alt="Comick"/>
+                </a>
+                ${heroData.al ? `<a href="https://anilist.co/manga/${heroData.al}" target="_blank" rel="noopener" class="link-btn anilist-link" title="AniList">
+                  <img src="/static/img/anilist.png" alt="AniList"/>
+                </a>` : ''}
+                ${heroData.mu ? `<a href="https://www.mangaupdates.com/series/${heroData.mu}" target="_blank" rel="noopener" class="link-btn mangaupdates-link" title="MangaUpdates">
+                  <img src="/static/img/mangaupdate.png" alt="MangaUpdates"/>
+                </a>` : ''}
+                ${heroData.mal ? `<a href="https://myanimelist.net/manga/${heroData.mal}" target="_blank" rel="noopener" class="link-btn mal-link" title="MyAnimeList">
+                  <img src="/static/img/myanimelist.png" alt="MyAnimeList"/>
+                </a>` : ''}
+              </div>
             </div>
             <div id="description-desktop-mount">
               <div class="description-block">
