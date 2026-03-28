@@ -1,6 +1,6 @@
 /* Footer Styles */
 .site-footer {
-  background: linear-gradient(180deg, rgba(18, 20, 22, 0.98) 0%, rgba(10, 12, 14, 1) 100%);
+  background: transparent;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
   padding: 3rem clamp(1rem, 4vw, 4rem) 2rem;
   margin-top: auto;
