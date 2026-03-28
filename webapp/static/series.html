@@ -2397,39 +2397,40 @@
           text-shadow: 0 1px 4px rgba(0,0,0,0.5);
         }
 
-        /* Mobile Tabs */
+        /* Mobile Tabs - Gray buttons with icons like sidebar */
         .mobile-tabs {
           display: flex;
-          gap: 0.5rem;
-          padding: 0.75rem 0;
-          margin: 0 -1rem;
-          padding-left: 1rem;
-          padding-right: 1rem;
-          border-bottom: 1px solid var(--border);
-          overflow-x: auto;
-          scrollbar-width: none;
-          -ms-overflow-style: none;
-        }
-        .mobile-tabs::-webkit-scrollbar {
-          display: none;
+          flex-direction: column;
+          gap: 0.25rem;
+          padding: 0.5rem 0;
         }
         .mobile-tab {
-          flex-shrink: 0;
-          padding: 0.5rem 1rem;
-          border-radius: 999px;
-          border: 1px solid var(--border);
-          background: transparent;
-          color: var(--muted);
-          font-size: 0.85rem;
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          padding: 0.75rem 0.5rem;
+          border-radius: 10px;
+          border: none;
+          background: rgba(255, 255, 255, 0.05);
+          color: #b5b5b5;
+          font-size: 0.9rem;
           font-weight: 500;
           cursor: pointer;
-          transition: all 0.2s ease;
-          white-space: nowrap;
+          transition: background 0.15s ease, color 0.15s ease;
+          width: 100%;
+          text-align: left;
+        }
+        .mobile-tab svg {
+          width: 20px;
+          height: 20px;
+          flex-shrink: 0;
         }
         .mobile-tab.active {
-          background: rgba(var(--accent-rgb), 0.15);
-          border-color: rgba(var(--accent-rgb), 0.5);
-          color: var(--accent);
+          background: rgba(255, 255, 255, 0.12);
+          color: #fff;
+        }
+        .mobile-tab:active {
+          transform: scale(0.98);
         }
 
         /* Mobile Tab Content */
@@ -2700,9 +2701,18 @@
 
         <!-- Mobile Tabs -->
         <div class="mobile-tabs">
-          <button class="mobile-tab active" data-tab="about">About title</button>
-          <button class="mobile-tab" data-tab="chapters">Chapters</button>
-          <button class="mobile-tab" data-tab="reviews">Reviews</button>
+          <button class="mobile-tab active" data-tab="about">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            About title
+          </button>
+          <button class="mobile-tab" data-tab="chapters">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            Chapters
+          </button>
+          <button class="mobile-tab" data-tab="reviews">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            Reviews
+          </button>
         </div>
 
         <!-- Mobile Tab Content: About -->
