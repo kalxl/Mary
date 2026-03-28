@@ -719,12 +719,12 @@
       .status-menu.mobile-open {
         display: block !important;
         position: fixed;
-        top: auto;
-        bottom: 100px;
+        top: 50%;
         left: 50%;
         right: auto;
-        transform: translateX(-50%);
-        z-index: 9999;
+        bottom: auto;
+        transform: translate(-50%, -50%);
+        z-index: 99999;
         width: 280px;
         max-width: calc(100vw - 32px);
       }
@@ -3828,6 +3828,7 @@
           allChapters = cached.chapters;
           populateGroupFilter();
           updateReadButton();
+          renderChapterTable();
         }
         
         async function loadSeriesForSource(source, options = {}) {
