@@ -2264,7 +2264,7 @@
         .mobile-external-links {
           flex-direction: column;
           align-items: flex-start;
-          gap: 0.75rem;
+          gap: 0.6rem;
           margin-top: 1rem;
           padding: 1rem;
           background: rgba(255, 255, 255, 0.02);
@@ -2280,29 +2280,25 @@
           letter-spacing: 0.05em;
         }
 
-        .mobile-external-links {
-          flex-direction: column;
-          align-items: flex-start;
-          gap: 0.6rem;
-        }
-
         .mobile-external-links .link-btn {
-          width: 44px;
-          height: 44px;
-          border-radius: 10px;
+          width: 52px;
+          height: 52px;
+          border-radius: 12px;
           background: rgba(255, 255, 255, 0.08);
           border: 1px solid rgba(255, 255, 255, 0.15);
         }
 
         .mobile-external-links .link-btn img {
-          width: 28px;
-          height: 28px;
+          width: 32px;
+          height: 32px;
         }
 
         .mobile-external-links .links-row {
           display: flex;
           flex-wrap: wrap;
           gap: 0.6rem;
+          flex-direction: row;
+          align-items: center;
         }
 
         .chapter-search-wrapper input {
@@ -4434,9 +4430,16 @@
         // Populate details grid
         const detailsGrid = document.getElementById('mobile-details-grid');
         if (detailsGrid) {
-          // Add Stats label before the grid
+          // Remove any existing stats labels to avoid duplicates
+          const existingStatsLabels = detailsGrid.parentNode.querySelectorAll('.links-label');
+          existingStatsLabels.forEach(label => label.remove());
+          
+          // Add Stats label after show more button, before the grid
           const statsLabel = document.createElement('span');
           statsLabel.className = 'links-label';
+          statsLabel.style.marginTop = '1rem';
+          statsLabel.style.marginBottom = '0.75rem';
+          statsLabel.style.display = 'block';
           statsLabel.textContent = 'Stats';
           detailsGrid.parentNode.insertBefore(statsLabel, detailsGrid);
           
