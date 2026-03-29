@@ -2418,7 +2418,6 @@
 
       #popup-close-btn:hover {
         border-color: rgba(var(--accent-rgb), 0.25);
-        background: rgba(255, 255, 255, 0.08);
       }
 
       #popup-source-tabs {
@@ -2506,6 +2505,22 @@
         height: 16px;
         flex-shrink: 0;
         opacity: 0.8;
+      }
+
+      @media (max-width: 640px) {
+        .popup-dropdown-label {
+          display: none;
+        }
+        .popup-dropdown {
+          gap: 0;
+        }
+        .popup-filter-row {
+          gap: 0.5rem;
+          padding: 0.5rem;
+        }
+        .popup-dropdown-btn {
+          padding: 0 0.6rem;
+        }
       }
 
       .popup-dropdown-menu {
@@ -3607,7 +3622,7 @@
         <div class="popup-header">
           <h3 id="popup-title" class="popup-title">
             <span class="popup-icon-chip" aria-hidden="true">
-              <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6v14"/><path d="M7 10l5-4 5 4"/><path d="M5 20h14"/></svg>
+              <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
             </span>
             <span id="popup-title-text">Start reading</span>
           </h3>
@@ -3725,6 +3740,8 @@
       const chapterSelectPopup = document.getElementById('chapter-select-popup');
       const popupCloseBtn = document.getElementById('popup-close-btn');
       const popupChapterList = document.getElementById('popup-chapter-list');
+
+      let pendingOpenStartReadingPopup = false;
 
       const SOURCE_OPTIONS = [];
       if (isComickMode) {
@@ -4084,6 +4101,11 @@
         }
         
         closeAsuraSlugModal();
+
+        if (pendingOpenStartReadingPopup) {
+          pendingOpenStartReadingPopup = false;
+          try { openChapterSelectPopup(); } catch (_) {}
+        }
       });
 
       async function loadGlobalSeriesIndex() {
@@ -7102,6 +7124,8 @@
           return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
         });
 
+        updatePopupSourceOptions(potentialSources);
+
         if (!potentialSources.length) {
           popupSourceTabs.innerHTML = '';
           const msg = selectedChapter
@@ -7154,8 +7178,37 @@
         initPopupListeners();
         
         // Refresh group options and render
-        ensurePopupGroupOptions(popupAllChapters);
+        ensurePopupGroupOptions(getPopupGroupSourceSubset(popupAllChapters));
         renderPopupList();
+      }
+
+      function updatePopupSourceOptions(potentialSources = []) {
+        const sourceSelectEl = document.getElementById('popup-source-select');
+        if (!sourceSelectEl) return;
+
+        const keys = Array.isArray(potentialSources) ? potentialSources.filter(Boolean) : [];
+        const currentValue = String(sourceSelectEl.value || popupSourceFilter || '');
+
+        sourceSelectEl.innerHTML = `<option value="">All</option>` +
+          keys.map((k) => `<option value="${String(k)}">${getSourceLabel(k)}</option>`).join('');
+
+        // If current filter is no longer valid, reset to All.
+        const stillValid = currentValue && keys.includes(currentValue);
+        if (stillValid) {
+          sourceSelectEl.value = currentValue;
+          popupSourceFilter = currentValue;
+        } else {
+          sourceSelectEl.value = '';
+          popupSourceFilter = '';
+        }
+
+        try { syncPopupDropdownButtons(); } catch (_) {}
+      }
+
+      function getPopupGroupSourceSubset(chapters) {
+        const targetSource = String(popupSourceFilter || '').trim().toLowerCase();
+        if (!targetSource) return chapters || [];
+        return (chapters || []).filter((ch) => String(ch.__sourceKey || '').trim().toLowerCase() === targetSource);
       }
 
       function initPopupListeners() {
@@ -7295,6 +7348,13 @@
           sourceSelectEl.__aryBound = true;
           sourceSelectEl.addEventListener('change', () => {
             popupSourceFilter = String(sourceSelectEl.value || '');
+            // When switching source, refresh group options to only show groups from that source.
+            try {
+              popupGroupFilter = '';
+              const groupSelect = document.getElementById('popup-group-select');
+              if (groupSelect) groupSelect.value = '';
+              ensurePopupGroupOptions(getPopupGroupSourceSubset(popupAllChapters));
+            } catch (_) {}
             try { syncPopupDropdownButtons(); } catch (_) {}
             renderPopupList();
           });
@@ -7560,6 +7620,21 @@
           window.location.href = continueUrl;
           return;
         }
+
+        // If no external source is linked yet, open slug picker first.
+        try {
+          const mdId = getSlugStorageKey();
+          const asuraMap = loadAsuraSlugMap();
+          const mangataroMap = loadMangataroSlugMap();
+          const comixMap = loadComixSlugMap();
+          const hasAny = Boolean((mdId && (asuraMap[mdId] || mangataroMap[mdId] || comixMap[mdId])));
+          if (!hasAny) {
+            pendingOpenStartReadingPopup = true;
+            openAsuraSlugModal();
+            return;
+          }
+        } catch (_) {}
+
         openChapterSelectPopup();
       }
 
