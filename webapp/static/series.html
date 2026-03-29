@@ -174,7 +174,7 @@
       .hero-links-inline {
         display: flex;
         align-items: center;
-        gap: 0.6rem;
+        gap: 0.4rem;
         flex-wrap: wrap;
       }
 
@@ -185,7 +185,7 @@
       }
 
       .hero-links-inline .links-row {
-        gap: 0.5rem;
+        gap: 0.35rem;
         flex-wrap: wrap;
       }
 
@@ -201,8 +201,8 @@
 
       @media (min-width: 641px) {
         .hero-aside .link-btn {
-          width: 38px;
-          height: 38px;
+          width: 34px;
+          height: 34px;
           border-radius: 12px;
           padding: 0;
           display: inline-flex;
@@ -213,6 +213,8 @@
           line-height: 0;
           background: rgba(255, 255, 255, 0.06);
           border: 1px solid rgba(255, 255, 255, 0.12);
+          color: #eaf2ee;
+          text-decoration: none;
           transition: all 0.15s ease;
         }
 
@@ -227,8 +229,8 @@
         }
 
         .hero-aside .link-btn img {
-          width: 16px;
-          height: 16px;
+          width: 14px;
+          height: 14px;
         }
       }
 
@@ -289,6 +291,10 @@
           font-size: 1.8rem;
           line-height: 1.12;
           letter-spacing: -0.02em;
+        }
+
+        #read-btn {
+          box-shadow: none;
         }
 
         .hero-actions-row #status-btn,
@@ -5924,6 +5930,19 @@
           e.preventDefault();
           e.stopPropagation();
           const row = menu.closest('.chapter-row');
+          openChapterMenuPopup(menu, row);
+        });
+      }
+
+      if (!document.__aryChapterMenuGlobalBound) {
+        document.__aryChapterMenuGlobalBound = true;
+        document.addEventListener('click', (e) => {
+          const menu = e.target && e.target.closest ? e.target.closest('.chapter-menu') : null;
+          if (!menu) return;
+          const row = menu.closest('.chapter-row');
+          if (!row) return;
+          e.preventDefault();
+          e.stopPropagation();
           openChapterMenuPopup(menu, row);
         });
       }
