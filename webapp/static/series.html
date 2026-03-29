@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Series • Ary</title>
     <link rel="icon" href="/static/favicon_io/favicon.ico" sizes="any" />
+    <link rel="shortcut icon" href="/static/favicon_io/favicon.ico" type="image/x-icon" />
     <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon_io/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon_io/favicon-16x16.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon_io/apple-touch-icon.png" />
@@ -88,7 +89,7 @@
       }
       .series-hero {
         display: grid;
-        grid-template-columns: minmax(180px, 220px) minmax(0, 1fr);
+        grid-template-columns: minmax(180px, 240px) minmax(0, 1fr) minmax(260px, 340px);
         gap: 2rem;
         padding: 0;
       }
@@ -96,6 +97,84 @@
         .series-hero {
           grid-template-columns: 1fr;
         }
+      }
+
+      @media (min-width: 641px) {
+        #series-banner {
+          display: none;
+        }
+      }
+
+      .hero-main {
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.85rem;
+      }
+
+      .hero-aside {
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        padding: 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.02);
+      }
+
+      .hero-aside .links-label {
+        margin: 0;
+      }
+
+      .hero-inline-stats {
+        display: flex;
+        flex-direction: column;
+        gap: 0.45rem;
+        color: var(--muted);
+        font-size: 0.82rem;
+        line-height: 1.2;
+      }
+
+      .hero-inline-stats .stat-line {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 0.75rem;
+        white-space: nowrap;
+      }
+
+      .hero-inline-stats .stat-line strong {
+        color: #eef7f1;
+        font-weight: 650;
+      }
+
+      .hero-actions-row {
+        display: flex;
+        gap: 0.6rem;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      .hero-actions-row .btn {
+        flex: 0 0 auto;
+      }
+
+      .hero-actions-row .btn.primary {
+        min-width: 180px;
+      }
+
+      .hero-slug {
+        margin: -0.15rem 0 0;
+        color: var(--muted);
+        font-size: 0.92rem;
+        line-height: 1.25;
+      }
+
+      .hero-actions-row .status-wrapper {
+        position: relative;
+        top: auto;
+        right: auto;
       }
       .cover-stack {
         position: relative;
@@ -255,7 +334,7 @@
       }
       .meta-block h1 {
         margin: 0;
-        font-size: clamp(2rem, 4vw, 2.8rem);
+        font-size: clamp(1.6rem, 2.5vw, 2.15rem);
         word-break: break-word;
       }
       .meta-block p {
@@ -298,12 +377,8 @@
       }
       .cover-stack #read-btn {
         width: 100%;
-        margin-top: 0.5rem;
+        margin-top: 0.4rem;
         justify-content: center;
-        padding: 0.65rem 0.9rem;
-        font-size: 0.9rem;
-        border-radius: 10px;
-        min-height: 42px;
       }
       .meta-stats {
         display: flex;
@@ -389,30 +464,19 @@
         color: white;
       }
       .btn.primary {
-        background: rgba(255, 255, 255, 0.08);
-        color: #e8e8e8;
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        font-weight: 600;
-        transition: all 0.15s ease;
-      }
-
-      .btn.primary:hover {
-        background: rgba(255, 255, 255, 0.12);
-        border-color: rgba(255, 255, 255, 0.18);
+        background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+        color: #0f1512;
+        box-shadow: 0 15px 35px rgba(var(--accent-rgb), 0.25);
+        border: 1px solid rgba(var(--accent-rgb), 0.22);
       }
       .btn.ghost {
-        background: rgba(255, 255, 255, 0.03);
+        background: rgba(255, 255, 255, 0.06);
         color: var(--muted);
-        border: 1px solid rgba(255, 255, 255, 0.06);
-        font-weight: 500;
-        transition: all 0.15s ease;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        -webkit-appearance: none;
+        appearance: none;
       }
 
-      .btn.ghost:hover {
-        background: rgba(255, 255, 255, 0.06);
-        border-color: rgba(255, 255, 255, 0.1);
-        color: #e8e8e8;
-      }
       .btn.square {
         border-radius: 12px;
       }
@@ -420,29 +484,25 @@
       .offline-download-btn {
         width: 100%;
         justify-content: center;
-        gap: 0.5rem;
-        border: 1px solid rgba(255, 255, 255, 0.06);
-        background: rgba(255, 255, 255, 0.03);
-        color: var(--muted);
-        font-weight: 500;
-        transition: all 0.15s ease;
+        gap: 0.6rem;
+        border-color: rgba(255, 255, 255, 0.12);
       }
 
-      .offline-download-btn:hover {
-        background: rgba(255, 255, 255, 0.06);
-        border-color: rgba(255, 255, 255, 0.1);
-        color: #e8e8e8;
+      .offline-download-btn svg {
+        width: 18px;
+        height: 18px;
+        flex: 0 0 auto;
       }
+
       .offline-modal {
         position: fixed;
         inset: 0;
-        background: rgba(0, 0, 0, 0.65);
+        background: rgba(0, 0, 0, 0.7);
         display: none;
         align-items: center;
         justify-content: center;
         padding: 1rem;
         z-index: 2000;
-        backdrop-filter: blur(8px);
       }
 
       .offline-modal.open {
@@ -451,61 +511,51 @@
 
       .offline-modal-card {
         width: min(640px, 100%);
-        background: #14181c;
-        border: 1px solid rgba(255, 255, 255, 0.06);
-        border-radius: 16px;
-        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        background: rgba(16, 20, 22, 0.96);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 18px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.65);
         overflow: hidden;
         display: flex;
         flex-direction: column;
-        max-height: 85vh;
+        max-height: 82vh;
       }
 
       .offline-modal-header {
-        padding: 1rem 1.1rem;
+        padding: 1rem 1.05rem;
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 1rem;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-        background: rgba(255, 255, 255, 0.01);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        background: rgba(255, 255, 255, 0.02);
       }
 
       .offline-modal-header h3 {
         margin: 0;
-        font-size: 1rem;
-        font-weight: 600;
-        letter-spacing: -0.005em;
-        color: #e8e8e8;
+        font-size: 1.05rem;
+        letter-spacing: -0.01em;
       }
 
       .offline-modal-header .icon {
-        width: 16px;
-        height: 16px;
+        width: 18px;
+        height: 18px;
         flex: 0 0 auto;
-        stroke: var(--muted);
-        color: var(--muted);
+        stroke: currentColor;
       }
 
       .offline-modal-close {
-        width: 32px;
-        height: 32px;
-        border-radius: 8px;
-        border: 1px solid rgba(255, 255, 255, 0.06);
-        background: rgba(255, 255, 255, 0.03);
-        color: var(--muted);
+        width: 38px;
+        height: 38px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.05);
+        color: #e5e7eb;
         cursor: pointer;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        font-size: 1rem;
-        transition: all 0.15s ease;
-      }
-
-      .offline-modal-close:hover {
-        border-color: rgba(255, 255, 255, 0.12);
-        background: rgba(255, 255, 255, 0.06);
-        color: #fff;
+        font-size: 1.15rem;
       }
 
       .offline-modal-body {
@@ -529,25 +579,18 @@
         width: 100%;
         display: flex;
         align-items: center;
-        gap: 0.5rem;
-        padding: 0.6rem 0.75rem;
-        border-radius: 10px;
-        border: 1px solid rgba(255, 255, 255, 0.06);
-        background: rgba(255, 255, 255, 0.02);
-        transition: border-color 0.15s ease, background 0.15s ease;
-      }
-
-      .offline-search:focus-within {
-        border-color: rgba(255, 255, 255, 0.12);
-        background: rgba(255, 255, 255, 0.03);
+        gap: 0.6rem;
+        padding: 0.7rem 0.85rem;
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.04);
       }
 
       .offline-controls .icon {
-        width: 16px;
-        height: 16px;
+        width: 18px;
+        height: 18px;
         flex: 0 0 auto;
-        stroke: var(--muted);
-        color: var(--muted);
+        stroke: currentColor;
       }
 
       .offline-search input {
@@ -568,54 +611,42 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 0.5rem;
+        gap: 0.75rem;
         margin-top: 0.15rem;
-        font-size: 0.85rem;
+        font-size: 0.9rem;
         flex-wrap: nowrap;
-        min-height: 38px;
-        border: 1px solid rgba(255, 255, 255, 0.04);
-        border-radius: 10px;
-        background: rgba(255, 255, 255, 0.015);
-        padding: 0.4rem 0.6rem;
-        color: var(--muted);
+        min-height: 40px;
       }
 
       .offline-source-row > span {
         flex: 1;
         min-width: 0;
       }
+      .offline-source-row {
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.02);
+        padding: 0.45rem 0.65rem;
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
 
       .offline-source-row strong {
-        color: #c8c8c8;
-        font-size: 0.8rem;
-        font-weight: 500;
+        color: #e7efe9;
       }
 
       .offline-source-row select {
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        background: rgba(255, 255, 255, 0.03);
-        color: #e8e8e8;
-        border-radius: 8px;
-        padding: 0.35rem 0.6rem;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.04);
+        color: #f1f5f2;
+        border-radius: 12px;
+        padding: 0.45rem 0.75rem;
         width: 100%;
         max-width: 100%;
         min-width: 0;
         font: inherit;
         outline: none;
         appearance: none;
-        cursor: pointer;
-        transition: border-color 0.15s ease, background 0.15s ease;
-        font-size: 0.85rem;
-      }
-
-      .offline-source-row select:hover {
-        border-color: rgba(255, 255, 255, 0.12);
-        background: rgba(255, 255, 255, 0.04);
-      }
-
-      .offline-source-row select:focus {
-        border-color: rgba(255, 255, 255, 0.15);
-        background: rgba(255, 255, 255, 0.04);
       }
 
       .offline-source-row option {
@@ -629,19 +660,9 @@
       }
 
       .offline-modal-footer .btn.square {
-        padding: 0.5rem 0.85rem;
-        border-radius: 10px;
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        background: rgba(255, 255, 255, 0.03);
-        color: var(--muted);
-        font-weight: 500;
-        transition: all 0.15s ease;
-      }
-
-      .offline-modal-footer .btn.square:hover {
-        border-color: rgba(255, 255, 255, 0.12);
-        background: rgba(255, 255, 255, 0.05);
-        color: #e8e8e8;
+        padding: 0.55rem 0.95rem;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
       }
 
       .offline-chapter-list {
@@ -652,42 +673,51 @@
 
       .offline-chapter-item {
         display: flex;
-        gap: 0.6rem;
+        gap: 0.75rem;
         align-items: flex-start;
-        padding: 0.65rem 0.75rem;
-        border-radius: 10px;
-        border: 1px solid rgba(255, 255, 255, 0.04);
-        background: rgba(255, 255, 255, 0.02);
-        transition: all 0.15s ease;
-        cursor: pointer;
-      }
-
-      .offline-chapter-item:hover:not(.downloaded) {
-        background: rgba(255, 255, 255, 0.04);
-        border-color: rgba(255, 255, 255, 0.08);
+        padding: 0.75rem 0.85rem;
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        background: rgba(255, 255, 255, 0.03);
       }
 
       .offline-chapter-item.downloaded {
-        border-color: rgba(255, 255, 255, 0.1);
-        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(var(--accent-rgb), 0.28);
+        background: rgba(var(--accent-rgb), 0.08);
+        box-shadow: 0 10px 24px rgba(var(--accent-rgb), 0.08);
       }
 
       .offline-chapter-item.downloaded strong {
-        color: #c8c8c8;
+        color: #eafff3;
       }
 
       .offline-chapter-item strong {
         display: block;
-        font-size: 0.9rem;
-        color: #e8e8e8;
-        font-weight: 500;
+        font-size: 0.95rem;
+        color: #f1f5f2;
       }
 
       .offline-chapter-item span {
         display: block;
         color: var(--muted);
-        font-size: 0.8rem;
-        margin-top: 0.15rem;
+        font-size: 0.82rem;
+        margin-top: 0.2rem;
+      }
+
+      .offline-modal-footer {
+        padding: 0.95rem 1.05rem;
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.6rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        background: rgba(255, 255, 255, 0.02);
+      }
+
+      .offline-modal-footer .btn.primary {
+        background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+        color: #0f1512;
+        border: 1px solid rgba(var(--accent-rgb), 0.22);
+        box-shadow: 0 15px 35px rgba(var(--accent-rgb), 0.18);
       }
 
       .offline-progress-list {
@@ -746,6 +776,14 @@
         position: absolute;
         top: 10px;
         right: 10px;
+      }
+
+      @media (min-width: 641px) {
+        .hero-actions-row .status-wrapper {
+          position: relative;
+          top: auto;
+          right: auto;
+        }
       }
       .status-menu {
         display: none;
@@ -921,6 +959,19 @@
         border: 1px solid rgba(255, 255, 255, 0.05);
         box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
       }
+
+      .desktop-bottom-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+        gap: 1.25rem;
+        align-items: start;
+      }
+
+      @media (max-width: 1100px) {
+        .desktop-bottom-grid {
+          grid-template-columns: 1fr;
+        }
+      }
       .recommendation-header {
         margin-bottom: 1rem;
         display: flex;
@@ -1001,6 +1052,40 @@
         scroll-snap-type: x mandatory;
         scroll-behavior: smooth;
       }
+
+      @media (min-width: 641px) {
+        .desktop-bottom-grid .recommendation-list-wrapper {
+          overflow: hidden;
+          padding-bottom: 0;
+        }
+
+        .desktop-bottom-grid .recommendation-list {
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
+        }
+
+        .desktop-bottom-grid .recommendation-card {
+          width: 100%;
+          padding: 0.65rem;
+          border-radius: 14px;
+        }
+
+        .desktop-bottom-grid .recommendation-card img {
+          width: 58px;
+          height: 84px;
+          border-radius: 10px;
+        }
+
+        .desktop-bottom-grid .recommendation-body h4 {
+          font-size: 0.9rem;
+        }
+
+        .desktop-bottom-grid .recommendation-meta {
+          font-size: 0.75rem;
+        }
+      }
+
       .recommendation-card {
         display: flex;
         flex-direction: column;
@@ -1910,24 +1995,24 @@
       .popup-overlay {
         position: fixed;
         inset: 0;
-        background: rgba(0, 0, 0, 0.65);
+        background: rgba(0, 0, 0, 0.7);
         display: flex;
         align-items: center;
         justify-content: center;
         z-index: 100;
-        backdrop-filter: blur(8px);
+        backdrop-filter: blur(10px);
       }
 
       .popup-content {
         position: relative;
-        background: #14181c;
-        border: 1px solid rgba(255, 255, 255, 0.06);
-        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-        border-radius: 16px;
+        background: rgba(16, 20, 22, 0.96);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+        border-radius: 24px;
         padding: 0;
         width: 90%;
-        max-width: 480px;
-        max-height: 75vh;
+        max-width: 500px;
+        max-height: 70vh;
         display: flex;
         flex-direction: column;
         gap: 0;
@@ -1935,33 +2020,31 @@
       }
 
       .popup-header {
-        padding: 1rem 1.1rem;
+        padding: 1rem 1.05rem;
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 1rem;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-        background: rgba(255, 255, 255, 0.01);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        background: rgba(255, 255, 255, 0.02);
       }
 
       .popup-title {
         margin: 0;
-        font-size: 1rem;
-        font-weight: 600;
-        letter-spacing: -0.005em;
+        font-size: 1.05rem;
+        letter-spacing: -0.01em;
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: 0.6rem;
         padding-right: 44px;
-        color: #e8e8e8;
       }
 
       .popup-title .icon {
-        width: 16px;
-        height: 16px;
+        width: 18px;
+        height: 18px;
         flex: 0 0 auto;
-        stroke: var(--muted);
-        color: var(--muted);
+        stroke: currentColor;
+        color: var(--accent);
       }
 
       .popup-body {
@@ -1973,30 +2056,28 @@
       }
 
       #popup-close-btn {
-        width: 32px;
-        height: 32px;
+        width: 40px;
+        height: 40px;
         padding: 0;
-        border-radius: 8px;
+        border-radius: 12px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        border: 1px solid rgba(255, 255, 255, 0.06);
-        background: rgba(255, 255, 255, 0.03);
-        color: var(--muted);
-        transition: all 0.15s ease;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.05);
+        color: #e5e7eb;
       }
 
       #popup-close-btn svg {
-        width: 14px;
-        height: 14px;
+        width: 18px;
+        height: 18px;
         stroke: currentColor;
-        stroke-width: 2;
+        stroke-width: 2.5;
       }
 
       #popup-close-btn:hover {
-        border-color: rgba(255, 255, 255, 0.12);
-        background: rgba(255, 255, 255, 0.06);
-        color: #fff;
+        border-color: rgba(var(--accent-rgb), 0.25);
+        background: rgba(255, 255, 255, 0.08);
       }
 
       #popup-source-tabs {
@@ -2015,25 +2096,18 @@
         width: 100%;
         display: flex;
         align-items: center;
-        gap: 0.5rem;
-        padding: 0.6rem 0.75rem;
-        border-radius: 10px;
-        border: 1px solid rgba(255, 255, 255, 0.06);
-        background: rgba(255, 255, 255, 0.02);
-        transition: border-color 0.15s ease, background 0.15s ease;
-      }
-
-      .popup-search:focus-within {
-        border-color: rgba(255, 255, 255, 0.12);
-        background: rgba(255, 255, 255, 0.03);
+        gap: 0.6rem;
+        padding: 0.7rem 0.85rem;
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.04);
       }
 
       .popup-search .icon {
-        width: 16px;
-        height: 16px;
+        width: 18px;
+        height: 18px;
         flex: 0 0 auto;
-        stroke: var(--muted);
-        color: var(--muted);
+        stroke: currentColor;
       }
 
       .popup-search input {
@@ -2049,68 +2123,57 @@
         color: rgba(148, 163, 154, 0.9);
       }
 
-          .popup-filter-row {
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 0.5rem;
-            flex-wrap: nowrap;
-            min-height: 38px;
-            border: 1px solid rgba(255, 255, 255, 0.04);
-            border-radius: 10px;
-            background: rgba(255, 255, 255, 0.015);
-            padding: 0.4rem 0.6rem;
-            color: var(--muted);
-          }
+      .popup-filter-row {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.7rem;
+        flex-wrap: nowrap;
+        min-height: 40px;
+      }
 
-          .popup-filter-row > span {
-            flex: 1;
-            min-width: 0;
-          }
+      .popup-filter-row > span {
+        flex: 1;
+        min-width: 0;
+      }
 
-          .popup-filter-row select {
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            background: rgba(255, 255, 255, 0.03);
-            color: #e8e8e8;
-            border-radius: 8px;
-            padding: 0.35rem 0.6rem;
-            width: 100%;
-            max-width: 100%;
-            min-width: 0;
-            font: inherit;
-            outline: none;
-            appearance: none;
-            cursor: pointer;
-            transition: border-color 0.15s ease, background 0.15s ease;
-            font-size: 0.85rem;
-          }
+      .popup-filter-row {
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.02);
+        padding: 0.45rem 0.65rem;
+        color: var(--muted);
+      }
 
-          .popup-filter-row select:hover {
-            border-color: rgba(255, 255, 255, 0.12);
-            background: rgba(255, 255, 255, 0.04);
-          }
+      .popup-filter-row select {
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.04);
+        color: #f1f5f2;
+        border-radius: 12px;
+        padding: 0.45rem 0.75rem;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        font: inherit;
+        outline: none;
+        appearance: none;
+      }
 
-          .popup-filter-row select:focus {
-            border-color: rgba(255, 255, 255, 0.15);
-            background: rgba(255, 255, 255, 0.04);
-          }
+      .popup-filter-row button {
+        flex-shrink: 0;
+        white-space: nowrap;
+      }
 
-          .popup-filter-row button {
-            flex-shrink: 0;
-            white-space: nowrap;
-          }
+      .popup-filter-row option {
+        background: #0f1316;
+        color: #f1f5f2;
+      }
 
-          .popup-filter-row option {
-            background: #14181c;
-            color: #e8e8e8;
-          }
-
-          .popup-filter-row strong {
-            color: #c8c8c8;
-            font-size: 0.8rem;
-            font-weight: 500;
-          }
+      .popup-source-section {
+        display: flex;
+        flex-direction: column;
+        gap: 0.55rem;
       }
 
       .popup-source-heading {
@@ -2136,28 +2199,37 @@
 
       #popup-chapter-list .chapter-row {
         grid-template-columns: 1fr auto;
-        padding: 0.65rem 0.85rem;
-        background: rgba(255, 255, 255, 0.02);
-        border-radius: 10px;
-        border: 1px solid rgba(255, 255, 255, 0.04);
-        transition: all 0.15s ease;
+        padding: 0.75rem 1rem;
+        background: rgba(255,255,255,0.03);
+        border-radius: 12px;
+      }
+
+      .popup-chapter-leading {
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+      }
+
+      .popup-chapter-leading .icon {
+        width: 18px;
+        height: 18px;
+        flex: 0 0 auto;
+        color: var(--accent);
+        stroke: currentColor;
       }
 
       #popup-chapter-list .chapter-row:hover {
-        background: rgba(255, 255, 255, 0.04);
-        border-color: rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.06);
+        border-color: rgba(var(--accent-rgb), 0.35);
       }
 
       #popup-chapter-list .chapter-row .icon {
         color: var(--muted);
-        font-weight: 600;
-        font-size: 1rem;
-        opacity: 0.6;
+        font-weight: 700;
       }
 
       #popup-chapter-list .chapter-row:hover .icon {
-        color: #c8c8c8;
-        opacity: 1;
+        color: var(--accent);
       }
 
 
@@ -2990,59 +3062,61 @@
 
       <!-- Desktop Layout -->
       <div class="desktop-only" id="desktop-layout">
-        <section class="panel" id="chapter-panel" hidden>
-          <div class="chapter-panel-header">
-            <h2>Chapters</h2>
-          </div>
-          <div class="chapter-controls">
-            <div class="chapter-filter-row">
-              <div class="chapter-search-wrapper">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                <input type="search" id="chapter-search-input" placeholder="Search Chapter..." autocomplete="off" />
+        <div class="desktop-bottom-grid">
+          <section class="panel" id="chapter-panel" hidden>
+            <div class="chapter-panel-header">
+              <h2>Chapters</h2>
+            </div>
+            <div class="chapter-controls">
+              <div class="chapter-filter-row">
+                <div class="chapter-search-wrapper">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                  <input type="search" id="chapter-search-input" placeholder="Search Chapter..." autocomplete="off" />
+                </div>
+                <button type="button" id="chapter-order-toggle" class="chapter-action-btn" title="Reorder">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M18 11l-6-6M6 11l6-6"/></svg>
+                </button>
+                <button id="change-slug-btn" type="button" title="Add slug" class="chapter-action-btn">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </button>
               </div>
-              <button type="button" id="chapter-order-toggle" class="chapter-action-btn" title="Reorder">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M18 11l-6-6M6 11l6-6"/></svg>
+              <div class="source-selector">
+                <div id="source-buttons" class="source-buttons"></div>
+                <select id="source-filter" aria-label="Source" hidden>
+                  <option value="comix">Comix</option>
+                </select>
+              </div>
+              <label class="group-selector" style="display: none;">
+                <span>Language:</span>
+                <select id="language-filter">
+                  <option value="en">English</option>
+                </select>
+              </label>
+            </div>
+            <div class="chapter-table" id="chapter-list"></div>
+            <div class="chapter-pagination-row">
+              <div class="chapter-pagination">
+                <button id="chapter-prev" type="button">‹</button>
+                <span id="chapter-page-label">Page 1</span>
+                <button id="chapter-next" type="button">›</button>
+              </div>
+            </div>
+          </section>
+          <section class="panel recommendation-panel" id="recommendation-panel" hidden>
+            <div class="recommendation-header">
+              <div class="recommendation-header-main">
+                <h3>Similar</h3>
+                <p>Other series you may like</p>
+              </div>
+              <button type="button" id="recommendation-next" class="recommendation-next" aria-label="Next recommendations" hidden>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
               </button>
-              <button id="change-slug-btn" type="button" title="Add slug" class="chapter-action-btn">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              </button>
             </div>
-            <div class="source-selector">
-              <div id="source-buttons" class="source-buttons"></div>
-              <select id="source-filter" aria-label="Source" hidden>
-                <option value="comix">Comix</option>
-              </select>
+            <div class="recommendation-list-wrapper">
+              <div id="recommendation-list" class="recommendation-list"></div>
             </div>
-            <label class="group-selector" style="display: none;">
-              <span>Language:</span>
-              <select id="language-filter">
-                <option value="en">English</option>
-              </select>
-            </label>
-          </div>
-          <div class="chapter-table" id="chapter-list"></div>
-          <div class="chapter-pagination-row">
-            <div class="chapter-pagination">
-              <button id="chapter-prev" type="button">‹</button>
-              <span id="chapter-page-label">Page 1</span>
-              <button id="chapter-next" type="button">›</button>
-            </div>
-          </div>
-        </section>
-        <section class="panel recommendation-panel" id="recommendation-panel" hidden>
-          <div class="recommendation-header">
-            <div class="recommendation-header-main">
-              <h3>Recommendations</h3>
-              <p>Other series you may like</p>
-            </div>
-            <button type="button" id="recommendation-next" class="recommendation-next" aria-label="Next recommendations" hidden>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
-            </button>
-          </div>
-          <div class="recommendation-list-wrapper">
-            <div id="recommendation-list" class="recommendation-list"></div>
-          </div>
-        </section>
+          </section>
+        </div>
       </div>
       <!-- End Desktop Layout -->
 
@@ -4329,47 +4403,70 @@
           } catch (_) {}
         }
 
+        const rawSlug = heroData.slug || comickSlug || '';
+        const formattedSlug = rawSlug
+          .replace(/^\d+[-]?/, '')
+          .replace(/-/g, ' ')
+          .split(' ')
+          .filter(Boolean)
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+          .join(' ');
+
         hero.innerHTML = `
           <div class="cover-stack">
             <img src="${heroData.cover_url || "https://placehold.co/400x600?text=No+Cover"}" alt="${heroData.title}" />
-            <div class="status-wrapper">
-              <button class="status-bookmark status-none" id="status-btn" type="button" aria-label="Library status">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-                <span id="status-label"></span>
-              </button>
-              <div class="status-menu" id="status-menu">
-                  <button type="button" class="status-option" data-status="Reading">Reading</button>
-                  <button type="button" class="status-option" data-status="Completed">Completed</button>
-                  <button type="button" class="status-option" data-status="On Hold">On Hold</button>
-                  <button type="button" class="status-option" data-status="Dropped">Dropped</button>
-                  <button type="button" class="status-option" data-status="Plan to Read">Plan to Read</button>
-                  <button type="button" class="status-option status-clear" data-status="">Clear Status</button>
-                </div>
-              </div>
-            <div class="actions">
+          </div>
+
+          <div class="hero-main meta-block">
+            <h1>${heroData.title}</h1>
+            <p class="hero-slug">${formattedSlug || 'Unknown'}</p>
+
+            <div class="hero-actions-row">
               <button class="btn primary square" id="read-btn">Start reading</button>
+
+              <div class="status-wrapper">
+                <button class="status-bookmark status-none" id="status-btn" type="button" aria-label="Library status">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                  <span id="status-label"></span>
+                </button>
+                <div class="status-menu" id="status-menu">
+                    <button type="button" class="status-option" data-status="Reading">Reading</button>
+                    <button type="button" class="status-option" data-status="Completed">Completed</button>
+                    <button type="button" class="status-option" data-status="On Hold">On Hold</button>
+                    <button type="button" class="status-option" data-status="Dropped">Dropped</button>
+                    <button type="button" class="status-option" data-status="Plan to Read">Plan to Read</button>
+                    <button type="button" class="status-option status-clear" data-status="">Clear Status</button>
+                  </div>
+                </div>
+
               <button class="btn ghost square offline-download-btn" id="offline-download-btn" type="button" hidden>
                 Download
               </button>
             </div>
+
+            <div id="description-desktop-mount">
+              <div class="description-block">
+                <p id="series-description" class="description"></p>
+                <div class="description-controls" hidden>
+                  <button id="description-toggle">More</button>
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="meta-block">
-            <h1>${heroData.title}</h1>
+
+          <aside class="hero-aside">
             <span class="links-label">Stats</span>
-            <div class="stats-row">
-              ${heroData.rating ? `<span><svg class="icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg> ${parseFloat(heroData.rating).toFixed(2)}</span>` : ''}
-              ${heroData.followers ? `<span><svg class="icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> ${Number(heroData.followers).toLocaleString()}</span>` : ''}
+            <div class="hero-inline-stats">
+              <div class="stat-line"><span>Rank</span><strong>${heroData.follow_rank ? `#${heroData.follow_rank}` : '—'}</strong></div>
+              <div class="stat-line"><span>Follows</span><strong>${heroData.user_follow_count ? Number(heroData.user_follow_count).toLocaleString() : (heroData.followers ? Number(heroData.followers).toLocaleString() : '—')}</strong></div>
+              <div class="stat-line"><span>Year</span><strong>${heroData.year || '—'}</strong></div>
+              <div class="stat-line"><span>Type</span><strong>${heroData.type || 'Manga'}</strong></div>
+              <div class="stat-line"><span>Status</span><strong>${heroData.status || 'Unknown'}</strong></div>
+              <div class="stat-line"><span>Chapters</span><strong>${heroChapterTotal || '—'}</strong></div>
             </div>
-            <div class="chip-row">
-              ${(heroData.tags || []).slice(0, 6).map((tag) => `<span class="chip">${tag}</span>`).join("")}
-            </div>
-            <div class="meta-stats">
-              <span>Status: <strong>${heroData.status || "Unknown"}</strong></span>
-              <span>Year: <strong>${heroData.year || "—"}</strong></span>
-              <span>Chapters: <strong>${heroChapterTotal}</strong></span>
-            </div>
+
             <div class="external-links">
-              <span class="links-label">Links:</span>
+              <span class="links-label">Links</span>
               <div class="links-row">
                 <a href="https://comick.io/comic/${heroData.slug || ''}" target="_blank" rel="noopener" class="link-btn comick-link" title="Comick">
                   <img src="/static/img/comick.png" alt="Comick"/>
@@ -4385,15 +4482,7 @@
                 </a>` : ''}
               </div>
             </div>
-            <div id="description-desktop-mount">
-              <div class="description-block">
-                <p id="series-description" class="description"></p>
-                <div class="description-controls" hidden>
-                  <button id="description-toggle">More</button>
-                </div>
-              </div>
-            </div>
-          </div>
+          </aside>
         `;
 
         ensureMobileDescriptionMount();
@@ -4813,32 +4902,32 @@
                   currentChapterPage = 0;
                   updateChapterSortUI();
                   renderChapterTable();
-                  // Also update mobile list
-                  const mobileChapterList = document.getElementById('mobile-chapter-list');
-                  if (mobileChapterList) {
-                    const desktopList = document.getElementById('chapter-list');
-                    if (desktopList) mobileChapterList.innerHTML = desktopList.innerHTML;
-                  }
                 });
               }
             }
 
             if (mobileSlugBtn) {
-              mobileSlugBtn.addEventListener('click', () => {
-                openAsuraSlugModal();
-              });
+              if (!mobileSlugBtn._bound) {
+                mobileSlugBtn._bound = true;
+                mobileSlugBtn.addEventListener('click', () => {
+                  openAsuraSlugModal();
+                });
+              }
             }
 
             // Re-attach source button click handlers
             if (mobileSourceButtons) {
               mobileSourceButtons.querySelectorAll('.source-btn').forEach((btn) => {
-                btn.addEventListener('click', () => {
-                  const { source } = btn.dataset;
-                  if (source) {
-                    changeSource(source);
-                    renderRecommendations(currentRecommendations);
-                  }
-                });
+                if (!btn._bound) {
+                  btn._bound = true;
+                  btn.addEventListener('click', () => {
+                    const { source } = btn.dataset;
+                    if (source) {
+                      changeSource(source);
+                      renderRecommendations(currentRecommendations);
+                    }
+                  });
+                }
               });
             }
 
@@ -4848,32 +4937,29 @@
               if (updatedMobileSourceButtons && sourceButtonsContainer) {
                 updatedMobileSourceButtons.innerHTML = sourceButtonsContainer.innerHTML;
                 updatedMobileSourceButtons.querySelectorAll('.source-btn').forEach((btn) => {
-                  btn.addEventListener('click', () => {
-                    const { source } = btn.dataset;
-                    if (source) {
-                      changeSource(source);
-                      renderRecommendations(currentRecommendations);
-                    }
-                  });
+                  if (!btn._bound) {
+                    btn._bound = true;
+                    btn.addEventListener('click', () => {
+                      const { source } = btn.dataset;
+                      if (source) {
+                        changeSource(source);
+                        renderRecommendations(currentRecommendations);
+                      }
+                    });
+                  }
                 });
               }
             }, 100);
 
             if (mobileSearchInput) {
-              mobileSearchInput.addEventListener('input', debounce(() => {
-                chapterSearchQuery = String(mobileSearchInput.value || '').trim();
-                currentChapterPage = 0;
-                renderChapterTable();
-                const mobileChapterList = document.getElementById('mobile-chapter-list');
-                if (mobileChapterList) {
-                  const desktopList = document.getElementById('chapter-list');
-                  if (desktopList) mobileChapterList.innerHTML = desktopList.innerHTML;
-                  // Re-attach comick click handlers for mobile
-                  if (currentSource === "comick") {
-                    attachComickChapterClickHandlers(null, mobileChapterList);
-                  }
-                }
-              }, 300));
+              if (!mobileSearchInput._bound) {
+                mobileSearchInput._bound = true;
+                mobileSearchInput.addEventListener('input', debounce(() => {
+                  chapterSearchQuery = String(mobileSearchInput.value || '').trim();
+                  currentChapterPage = 0;
+                  renderChapterTable();
+                }, 300));
+              }
             }
 
             // Attach comick click handlers for mobile chapter list
@@ -5206,6 +5292,16 @@
           .join("");
 
         chapterList.innerHTML = rows;
+
+        // Also update mobile list if it exists
+        const mobileChapterList = document.getElementById('mobile-chapter-list');
+        if (mobileChapterList) {
+          mobileChapterList.innerHTML = chapterList.innerHTML;
+          // Re-attach comick click handlers for mobile
+          if (isComickSource) {
+            attachComickChapterClickHandlers(pageItems, mobileChapterList);
+          }
+        }
 
         if (isComickSource) {
           attachComickChapterClickHandlers(pageItems);
@@ -6318,6 +6414,8 @@
       let popupSearchQuery = '';
       let popupGroupFilter = '';
       let popupSourceFilter = '';
+      let popupAllChapters = [];
+      let popupKeys = [];
 
       function populatePopup() {
         const popupSourceTabs = document.getElementById('popup-source-tabs');
@@ -6326,6 +6424,8 @@
         const popupSearchWrapper = document.querySelector('#chapter-select-popup .popup-search');
         const popupReorderBtn = document.getElementById('popup-reorder-btn');
         const popupSearchInput = document.getElementById('popup-chapter-search');
+        const popupGroupSelectEl = document.getElementById('popup-group-select');
+        const popupSourceSelectEl = document.getElementById('popup-source-select');
 
         const selectedChapter = chapterState.selectedChapterNumber || null;
 
@@ -6341,11 +6441,25 @@
           }
         } catch (_) {}
 
+        // Reset filters when populating fresh (e.g. on open or preload finish)
+        // BUT only if we are not already open and just updating data.
+        // Actually, let's keep it simple: if populatePopup is called, we refresh data.
+        // We don't necessarily want to reset user's current filter if they are looking at it.
+        // But the user said "switch to another source ... it doesnt show ... until reorder".
+        // This suggests they ARE interacting with the source select.
+
         const popupTitleTextEl = document.getElementById('popup-title-text');
         if (popupTitleTextEl) {
           popupTitleTextEl.textContent = selectedChapter
             ? `Chapter ${selectedChapter}`
             : 'Start reading chapters';
+        }
+
+        if (popupSourceSelectEl) {
+          popupSourceSelectEl.value = popupSourceFilter || '';
+        }
+        if (popupGroupSelectEl) {
+          popupGroupSelectEl.value = popupGroupFilter || '';
         }
 
         const seriesId = getSlugStorageKey();
@@ -6388,10 +6502,8 @@
           return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
         });
 
-        popupSourceTabs.innerHTML = '';
-        popupChapterList.innerHTML = '';
-
         if (!potentialSources.length) {
+          popupSourceTabs.innerHTML = '';
           const msg = selectedChapter
             ? `Chapter ${selectedChapter} is not available on configured external sources (e.g. Comix) yet.`
             : 'No chapters available from external sources yet. Configure Comix or other sources first.';
@@ -6399,20 +6511,20 @@
           return;
         }
 
-        renderPopupChapterList(potentialSources);
+        updatePopupData(potentialSources);
       }
 
-      function renderPopupChapterList(sourceKeys) {
+      function updatePopupData(sourceKeys) {
         if (!popupChapterList) return;
-        const keys = Array.isArray(sourceKeys) ? sourceKeys : [sourceKeys].filter(Boolean);
-        if (!keys.length) return;
+        popupKeys = Array.isArray(sourceKeys) ? sourceKeys : [sourceKeys].filter(Boolean);
+        if (!popupKeys.length) return;
 
         const selectedChapter = chapterState.selectedChapterNumber || null;
         const target = selectedChapter ? getChapterNumberValue(selectedChapter) : null;
         const selectedLabel = selectedChapter ? String(selectedChapter).trim() : '';
 
-        const allChapters = [];
-        for (const key of keys) {
+        popupAllChapters = [];
+        for (const key of popupKeys) {
           const entry = sourceCache[key];
           const chapters = entry && Array.isArray(entry.chapters) ? entry.chapters : [];
           for (const ch of chapters) {
@@ -6426,11 +6538,11 @@
                 if (!chapterLabel || chapterLabel !== selectedLabel) continue;
               }
             }
-            allChapters.push({ ...ch, __sourceKey: key });
+            popupAllChapters.push({ ...ch, __sourceKey: key });
           }
         }
 
-        if (!allChapters.length) {
+        if (!popupAllChapters.length) {
           const msg = selectedChapter
             ? `Chapter ${selectedChapter} is not available on configured external sources (e.g. Comix) yet.`
             : 'No chapters available from external sources yet. Configure Comix or other sources first.';
@@ -6438,9 +6550,106 @@
           return;
         }
 
+        // Initialize listeners once
+        initPopupListeners();
+        
+        // Refresh group options and render
+        ensurePopupGroupOptions(popupAllChapters);
+        renderPopupList();
+      }
+
+      function initPopupListeners() {
         const groupSelectEl = document.getElementById('popup-group-select');
         const searchEl = document.getElementById('popup-chapter-search');
         const reorderBtn = document.getElementById('popup-reorder-btn');
+        const sourceSelectEl = document.getElementById('popup-source-select');
+
+        if (searchEl && !searchEl.__aryBound) {
+          searchEl.__aryBound = true;
+          searchEl.addEventListener('input', () => {
+            popupSearchQuery = String(searchEl.value || '');
+            renderPopupList();
+          });
+        }
+
+        if (reorderBtn && !reorderBtn.__aryBound) {
+          reorderBtn.__aryBound = true;
+          reorderBtn.addEventListener('click', (e) => {
+            try { e.preventDefault(); } catch (_) {}
+            popupSortDesc = !popupSortDesc;
+            renderPopupList();
+          });
+        }
+
+        if (groupSelectEl && !groupSelectEl.__aryBound) {
+          groupSelectEl.__aryBound = true;
+          groupSelectEl.addEventListener('change', () => {
+            popupGroupFilter = String(groupSelectEl.value || '');
+            renderPopupList();
+          });
+        }
+
+        if (sourceSelectEl && !sourceSelectEl.__aryBound) {
+          sourceSelectEl.__aryBound = true;
+          sourceSelectEl.addEventListener('change', () => {
+            popupSourceFilter = String(sourceSelectEl.value || '');
+            renderPopupList();
+          });
+        }
+      }
+
+      function ensurePopupGroupOptions(chapters = []) {
+        const groupSelectEl = document.getElementById('popup-group-select');
+        if (!groupSelectEl) return;
+        const groups = Array.from(
+          new Set(
+            (chapters || [])
+              .map((ch) => String(ch?.scanlation_group || ch?.group_name || '').trim())
+              .filter(Boolean)
+          )
+        ).sort((a, b) => a.localeCompare(b));
+        const currentValue = String(groupSelectEl.value || popupGroupFilter || '');
+        
+        function escapeHtml(text) {
+          return String(text || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+        }
+
+        groupSelectEl.innerHTML = `<option value="">All</option>` +
+          groups.map((g) => `<option value="${escapeHtml(g)}">${escapeHtml(g)}</option>`).join('');
+        groupSelectEl.value = currentValue;
+        popupGroupFilter = String(groupSelectEl.value || '');
+      }
+
+      function applyPopupFilters(chapters) {
+        const q = String(popupSearchQuery || '').trim().toLowerCase();
+        const targetSource = String(popupSourceFilter || '').trim().toLowerCase();
+        const targetGroup = String(popupGroupFilter || '').trim().toLowerCase();
+        return (chapters || []).filter((ch) => {
+          const label = String(ch.chapter || '').toLowerCase();
+          const group = String(ch.scanlation_group || ch.group_name || '').toLowerCase();
+          const title = String(ch.title || '').toLowerCase();
+          const sourceKey = String(ch.__sourceKey || '').toLowerCase();
+          const matchesQuery = !q || label.includes(q) || group.includes(q) || title.includes(q);
+          const matchesSource = !targetSource || sourceKey === targetSource;
+          const matchesGroup = !targetGroup || group === targetGroup;
+          return matchesQuery && matchesSource && matchesGroup;
+        });
+      }
+
+      function renderPopupList() {
+        if (!popupChapterList) return;
+        const filtered = applyPopupFilters(popupAllChapters);
+        const grouped = new Map();
+        for (const ch of filtered) {
+          const key = ch.__sourceKey;
+          if (!grouped.has(key)) grouped.set(key, []);
+          grouped.get(key).push(ch);
+        }
 
         function escapeHtml(text) {
           return String(text || '')
@@ -6451,151 +6660,69 @@
             .replace(/'/g, '&#039;');
         }
 
-        function ensureGroupOptions(chapters = []) {
-          if (!groupSelectEl) return;
-          const groups = Array.from(
-            new Set(
-              (chapters || [])
-                .map((ch) => String(ch?.scanlation_group || ch?.group_name || '').trim())
-                .filter(Boolean)
-            )
-          ).sort((a, b) => a.localeCompare(b));
-          const currentValue = String(groupSelectEl.value || popupGroupFilter || '');
-          groupSelectEl.innerHTML = `<option value="">All</option>` +
-            groups.map((g) => `<option value="${escapeHtml(g)}">${escapeHtml(g)}</option>`).join('');
-          groupSelectEl.value = currentValue;
-          popupGroupFilter = String(groupSelectEl.value || '');
-        }
-
-        function applyFilters(chapters) {
-          const q = String(popupSearchQuery || '').trim().toLowerCase();
-          const targetSource = String(popupSourceFilter || '').trim().toLowerCase();
-          const targetGroup = String(popupGroupFilter || '').trim().toLowerCase();
-          return (chapters || []).filter((ch) => {
-            const label = String(ch.chapter || '').toLowerCase();
-            const group = String(ch.scanlation_group || ch.group_name || '').toLowerCase();
-            const title = String(ch.title || '').toLowerCase();
-            const sourceKey = String(ch.__sourceKey || '').toLowerCase();
-            const matchesQuery = !q || label.includes(q) || group.includes(q) || title.includes(q);
-            const matchesSource = !targetSource || sourceKey === targetSource;
-            const matchesGroup = !targetGroup || group === targetGroup;
-            return matchesQuery && matchesSource && matchesGroup;
-          });
-        }
-
-        function render() {
-          const filtered = applyFilters(allChapters);
-          const grouped = new Map();
-          for (const ch of filtered) {
-            const key = ch.__sourceKey;
-            if (!grouped.has(key)) grouped.set(key, []);
-            grouped.get(key).push(ch);
-          }
-
-          const html = keys
-            .filter((k) => grouped.has(k))
-            .map((sourceKey) => {
-              const sourceLabel = getSourceLabel(sourceKey);
-              const sourceChapters = grouped.get(sourceKey) || [];
-              const sorted = [...sourceChapters].sort((a, b) => {
-                const aNum = parseFloat(a.chapter) || 0;
-                const bNum = parseFloat(b.chapter) || 0;
-                return popupSortDesc ? (bNum - aNum) : (aNum - bNum);
-              });
-
-              const rows = sorted
-                .map((ch) => {
-                  const groupName = ch.scanlation_group || ch.group_name || "";
-                  const readerHref = buildReaderUrl(ch.id, sourceKey, groupName);
-                  const chapterLabel = ch.chapter ?? "?";
-                  return `
-                    <a class="chapter-row" href="${readerHref}" data-chapter-number="${escapeHtml(chapterLabel)}" data-chapter-id="${escapeHtml(ch.id)}" data-source="${escapeHtml(sourceKey)}" data-group="${escapeHtml(groupName)}">
-                      <div class="popup-chapter-leading">
-                        <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>
-                        <div>
-                          <strong>${escapeHtml(sourceLabel)}: Chapter ${escapeHtml(chapterLabel)}</strong>
-                          ${ch.title ? `<div>${escapeHtml(ch.title)}</div>` : ''}
-                          ${groupName ? `<div style="font-size:0.8rem;color:var(--muted);">${escapeHtml(groupName)}</div>` : ''}
-                        </div>
-                      </div>
-                      <span class="icon">→</span>
-                    </a>
-                  `;
-                })
-                .join('');
-
-              return `
-                <div class="popup-source-section" data-popup-source="${escapeHtml(sourceKey)}">
-                  <div class="popup-source-heading">
-                    <strong>${escapeHtml(sourceLabel)}</strong>
-                    <span>${sorted.length} chapter${sorted.length === 1 ? '' : 's'}</span>
-                  </div>
-                  ${rows}
-                </div>
-              `;
-            })
-            .join('');
-
-          popupChapterList.innerHTML = html || `<p style="color: var(--muted);">No matching chapters.</p>`;
-
-          popupChapterList.querySelectorAll('a.chapter-row').forEach((link) => {
-            link.addEventListener('click', (e) => {
-              const chapterNumber = e.currentTarget.dataset.chapterNumber;
-              const chapterId = e.currentTarget.dataset.chapterId;
-              const srcKey = e.currentTarget.dataset.source;
-              const groupName = e.currentTarget.dataset.group || "";
-              // Don't force a specific storage key here.
-              // The reader may have recorded progress under another candidate key;
-              // forcing a new key can make Continue appear to "reset" to the clicked chapter.
-              if (chapterNumber) {
-                updateReadingProgress(null, chapterNumber, {
-                  chapterId,
-                  sourceKey: srcKey,
-                  sourceSlug: resolveSourceSlug(srcKey),
-                  seriesSlug: getCanonicalSeriesSlug(),
-                  readerUrl: buildReaderUrl(chapterId, srcKey, groupName),
-                });
-              }
+        const html = popupKeys
+          .filter((k) => grouped.has(k))
+          .map((sourceKey) => {
+            const sourceLabel = getSourceLabel(sourceKey);
+            const sourceChapters = grouped.get(sourceKey) || [];
+            const sorted = [...sourceChapters].sort((a, b) => {
+              const aNum = parseFloat(a.chapter) || 0;
+              const bNum = parseFloat(b.chapter) || 0;
+              return popupSortDesc ? (bNum - aNum) : (aNum - bNum);
             });
-          });
-        }
 
-        ensureGroupOptions(allChapters);
-        render();
+            const rows = sorted
+              .map((ch) => {
+                const groupName = ch.scanlation_group || ch.group_name || "";
+                const readerHref = buildReaderUrl(ch.id, sourceKey, groupName);
+                const chapterLabel = ch.chapter ?? "?";
+                return `
+                  <a class="chapter-row" href="${readerHref}" data-chapter-number="${escapeHtml(chapterLabel)}" data-chapter-id="${escapeHtml(ch.id)}" data-source="${escapeHtml(sourceKey)}" data-group="${escapeHtml(groupName)}">
+                    <div class="popup-chapter-leading">
+                      <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>
+                      <div>
+                        <strong>${escapeHtml(sourceLabel)}: Chapter ${escapeHtml(chapterLabel)}</strong>
+                        ${ch.title ? `<div>${escapeHtml(ch.title)}</div>` : ''}
+                        ${groupName ? `<div style="font-size:0.8rem;color:var(--muted);">${escapeHtml(groupName)}</div>` : ''}
+                      </div>
+                    </div>
+                    <span class="icon">→</span>
+                  </a>
+                `;
+              })
+              .join('');
 
-        if (searchEl && !searchEl.__aryBound) {
-          searchEl.__aryBound = true;
-          searchEl.addEventListener('input', () => {
-            popupSearchQuery = String(searchEl.value || '');
-            render();
-          });
-        }
+            return `
+              <div class="popup-source-section" data-popup-source="${escapeHtml(sourceKey)}">
+                <div class="popup-source-heading">
+                  <strong>${escapeHtml(sourceLabel)}</strong>
+                  <span>${sorted.length} chapter${sorted.length === 1 ? '' : 's'}</span>
+                </div>
+                ${rows}
+              </div>
+            `;
+          })
+          .join('');
 
-        if (reorderBtn && !reorderBtn.__aryBound) {
-          reorderBtn.__aryBound = true;
-          reorderBtn.addEventListener('click', (e) => {
-            try { e.preventDefault(); } catch (_) {}
-            popupSortDesc = !popupSortDesc;
-            render();
-          });
-        }
+        popupChapterList.innerHTML = html || `<p style="color: var(--muted);">No matching chapters.</p>`;
 
-        if (groupSelectEl && !groupSelectEl.__aryBound) {
-          groupSelectEl.__aryBound = true;
-          groupSelectEl.addEventListener('change', () => {
-            popupGroupFilter = String(groupSelectEl.value || '');
-            render();
+        popupChapterList.querySelectorAll('a.chapter-row').forEach((link) => {
+          link.addEventListener('click', (e) => {
+            const chapterNumber = e.currentTarget.dataset.chapterNumber;
+            const chapterId = e.currentTarget.dataset.chapterId;
+            const srcKey = e.currentTarget.dataset.source;
+            const groupName = e.currentTarget.dataset.group || "";
+            if (chapterNumber) {
+              updateReadingProgress(null, chapterNumber, {
+                chapterId,
+                sourceKey: srcKey,
+                sourceSlug: resolveSourceSlug(srcKey),
+                seriesSlug: getCanonicalSeriesSlug(),
+                readerUrl: buildReaderUrl(chapterId, srcKey, groupName),
+              });
+            }
           });
-        }
-
-        const sourceSelectEl = document.getElementById('popup-source-select');
-        if (sourceSelectEl && !sourceSelectEl.__aryBound) {
-          sourceSelectEl.__aryBound = true;
-          sourceSelectEl.addEventListener('change', () => {
-            popupSourceFilter = String(sourceSelectEl.value || '');
-            render();
-          });
-        }
+        });
       }
 
       function updateReadButton() {
