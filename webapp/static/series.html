@@ -3653,10 +3653,10 @@
 
         .reviews-dist-row {
           display: grid;
-          grid-template-columns: 18px 1fr 26px;
-          gap: 10px;
+          grid-template-columns: 16px 1fr 18px;
+          gap: 6px;
           align-items: center;
-          padding: 6px 0;
+          padding: 3px 0;
         }
 
         .reviews-dist-row .label {
@@ -3666,7 +3666,7 @@
         }
 
         .reviews-bar {
-          height: 10px;
+          height: 8px;
           border-radius: 999px;
           background: rgba(255, 255, 255, 0.08);
           overflow: hidden;
@@ -3684,6 +3684,15 @@
           color: rgba(255, 255, 255, 0.75);
           font-size: 0.85rem;
           text-align: right;
+        }
+
+        .reviews-source-row {
+          display: flex;
+          align-items: center;
+          justify-content: flex-end;
+          gap: 0.5rem;
+          margin-bottom: 0.6rem;
+          flex-wrap: wrap;
         }
 
         /* Mobile Reviews Button (in header) */
@@ -3942,9 +3951,15 @@
         <!-- Mobile Tab Content: Reviews -->
         <div class="mobile-tab-content" id="mobile-tab-reviews">
           <div class="mobile-reviews-header">
-            <h3>Reviews</h3>
+            <h3></h3>
+          </div>
+          <div class="reviews-source-row">
+            <div class="source-buttons" id="mobile-reviews-source-buttons"></div>
           </div>
           <div class="reviews-summary" id="mobile-reviews-summary"></div>
+          <div class="mobile-reviews-empty" id="mobile-reviews-comick-empty" hidden>
+            Will be added later
+          </div>
           <div id="mobile-reviews-list" hidden></div>
         </div>
       </div>
@@ -3997,7 +4012,13 @@
               <div class="mobile-reviews-header">
                 <h3></h3>
               </div>
+              <div class="reviews-source-row">
+                <div class="source-buttons" id="desktop-reviews-source-buttons"></div>
+              </div>
               <div class="reviews-summary" id="desktop-reviews-summary"></div>
+              <div class="mobile-reviews-empty" id="desktop-reviews-comick-empty" hidden>
+                Will be added later
+              </div>
               <div id="desktop-reviews-list" hidden></div>
             </div>
           </section>
@@ -4363,6 +4384,61 @@
         } catch (_) {}
       }
 
+      function initReviewsSourceSwitcher() {
+        const desktopButtons = document.getElementById('desktop-reviews-source-buttons');
+        const mobileButtons = document.getElementById('mobile-reviews-source-buttons');
+        const containers = [desktopButtons, mobileButtons].filter(Boolean);
+        if (!containers.length) return;
+
+        const desktopSummary = document.getElementById('desktop-reviews-summary');
+        const mobileSummary = document.getElementById('mobile-reviews-summary');
+        const desktopEmpty = document.getElementById('desktop-reviews-comick-empty');
+        const mobileEmpty = document.getElementById('mobile-reviews-comick-empty');
+
+        const sources = [
+          { key: 'ary', label: 'Ary', icon: '/static/img/zoro.png' },
+          { key: 'comick', label: 'Comick', icon: '/static/img/comick.png' },
+        ];
+
+        const setActive = (key) => {
+          containers.forEach((c) => {
+            c.querySelectorAll('.source-btn').forEach((btn) => {
+              btn.classList.toggle('active', btn.dataset.reviewSource === key);
+            });
+          });
+
+          const isAry = key === 'ary';
+          if (desktopSummary) desktopSummary.hidden = !isAry;
+          if (mobileSummary) mobileSummary.hidden = !isAry;
+          if (desktopEmpty) desktopEmpty.hidden = isAry;
+          if (mobileEmpty) mobileEmpty.hidden = isAry;
+        };
+
+        containers.forEach((c) => {
+          if (c.__aryReviewSourceBound) return;
+          c.__aryReviewSourceBound = true;
+
+          c.innerHTML = sources.map((s) => {
+            return `
+              <button class="source-btn ${s.key === 'ary' ? 'active' : ''}" type="button" data-review-source="${s.key}">
+                <img src="${s.icon}" alt="${s.label} icon" />
+                <span>${s.label}</span>
+              </button>
+            `;
+          }).join('');
+
+          c.querySelectorAll('.source-btn').forEach((btn) => {
+            btn.addEventListener('click', () => {
+              const key = btn.dataset.reviewSource;
+              if (!key) return;
+              setActive(key);
+            });
+          });
+        });
+
+        setActive('ary');
+      }
+
       async function initRatingUi(heroData) {
         try {
           const seriesKey = getSlugStorageKey();
@@ -4451,6 +4527,7 @@
             });
 
             try { initReviewsSummary(heroData); } catch (_) {}
+            try { initReviewsSourceSwitcher(); } catch (_) {}
           };
 
           await refresh();
