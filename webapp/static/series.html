@@ -1015,9 +1015,9 @@
         right: 0;
         left: auto;
         width: 140px;
-        background: rgba(255, 255, 255, 0.03);
+        background: rgba(255, 255, 255, 0.06);
         border-radius: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.12);
         box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
         overflow: hidden;
         z-index: 9999;
@@ -2175,9 +2175,9 @@
         position: fixed;
         z-index: 5000;
         min-width: 140px;
-        background: rgba(16, 18, 20, 0.98);
+        background: rgba(255, 255, 255, 0.06);
         border-radius: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.12);
         box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
         overflow: hidden;
         display: none;
@@ -2212,6 +2212,82 @@
 
       .chapter-menu-item:hover {
         background: rgba(255, 255, 255, 0.05);
+      }
+
+      .hero-rating {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        margin-bottom: 0.9rem;
+      }
+
+      .hero-rating-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+      }
+
+      .hero-rating-stars {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.2rem;
+        flex-wrap: nowrap;
+        min-width: 0;
+      }
+
+      .hero-rating-stars button {
+        width: 18px;
+        height: 18px;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: rgba(255, 255, 255, 0.28);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .hero-rating-stars button svg {
+        width: 18px;
+        height: 18px;
+        display: block;
+        fill: currentColor;
+        stroke: none;
+      }
+
+      .hero-rating-stars button.filled {
+        color: #facc15;
+      }
+
+      .hero-rating-score {
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        color: #eaf2ee;
+        border-radius: 10px;
+        padding: 0.25rem 0.5rem;
+        font-weight: 800;
+        font-size: 0.86rem;
+        flex: 0 0 auto;
+      }
+
+      .hero-rating-sub {
+        color: var(--muted);
+        font-size: 0.82rem;
+        line-height: 1.2;
+      }
+
+      .mobile-rating {
+        margin-top: 0.65rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+      }
+
+      .mobile-rating .hero-rating-row {
+        justify-content: flex-start;
+        gap: 0.6rem;
       }
 
       .chapter-row:hover {
@@ -3421,6 +3497,18 @@
           gap: 0.4rem;
           padding: 1rem 0;
         }
+
+        .mobile-rating {
+          margin-top: 0.65rem;
+          display: flex;
+          flex-direction: column;
+          gap: 0.4rem;
+        }
+
+        .mobile-rating .hero-rating-row {
+          justify-content: flex-start;
+          gap: 0.6rem;
+        }
         .mobile-read-btn {
           flex: 1;
           padding: 0.85rem 1.25rem;
@@ -3573,6 +3661,14 @@
               <line x1="12" y1="15" x2="12" y2="3"></line>
             </svg>
           </button>
+        </div>
+
+        <div class="mobile-rating" id="mobile-rating" hidden>
+          <div class="hero-rating-row">
+            <div class="hero-rating-stars" data-role="stars"></div>
+            <div class="hero-rating-score" data-role="score">—</div>
+          </div>
+          <div class="hero-rating-sub" data-role="sub"></div>
         </div>
 
         <!-- Mobile Tabs -->
@@ -3807,6 +3903,182 @@
       const params = new URLSearchParams(window.location.search);
       const titleId = params.get("id");
       const comickSlug = params.get("slug");
+
+      function openLoginUi() {
+        try {
+          if (typeof openLoginModal === 'function') {
+            openLoginModal();
+            return;
+          }
+        } catch (_) {}
+        const loginModal = document.getElementById('login-modal');
+        if (loginModal) {
+          loginModal.classList.add('open');
+          document.body.classList.add('nav-locked');
+        }
+      }
+
+      function makeStarSvg() {
+        return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17.3l-6.2 3.3 1.2-6.9L2 8.9l7-1L12 1.8l3 6.1 7 1-5 4.8 1.2 6.9z"/></svg>';
+      }
+
+      function renderStarButtons(starsEl, currentRating10, onSet) {
+        if (!starsEl) return;
+        starsEl.innerHTML = '';
+        const filledCount = Math.max(0, Math.min(5, Math.round(((Number(currentRating10) || 0) / 2) * 2) / 2));
+        for (let i = 1; i <= 5; i += 1) {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.innerHTML = makeStarSvg();
+          btn.classList.toggle('filled', i <= filledCount);
+          btn.addEventListener('click', (e) => {
+            try { e.preventDefault(); } catch (_) {}
+            if (typeof onSet === 'function') onSet(i * 2);
+          });
+          starsEl.appendChild(btn);
+        }
+      }
+
+      async function getSupabaseUser() {
+        const getClient = typeof getSupabaseClient === 'function' ? getSupabaseClient : null;
+        if (!getClient) return { client: null, user: null };
+        const client = getClient();
+        if (!client) return { client: null, user: null };
+        try {
+          const { data, error } = await client.auth.getUser();
+          if (error || !data?.user) return { client, user: null };
+          return { client, user: data.user };
+        } catch (_) {
+          return { client, user: null };
+        }
+      }
+
+      async function loadUserSeriesRating(seriesKey) {
+        const { client, user } = await getSupabaseUser();
+        if (!client || !user) return null;
+        try {
+          const { data, error } = await client
+            .from('library_entries')
+            .select('rating')
+            .eq('user_id', user.id)
+            .eq('series_hid', seriesKey)
+            .limit(1);
+          if (error) return null;
+          const row = Array.isArray(data) ? data[0] : null;
+          const v = row && row.rating != null ? parseFloat(row.rating) : null;
+          return Number.isFinite(v) ? v : null;
+        } catch (_) {
+          return null;
+        }
+      }
+
+      async function saveUserSeriesRating(seriesKey, heroData, ratingValue) {
+        const { client, user } = await getSupabaseUser();
+        if (!client || !user) {
+          openLoginUi();
+          return false;
+        }
+        try {
+          const v = ratingValue == null ? null : parseInt(String(ratingValue), 10);
+          const payload = {
+            user_id: user.id,
+            series_hid: seriesKey,
+            title: heroData?.title || '',
+            rating: (v == null || Number.isNaN(v)) ? null : v,
+          };
+          const { error } = await client
+            .from('library_entries')
+            .upsert(payload, { onConflict: 'user_id,series_hid' });
+          if (error) return false;
+          return true;
+        } catch (_) {
+          return false;
+        }
+      }
+
+      async function loadSeriesRatingSummary(seriesKey) {
+        const getClient = typeof getSupabaseClient === 'function' ? getSupabaseClient : null;
+        if (!getClient) return { avg: null, count: 0 };
+        const client = getClient();
+        if (!client) return { avg: null, count: 0 };
+        try {
+          const { data, error } = await client
+            .from('library_entries')
+            .select('rating')
+            .eq('series_hid', seriesKey)
+            .not('rating', 'is', null)
+            .limit(1000);
+          if (error) return { avg: null, count: 0 };
+          const rows = Array.isArray(data) ? data : [];
+          let sum = 0;
+          let count = 0;
+          for (const r of rows) {
+            const v = r && r.rating != null ? parseFloat(r.rating) : NaN;
+            if (!Number.isFinite(v)) continue;
+            sum += v;
+            count += 1;
+          }
+          const avg = count ? (sum / count) : null;
+          return { avg, count };
+        } catch (_) {
+          return { avg: null, count: 0 };
+        }
+      }
+
+      async function initRatingUi(heroData) {
+        try {
+          const seriesKey = getSlugStorageKey();
+          if (!seriesKey) return;
+
+          const desktopWrap = document.getElementById('hero-rating');
+          const mobileWrap = document.getElementById('mobile-rating');
+          const targets = [desktopWrap, mobileWrap].filter(Boolean);
+          if (!targets.length) return;
+
+          targets.forEach((wrap) => {
+            wrap.hidden = false;
+            const starsEl = wrap.querySelector('[data-role="stars"]');
+            renderStarButtons(starsEl, 0, async (val) => {
+              const ok = await saveUserSeriesRating(seriesKey, heroData, val);
+              if (!ok) return;
+              await refresh();
+            });
+            wrap.addEventListener('click', async () => {
+              const { user } = await getSupabaseUser();
+              if (!user) openLoginUi();
+            });
+          });
+
+          const refresh = async () => {
+            const [{ avg, count }, userRating] = await Promise.all([
+              loadSeriesRatingSummary(seriesKey),
+              loadUserSeriesRating(seriesKey),
+            ]);
+            const displayAvg = Number.isFinite(avg) ? avg : null;
+            const scoreText = displayAvg == null ? '—' : (Math.round(displayAvg * 10) / 10).toFixed(1);
+            const subText = (displayAvg == null || !count)
+              ? ''
+              : `Score: ${scoreText} by ${count} user${count === 1 ? '' : 's'}`;
+
+            targets.forEach((wrap) => {
+              const scoreEl = wrap.querySelector('[data-role="score"]');
+              const subEl = wrap.querySelector('[data-role="sub"]');
+              const starsEl = wrap.querySelector('[data-role="stars"]');
+              if (scoreEl) scoreEl.textContent = scoreText;
+              if (subEl) subEl.textContent = subText;
+              renderStarButtons(starsEl, userRating != null ? userRating : (displayAvg || 0), async (val) => {
+                const ok = await saveUserSeriesRating(seriesKey, heroData, val);
+                if (!ok) return;
+                await refresh();
+              });
+            });
+          };
+
+          await refresh();
+        } catch (err) {
+          console.warn('initRatingUi failed', err);
+        }
+      }
       const isComickMode = Boolean(comickSlug);
       const hero = document.getElementById("series-hero");
       const chapterList = document.getElementById("chapter-list");
@@ -5171,11 +5443,18 @@
           </div>
 
           <aside class="hero-aside">
+            <div class="hero-rating" id="hero-rating" hidden>
+              <div class="hero-rating-row">
+                <div class="hero-rating-stars" data-role="stars"></div>
+                <div class="hero-rating-score" data-role="score">—</div>
+              </div>
+              <div class="hero-rating-sub" data-role="sub"></div>
+            </div>
             <div class="hero-inline-stats">
               <div class="stat-line"><span>Rank</span><strong>${heroData.follow_rank ? `#${heroData.follow_rank}` : '—'}</strong></div>
               <div class="stat-line"><span>Follows</span><strong>${heroData.user_follow_count ? Number(heroData.user_follow_count).toLocaleString() : (heroData.followers ? Number(heroData.followers).toLocaleString() : '—')}</strong></div>
               <div class="stat-line"><span>Year</span><strong>${heroData.year || '—'}</strong></div>
-              <div class="stat-line"><span>Type</span><strong>${heroData.type || 'Manga'}</strong></div>
+              <div class="stat-line"><span>Bayesian rating</span><strong>${heroData.rating ? Number(heroData.rating).toFixed(2) : '—'}</strong></div>
               <div class="stat-line"><span>Status</span><strong>${heroData.status || 'Unknown'}</strong></div>
               <div class="stat-line"><span>Chapters</span><strong>${heroChapterTotal || '—'}</strong></div>
             </div>
@@ -5191,6 +5470,7 @@
         updateReadButton();
         initStatusControls(heroData);
         initOfflineDownloads(heroData);
+        initRatingUi(heroData);
 
         async function reloadSeriesData() {
           showLoadingState();
@@ -8409,7 +8689,7 @@ We'll reuse it next time.`,
             modal.setAttribute('aria-hidden', 'true');
           };
 
-          function openLoginUi() {
+          function openOfflineLoginUi() {
             try {
               if (typeof openLoginModal === 'function') {
                 openLoginModal();
@@ -8534,7 +8814,7 @@ We'll reuse it next time.`,
             const uid = await getUid();
 
             if (!uid) {
-              openLoginUi();
+              openOfflineLoginUi();
               return;
             }
 
@@ -8558,7 +8838,7 @@ We'll reuse it next time.`,
               const uid = await getUid();
 
               if (!uid) {
-                openLoginUi();
+                openOfflineLoginUi();
                 return;
               }
 
@@ -8686,20 +8966,22 @@ We'll reuse it next time.`,
             });
           }
 
-          confirmBtn && confirmBtn.addEventListener('click', async (e) => {
-            try { e.preventDefault(); } catch (_) {}
-            if (!listEl) return;
+          if (confirmBtn && !confirmBtn.__aryBound) {
+            confirmBtn.__aryBound = true;
+            confirmBtn.addEventListener('click', async (e) => {
+              try { e.preventDefault(); } catch (_) {}
+              if (!listEl) return;
 
-            const uid = await getUid();
-            if (!uid) {
-              openLoginUi();
-              return;
-            }
-            const selected = Array.from(listEl.querySelectorAll('input[type="checkbox"]:checked:not(:disabled)'));
-            if (!selected.length) {
-              if (statusEl) statusEl.textContent = 'Select at least one chapter.';
-              return;
-            }
+              const uid = await getUid();
+              if (!uid) {
+                openOfflineLoginUi();
+                return;
+              }
+              const selected = Array.from(listEl.querySelectorAll('input[type="checkbox"]:checked:not(:disabled)'));
+              if (!selected.length) {
+                if (statusEl) statusEl.textContent = 'Select at least one chapter.';
+                return;
+              }
 
             const progressModal = document.getElementById('offline-progress-modal');
             const progressCloseBtn = document.getElementById('offline-progress-close');
@@ -8795,9 +9077,10 @@ We'll reuse it next time.`,
               closeProgress();
             }, 350);
 
-            confirmBtn.disabled = false;
-            if (statusEl) statusEl.textContent = '';
-          });
+              confirmBtn.disabled = false;
+              if (statusEl) statusEl.textContent = '';
+            });
+          }
 
           if (slugModalDone && !slugModalDone.__aryOfflineOpenBound) {
             slugModalDone.__aryOfflineOpenBound = true;
