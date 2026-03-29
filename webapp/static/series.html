@@ -2328,10 +2328,10 @@
 
       .popup-content {
         position: relative;
-        background: rgba(16, 20, 22, 0.96);
+        background: rgba(28, 28, 28, 0.97);
         border: 1px solid rgba(255, 255, 255, 0.08);
         box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
-        border-radius: 24px;
+        border-radius: 18px;
         padding: 0;
         width: 90%;
         max-width: 500px;
@@ -2343,7 +2343,7 @@
       }
 
       .popup-header {
-        padding: 1rem 1.05rem;
+        padding: 1.25rem 1.25rem 1rem;
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -2354,7 +2354,8 @@
 
       .popup-title {
         margin: 0;
-        font-size: 1.05rem;
+        font-size: 1.15rem;
+        color: #f1f1f1;
         letter-spacing: -0.01em;
         display: flex;
         align-items: center;
@@ -2362,12 +2363,24 @@
         padding-right: 44px;
       }
 
-      .popup-title .icon {
+      .popup-icon-chip {
+        width: 36px;
+        height: 36px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--accent);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+      }
+
+      .popup-icon-chip .icon {
         width: 18px;
         height: 18px;
-        flex: 0 0 auto;
         stroke: currentColor;
-        color: var(--accent);
+        fill: none;
       }
 
       .popup-body {
@@ -2379,16 +2392,21 @@
       }
 
       #popup-close-btn {
-        width: 40px;
-        height: 40px;
+        width: 36px;
+        height: 36px;
         padding: 0;
         border-radius: 12px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
         border: 1px solid rgba(255, 255, 255, 0.08);
-        background: rgba(255, 255, 255, 0.05);
-        color: #e5e7eb;
+        background: rgba(255, 255, 255, 0.06);
+        color: #cfd3d8;
+      }
+
+      #popup-close-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: #ffffff;
       }
 
       #popup-close-btn svg {
@@ -3588,7 +3606,9 @@
       <div class="popup-content">
         <div class="popup-header">
           <h3 id="popup-title" class="popup-title">
-            <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6v14"/><path d="M7 10l5-4 5 4"/><path d="M5 20h14"/></svg>
+            <span class="popup-icon-chip" aria-hidden="true">
+              <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6v14"/><path d="M7 10l5-4 5 4"/><path d="M5 20h14"/></svg>
+            </span>
             <span id="popup-title-text">Start reading</span>
           </h3>
           <button id="popup-close-btn" class="btn ghost" type="button" aria-label="Close">
