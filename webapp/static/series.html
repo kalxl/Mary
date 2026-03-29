@@ -3580,6 +3580,112 @@
           font-size: 0.9rem;
         }
 
+        .reviews-summary {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 0.9rem;
+        }
+
+        @media (min-width: 641px) {
+          .reviews-summary {
+            grid-template-columns: 220px 1fr;
+            align-items: start;
+            gap: 1.1rem;
+          }
+        }
+
+        .reviews-score-box,
+        .reviews-dist {
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px solid rgba(255, 255, 255, 0.06);
+          border-radius: 16px;
+          padding: 14px;
+        }
+
+        .reviews-score-row {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+        }
+
+        .reviews-score-value {
+          font-size: 2rem;
+          font-weight: 900;
+          letter-spacing: -0.03em;
+          color: #eef7f1;
+          line-height: 1;
+        }
+
+        .reviews-score-meta {
+          display: flex;
+          flex-direction: column;
+          gap: 0.15rem;
+          min-width: 0;
+        }
+
+        .reviews-stars {
+          display: inline-flex;
+          gap: 0.2rem;
+          color: #facc15;
+        }
+
+        .reviews-stars .star {
+          display: inline-flex;
+          opacity: 0.28;
+        }
+
+        .reviews-stars .star.filled {
+          opacity: 1;
+        }
+
+        .reviews-stars svg {
+          width: 18px;
+          height: 18px;
+          display: block;
+          fill: currentColor;
+          stroke: none;
+        }
+
+        .reviews-count {
+          color: var(--muted);
+          font-size: 0.85rem;
+        }
+
+        .reviews-dist-row {
+          display: grid;
+          grid-template-columns: 18px 1fr 26px;
+          gap: 10px;
+          align-items: center;
+          padding: 6px 0;
+        }
+
+        .reviews-dist-row .label {
+          color: rgba(255, 255, 255, 0.7);
+          font-size: 0.85rem;
+          text-align: right;
+        }
+
+        .reviews-bar {
+          height: 10px;
+          border-radius: 999px;
+          background: rgba(255, 255, 255, 0.08);
+          overflow: hidden;
+        }
+
+        .reviews-bar > span {
+          display: block;
+          height: 100%;
+          width: 0%;
+          border-radius: 999px;
+          background: linear-gradient(90deg, rgba(var(--accent-rgb), 0.95), rgba(var(--accent-rgb), 0.55));
+        }
+
+        .reviews-dist-row .count {
+          color: rgba(255, 255, 255, 0.75);
+          font-size: 0.85rem;
+          text-align: right;
+        }
+
         /* Mobile Reviews Button (in header) */
         .mobile-reviews-btn {
           background: rgba(var(--accent-rgb), 0.15);
@@ -3838,9 +3944,7 @@
           <div class="mobile-reviews-header">
             <h3>Reviews</h3>
           </div>
-          <div class="mobile-reviews-empty" id="mobile-reviews-empty">
-            No reviews yet. Be the first to write a review!
-          </div>
+          <div class="reviews-summary" id="mobile-reviews-summary"></div>
           <div id="mobile-reviews-list" hidden></div>
         </div>
       </div>
@@ -3893,9 +3997,7 @@
               <div class="mobile-reviews-header">
                 <h3></h3>
               </div>
-              <div class="mobile-reviews-empty" id="desktop-reviews-empty">
-                No reviews yet. Be the first to write a review!
-              </div>
+              <div class="reviews-summary" id="desktop-reviews-summary"></div>
               <div id="desktop-reviews-list" hidden></div>
             </div>
           </section>
@@ -4167,6 +4269,100 @@
         }
       }
 
+      async function loadSeriesRatingDistribution(seriesKey) {
+        const getClient = typeof getSupabaseClient === 'function' ? getSupabaseClient : null;
+        if (!getClient) return { avg: null, count: 0, dist: Array.from({ length: 10 }, () => 0) };
+        const client = getClient();
+        if (!client) return { avg: null, count: 0, dist: Array.from({ length: 10 }, () => 0) };
+        try {
+          const { data, error } = await client
+            .from('library_entries')
+            .select('rating')
+            .eq('series_hid', seriesKey)
+            .not('rating', 'is', null)
+            .limit(1000);
+          if (error) return { avg: null, count: 0, dist: Array.from({ length: 10 }, () => 0) };
+          const rows = Array.isArray(data) ? data : [];
+          const dist = Array.from({ length: 10 }, () => 0);
+          let sum = 0;
+          let count = 0;
+          for (const r of rows) {
+            const v = r && r.rating != null ? parseFloat(r.rating) : NaN;
+            if (!Number.isFinite(v)) continue;
+            const n = Math.max(1, Math.min(10, Math.round(v)));
+            dist[n - 1] += 1;
+            sum += v;
+            count += 1;
+          }
+          const avg = count ? (sum / count) : null;
+          return { avg, count, dist };
+        } catch (_) {
+          return { avg: null, count: 0, dist: Array.from({ length: 10 }, () => 0) };
+        }
+      }
+
+      function renderReviewsSummaryInto(targetEl, summary) {
+        if (!targetEl) return;
+        const safeCount = Number.isFinite(summary?.count) ? summary.count : 0;
+        if (!safeCount) {
+          targetEl.innerHTML = '<div class="mobile-reviews-empty" style="padding: 0.9rem 0.25rem; text-align: left;">No reviews yet.</div>';
+          return;
+        }
+
+        const avg = Number.isFinite(summary?.avg) ? summary.avg : null;
+        const scoreText = avg == null ? '0.0' : (Math.round(avg * 10) / 10).toFixed(1);
+        const stars10 = avg == null ? 0 : avg;
+        const filledCount = Math.max(0, Math.min(5, Math.round(((Number(stars10) || 0) / 2) * 2) / 2));
+
+        const dist = Array.isArray(summary?.dist) ? summary.dist : Array.from({ length: 10 }, () => 0);
+        const maxBucket = Math.max(1, ...dist.map((n) => Number(n) || 0));
+
+        const starsHtml = Array.from({ length: 5 }, (_, i) => {
+          const idx = i + 1;
+          return `<span class="star${idx <= filledCount ? ' filled' : ''}">${makeStarSvg()}</span>`;
+        }).join('');
+
+        const rowsHtml = Array.from({ length: 10 }, (_, i) => {
+          const rating = 10 - i;
+          const count = dist[rating - 1] || 0;
+          const pct = Math.max(0, Math.min(100, (count / maxBucket) * 100));
+          return `
+            <div class="reviews-dist-row">
+              <div class="label">${rating}</div>
+              <div class="reviews-bar"><span style="width:${pct.toFixed(1)}%"></span></div>
+              <div class="count">${count}</div>
+            </div>
+          `;
+        }).join('');
+
+        targetEl.innerHTML = `
+          <div class="reviews-score-box">
+            <div class="reviews-score-row">
+              <div class="reviews-score-value">${scoreText}</div>
+              <div class="reviews-score-meta">
+                <div class="reviews-stars">${starsHtml}</div>
+                <div class="reviews-count">${safeCount} rating${safeCount === 1 ? '' : 's'}</div>
+              </div>
+            </div>
+          </div>
+          <div class="reviews-dist">${rowsHtml}</div>
+        `;
+      }
+
+      async function initReviewsSummary(heroData) {
+        try {
+          const seriesKey = getSlugStorageKey();
+          if (!seriesKey) return;
+          const desktopSummary = document.getElementById('desktop-reviews-summary');
+          const mobileSummary = document.getElementById('mobile-reviews-summary');
+          const targets = [desktopSummary, mobileSummary].filter(Boolean);
+          if (!targets.length) return;
+
+          const summary = await loadSeriesRatingDistribution(seriesKey);
+          targets.forEach((el) => renderReviewsSummaryInto(el, summary));
+        } catch (_) {}
+      }
+
       async function initRatingUi(heroData) {
         try {
           const seriesKey = getSlugStorageKey();
@@ -4253,6 +4449,8 @@
               if (subEl) subEl.textContent = subText;
               renderStarsDisplay(starsEl, userRating != null ? userRating : (displayAvg || 0));
             });
+
+            try { initReviewsSummary(heroData); } catch (_) {}
           };
 
           await refresh();
@@ -6596,45 +6794,101 @@
 
       function setChapterReadState(seriesId, chapterLabel, read) {
         try {
-          const key = String(seriesId || '').trim() || String(getSeriesProgressInfo()?.key || '').trim() || String(getSlugStorageKey() || '').trim();
-          if (!key) return;
+          const baseKey = String(seriesId || '').trim() || String(getSlugStorageKey() || '').trim();
+          const infoKey = String(getSeriesProgressInfo()?.key || '').trim();
+          const keys = Array.from(new Set([baseKey, infoKey, ...getProgressCandidates().map(String)].filter(Boolean)));
+          if (!keys.length) return;
           const progress = getReadingProgress();
-          if (!progress[key]) progress[key] = { lastRead: 0, chapters: {} };
-          const entry = progress[key];
-          entry.chapters = entry.chapters || {};
-          if (typeof entry.lastRead !== 'number') entry.lastRead = entry.lastRead ? parseFloat(entry.lastRead) : 0;
           const label = String(chapterLabel || '').trim();
           if (!label) return;
           const normalizedLabel = normalizeProgressChapterKey(label);
 
-          if (read) {
-            entry.chapters[label] = true;
-            if (normalizedLabel && normalizedLabel !== label) entry.chapters[normalizedLabel] = true;
-            const num = parseFloat(normalizedLabel || label);
-            if (!Number.isNaN(num)) {
-              entry.lastVisitedNumber = num;
-              entry.lastVisitedLabel = formatProgressLabel(num);
+          const updateEntry = (entry) => {
+            entry.chapters = entry.chapters || {};
+            if (typeof entry.lastRead !== 'number') entry.lastRead = entry.lastRead ? parseFloat(entry.lastRead) : 0;
+
+            if (read) {
+              entry.chapters[label] = true;
+              if (normalizedLabel && normalizedLabel !== label) entry.chapters[normalizedLabel] = true;
+              const num = parseFloat(normalizedLabel || label);
+              if (!Number.isNaN(num)) {
+                entry.lastVisitedNumber = num;
+                entry.lastVisitedLabel = formatProgressLabel(num);
+              } else {
+                entry.lastVisitedNumber = null;
+                entry.lastVisitedLabel = formatProgressLabel(label);
+              }
             } else {
-              entry.lastVisitedNumber = null;
-              entry.lastVisitedLabel = formatProgressLabel(label);
+              delete entry.chapters[label];
+              if (normalizedLabel && normalizedLabel !== label) delete entry.chapters[normalizedLabel];
+              const numericKeys = Object.keys(entry.chapters || {})
+                .map((k) => parseFloat(k))
+                .filter((n) => Number.isFinite(n));
+
+              const removedNum = parseFloat(normalizedLabel || label);
+              const wasLastVisited =
+                (typeof entry.lastVisitedNumber === 'number' && Number.isFinite(removedNum) && entry.lastVisitedNumber === removedNum) ||
+                (entry.lastVisitedLabel && String(entry.lastVisitedLabel).trim() === label);
+
+              entry.lastRead = numericKeys.length ? Math.max(...numericKeys) : 0;
+
+              const chapterKeys = Object.keys(entry.chapters || {});
+              if (!entry.lastRead && !chapterKeys.length) {
+                entry.lastVisitedNumber = null;
+                entry.lastVisitedLabel = null;
+                entry.lastChapterId = null;
+                entry.lastReaderUrl = null;
+                entry.clearedAt = new Date().toISOString();
+              }
+
+              if (typeof entry.lastVisitedNumber === 'number' && entry.lastRead && entry.lastVisitedNumber > entry.lastRead) {
+                entry.lastVisitedNumber = entry.lastRead;
+                entry.lastVisitedLabel = formatProgressLabel(entry.lastRead);
+                entry.lastChapterId = null;
+                entry.lastReaderUrl = null;
+              }
+
+              if (wasLastVisited) {
+                if (entry.lastRead && typeof entry.lastRead === 'number') {
+                  entry.lastVisitedNumber = entry.lastRead;
+                  entry.lastVisitedLabel = formatProgressLabel(entry.lastRead);
+                } else {
+                  entry.lastVisitedNumber = null;
+                  entry.lastVisitedLabel = null;
+                }
+                entry.lastChapterId = null;
+                entry.lastReaderUrl = null;
+              }
             }
-          } else {
-            delete entry.chapters[label];
-            if (normalizedLabel && normalizedLabel !== label) delete entry.chapters[normalizedLabel];
-            const numericKeys = Object.keys(entry.chapters || {})
-              .map((k) => parseFloat(k))
-              .filter((n) => Number.isFinite(n));
 
-            const removedNum = parseFloat(normalizedLabel || label);
-            const wasLastVisited =
-              (typeof entry.lastVisitedNumber === 'number' && Number.isFinite(removedNum) && entry.lastVisitedNumber === removedNum) ||
-              (entry.lastVisitedLabel && String(entry.lastVisitedLabel).trim() === label);
+            entry.updatedAt = new Date().toISOString();
+            if (entry.clearedAt && Object.keys(entry.chapters || {}).length) delete entry.clearedAt;
+          };
 
-            entry.lastRead = numericKeys.length ? Math.max(...numericKeys) : 0;
+          keys.forEach((k) => {
+            if (!progress[k]) progress[k] = { lastRead: 0, chapters: {} };
+            updateEntry(progress[k]);
+          });
 
-            const chapterKeys = Object.keys(entry.chapters || {});
-            if (!entry.lastRead && !chapterKeys.length) {
-              progress[key] = {
+          localStorage.setItem(READING_PROGRESS_KEY, JSON.stringify(progress));
+          updateReadButton();
+          try { renderPopupList(); } catch (_) {}
+        } catch (_) {}
+      }
+
+      function setAllChaptersReadState(seriesId, read) {
+        try {
+          const baseKey = String(seriesId || '').trim() || String(getSlugStorageKey() || '').trim();
+          const infoKey = String(getSeriesProgressInfo()?.key || '').trim();
+          const keys = Array.from(new Set([baseKey, infoKey, ...getProgressCandidates().map(String)].filter(Boolean)));
+          if (!keys.length) return;
+          const progress = getReadingProgress();
+
+          const list = Array.isArray(window.__SERIES_CHAPTERS__) ? window.__SERIES_CHAPTERS__ : [];
+
+          if (!read) {
+            keys.forEach((k) => {
+              progress[k] = {
                 lastRead: 0,
                 chapters: {},
                 lastVisitedNumber: null,
@@ -6643,87 +6897,51 @@
                 lastReaderUrl: null,
                 clearedAt: new Date().toISOString(),
               };
-              localStorage.setItem(READING_PROGRESS_KEY, JSON.stringify(progress));
-              updateReadButton();
-              return;
-            }
+            });
+            localStorage.setItem(READING_PROGRESS_KEY, JSON.stringify(progress));
+            updateReadButton();
+            try { renderPopupList(); } catch (_) {}
+            return;
+          }
 
-            if (typeof entry.lastVisitedNumber === 'number' && entry.lastRead && entry.lastVisitedNumber > entry.lastRead) {
-              entry.lastVisitedNumber = entry.lastRead;
-              entry.lastVisitedLabel = formatProgressLabel(entry.lastRead);
-              entry.lastChapterId = null;
-              entry.lastReaderUrl = null;
-            }
-
-            if (wasLastVisited) {
-              if (entry.lastRead && typeof entry.lastRead === 'number') {
-                entry.lastVisitedNumber = entry.lastRead;
-                entry.lastVisitedLabel = formatProgressLabel(entry.lastRead);
-              } else {
-                entry.lastVisitedNumber = null;
-                entry.lastVisitedLabel = null;
-              }
-              entry.lastChapterId = null;
-              entry.lastReaderUrl = null;
+          const chapterKeys = [];
+          let max = 0;
+          for (const ch of list) {
+            const chapterNumber = getChapterNumberValue(ch.chapter);
+            if (chapterNumber !== null) {
+              chapterKeys.push(ch.chapter);
+              max = Math.max(max, chapterNumber);
             }
           }
 
-          entry.updatedAt = new Date().toISOString();
-          if (entry.clearedAt) delete entry.clearedAt;
-          localStorage.setItem(READING_PROGRESS_KEY, JSON.stringify(progress));
-          updateReadButton();
-        } catch (_) {}
-      }
-
-      function setAllChaptersReadState(seriesId, read) {
-        try {
-          const key = String(seriesId || '').trim() || String(getSeriesProgressInfo()?.key || '').trim() || String(getSlugStorageKey() || '').trim();
-          if (!key) return;
-          const progress = getReadingProgress();
-          if (!progress[key]) progress[key] = { lastRead: 0, chapters: {} };
-          const entry = progress[key];
-          entry.chapters = entry.chapters || {};
-
-          const labels = (allChapters || [])
-            .map((ch) => (ch && ch.chapter !== undefined && ch.chapter !== null) ? String(ch.chapter).trim() : '')
-            .filter(Boolean);
-
-          if (read) {
-            labels.forEach((label) => {
+          keys.forEach((k) => {
+            if (!progress[k]) progress[k] = { lastRead: 0, chapters: {} };
+            const entry = progress[k];
+            entry.chapters = entry.chapters || {};
+            chapterKeys.forEach((label) => {
               entry.chapters[label] = true;
             });
-          } else {
-            labels.forEach((label) => {
-              delete entry.chapters[label];
-            });
-          }
+            entry.lastRead = max;
+            entry.lastVisitedNumber = max;
+            entry.lastVisitedLabel = formatProgressLabel(max);
+            entry.lastChapterId = null;
+            entry.lastReaderUrl = null;
+            entry.updatedAt = new Date().toISOString();
+          });
 
-          const numericKeys = Object.keys(entry.chapters || {})
-            .map((k) => parseFloat(k))
-            .filter((n) => Number.isFinite(n));
-
-          entry.lastRead = numericKeys.length ? Math.max(...numericKeys) : 0;
-          if (entry.lastRead) {
-            entry.lastVisitedNumber = entry.lastRead;
-            entry.lastVisitedLabel = formatProgressLabel(entry.lastRead);
-          }
-
-          entry.lastChapterId = null;
-          entry.lastReaderUrl = null;
-          entry.updatedAt = new Date().toISOString();
           localStorage.setItem(READING_PROGRESS_KEY, JSON.stringify(progress));
           updateReadButton();
+          try { renderPopupList(); } catch (_) {}
         } catch (_) {}
       }
 
       function setChapterReadStateForBelow(seriesId, chapterLabel, read) {
         try {
-          const key = String(seriesId || '').trim() || String(getSeriesProgressInfo()?.key || '').trim() || String(getSlugStorageKey() || '').trim();
-          if (!key) return;
+          const baseKey = String(seriesId || '').trim() || String(getSlugStorageKey() || '').trim();
+          const infoKey = String(getSeriesProgressInfo()?.key || '').trim();
+          const keys = Array.from(new Set([baseKey, infoKey, ...getProgressCandidates().map(String)].filter(Boolean)));
+          if (!keys.length) return;
           const progress = getReadingProgress();
-          if (!progress[key]) progress[key] = { lastRead: 0, chapters: {} };
-          const entry = progress[key];
-          entry.chapters = entry.chapters || {};
           const label = String(chapterLabel || '').trim();
           if (!label) return;
 
@@ -6741,71 +6959,72 @@
               return n !== null && n <= target;
             });
 
-          const wasLastVisitedBefore = (typeof entry.lastVisitedNumber === 'number')
-            ? entry.lastVisitedNumber
-            : null;
+          keys.forEach((key) => {
+            if (!progress[key]) progress[key] = { lastRead: 0, chapters: {} };
+            const entry = progress[key];
+            entry.chapters = entry.chapters || {};
 
-          if (read) {
-            affectedLabels.forEach((l) => {
-              const rawKey = String(l || '').trim();
-              const normalizedKey = normalizeProgressChapterKey(rawKey);
-              if (rawKey) entry.chapters[rawKey] = true;
-              if (normalizedKey && normalizedKey !== rawKey) entry.chapters[normalizedKey] = true;
-            });
-          } else {
-            affectedLabels.forEach((l) => {
-              const rawKey = String(l || '').trim();
-              const normalizedKey = normalizeProgressChapterKey(rawKey);
-              if (rawKey) delete entry.chapters[rawKey];
-              if (normalizedKey && normalizedKey !== rawKey) delete entry.chapters[normalizedKey];
-            });
-          }
+            const wasLastVisitedBefore = (typeof entry.lastVisitedNumber === 'number') ? entry.lastVisitedNumber : null;
 
-          const numericKeys = Object.keys(entry.chapters || {})
-            .map((k) => parseFloat(k))
-            .filter((n) => Number.isFinite(n));
-
-          entry.lastRead = numericKeys.length ? Math.max(...numericKeys) : 0;
-
-          if (!entry.lastRead && !Object.keys(entry.chapters || {}).length) {
-            progress[key] = {
-              lastRead: 0,
-              chapters: {},
-              lastVisitedNumber: null,
-              lastVisitedLabel: null,
-              lastChapterId: null,
-              lastReaderUrl: null,
-              clearedAt: new Date().toISOString(),
-            };
-            localStorage.setItem(READING_PROGRESS_KEY, JSON.stringify(progress));
-            updateReadButton();
-            return;
-          }
-
-          if (read) {
-            entry.lastVisitedNumber = Math.max(entry.lastVisitedNumber || 0, target);
-            entry.lastVisitedLabel = formatProgressLabel(entry.lastVisitedNumber);
-          } else {
-            const removedLastVisited = (typeof wasLastVisitedBefore === 'number')
-              ? (wasLastVisitedBefore <= target)
-              : false;
-
-            if (removedLastVisited || (typeof entry.lastVisitedNumber === 'number' && entry.lastRead && entry.lastVisitedNumber > entry.lastRead)) {
-              if (entry.lastRead && typeof entry.lastRead === 'number') {
-                entry.lastVisitedNumber = entry.lastRead;
-                entry.lastVisitedLabel = formatProgressLabel(entry.lastRead);
-              } else {
-                entry.lastVisitedNumber = null;
-                entry.lastVisitedLabel = null;
-              }
-              entry.lastChapterId = null;
-              entry.lastReaderUrl = null;
+            if (read) {
+              affectedLabels.forEach((l) => {
+                const rawKey = String(l || '').trim();
+                const normalizedKey = normalizeProgressChapterKey(rawKey);
+                if (rawKey) entry.chapters[rawKey] = true;
+                if (normalizedKey && normalizedKey !== rawKey) entry.chapters[normalizedKey] = true;
+              });
+            } else {
+              affectedLabels.forEach((l) => {
+                const rawKey = String(l || '').trim();
+                const normalizedKey = normalizeProgressChapterKey(rawKey);
+                if (rawKey) delete entry.chapters[rawKey];
+                if (normalizedKey && normalizedKey !== rawKey) delete entry.chapters[normalizedKey];
+              });
             }
-          }
 
-          entry.updatedAt = new Date().toISOString();
+            const numericKeys = Object.keys(entry.chapters || {})
+              .map((k) => parseFloat(k))
+              .filter((n) => Number.isFinite(n));
+
+            entry.lastRead = numericKeys.length ? Math.max(...numericKeys) : 0;
+
+            if (!entry.lastRead && !Object.keys(entry.chapters || {}).length) {
+              progress[key] = {
+                lastRead: 0,
+                chapters: {},
+                lastVisitedNumber: null,
+                lastVisitedLabel: null,
+                lastChapterId: null,
+                lastReaderUrl: null,
+                clearedAt: new Date().toISOString(),
+              };
+              return;
+            }
+
+            if (read) {
+              entry.lastVisitedNumber = Math.max(entry.lastVisitedNumber || 0, target);
+              entry.lastVisitedLabel = formatProgressLabel(entry.lastVisitedNumber);
+            } else {
+              const removedLastVisited = (typeof wasLastVisitedBefore === 'number') ? (wasLastVisitedBefore <= target) : false;
+              if (removedLastVisited || (typeof entry.lastVisitedNumber === 'number' && entry.lastRead && entry.lastVisitedNumber > entry.lastRead)) {
+                if (entry.lastRead && typeof entry.lastRead === 'number') {
+                  entry.lastVisitedNumber = entry.lastRead;
+                  entry.lastVisitedLabel = formatProgressLabel(entry.lastRead);
+                } else {
+                  entry.lastVisitedNumber = null;
+                  entry.lastVisitedLabel = null;
+                }
+                entry.lastChapterId = null;
+                entry.lastReaderUrl = null;
+              }
+            }
+
+            entry.updatedAt = new Date().toISOString();
+          });
+
           localStorage.setItem(READING_PROGRESS_KEY, JSON.stringify(progress));
           updateReadButton();
+          try { renderPopupList(); } catch (_) {}
         } catch (_) {}
       }
 
