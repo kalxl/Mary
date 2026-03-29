@@ -4728,7 +4728,6 @@
           <div class="hero-main meta-block">
             <div class="hero-title-row">
               <h1>${heroData.title}</h1>
-              <div class="hero-rank"><span>Rank</span><strong>${heroData.follow_rank ? `#${heroData.follow_rank}` : '—'}</strong></div>
             </div>
             <p class="hero-slug">${formattedSlug || 'Unknown'}</p>
 
@@ -4772,6 +4771,7 @@
 
           <aside class="hero-aside">
             <div class="hero-inline-stats">
+              <div class="stat-line"><span>Rank</span><strong>${heroData.follow_rank ? `#${heroData.follow_rank}` : '—'}</strong></div>
               <div class="stat-line"><span>Follows</span><strong>${heroData.user_follow_count ? Number(heroData.user_follow_count).toLocaleString() : (heroData.followers ? Number(heroData.followers).toLocaleString() : '—')}</strong></div>
               <div class="stat-line"><span>Year</span><strong>${heroData.year || '—'}</strong></div>
               <div class="stat-line"><span>Type</span><strong>${heroData.type || 'Manga'}</strong></div>
