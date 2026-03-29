@@ -703,10 +703,10 @@
 
       .offline-modal-card {
         width: min(640px, 100%);
-        background: rgba(16, 20, 22, 0.96);
+        background: rgba(28, 28, 28, 0.97);
         border: 1px solid rgba(255, 255, 255, 0.08);
         border-radius: 18px;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.65);
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
         overflow: hidden;
         display: flex;
         flex-direction: column;
@@ -714,7 +714,7 @@
       }
 
       .offline-modal-header {
-        padding: 1rem 1.05rem;
+        padding: 1.25rem 1.25rem 1rem;
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -725,8 +725,12 @@
 
       .offline-modal-header h3 {
         margin: 0;
-        font-size: 1.05rem;
+        font-size: 1.15rem;
         letter-spacing: -0.01em;
+        color: #f1f1f1;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
       }
 
       .offline-modal-header .icon {
@@ -737,22 +741,30 @@
       }
 
       .offline-modal-close {
-        width: 38px;
-        height: 38px;
+        width: 36px;
+        height: 36px;
         border-radius: 12px;
         border: 1px solid rgba(255, 255, 255, 0.08);
-        background: rgba(255, 255, 255, 0.05);
-        color: #e5e7eb;
+        background: rgba(255, 255, 255, 0.06);
+        color: #cfd3d8;
         cursor: pointer;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.15rem;
+        font-size: 1.05rem;
+      }
+
+      .offline-modal-close:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: #ffffff;
       }
 
       .offline-modal-body {
         padding: 1rem 1.05rem 1.05rem;
-        overflow: auto;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        gap: 0.85rem;
       }
 
       .offline-modal-body p {
@@ -764,7 +776,7 @@
         display: flex;
         flex-direction: column;
         gap: 0.65rem;
-        margin-bottom: 0.85rem;
+        margin-bottom: 0;
       }
 
       .offline-search {
@@ -821,6 +833,12 @@
         padding: 0.45rem 0.65rem;
         color: var(--muted);
         font-size: 0.9rem;
+      }
+
+      #offline-chapter-list {
+        flex: 1;
+        min-height: 0;
+        overflow: auto;
       }
 
       .offline-source-row strong {
@@ -7117,7 +7135,7 @@
         if (popupTitleTextEl) {
           popupTitleTextEl.textContent = selectedChapter
             ? `Chapter ${selectedChapter}`
-            : 'Start reading chapters';
+            : 'Start reading';
         }
 
         if (popupSourceSelectEl) {
@@ -8169,6 +8187,7 @@ We'll reuse it next time.`,
           const confirmBtn = document.getElementById('offline-download-confirm');
           const statusEl = document.getElementById('offline-modal-status');
           const searchEl = document.getElementById('offline-chapter-search');
+          const sourceSelectEl = document.getElementById('offline-source-select');
           const groupSelectEl = document.getElementById('offline-group-select');
           const reorderBtn = document.getElementById('offline-reorder-btn');
           const cancelBtn = document.getElementById('offline-cancel-btn');
@@ -8176,6 +8195,7 @@ We'll reuse it next time.`,
           let offlineSortDesc = true;
           let offlineSearchQuery = '';
           let offlineGroup = '';
+          let offlineSource = '';
 
           const openModal = () => {
             if (!modal) return;
@@ -8216,19 +8236,47 @@ We'll reuse it next time.`,
             offlineGroup = String(groupSelectEl.value || '');
           }
 
+          function getOfflineSupportedSources() {
+            const keys = ['comix', 'asura', 'mangataro'];
+
+            const result = [];
+            keys.forEach((key) => {
+              const entry = sourceCache && sourceCache[key] ? sourceCache[key] : null;
+              const chapters = entry && Array.isArray(entry.chapters) ? entry.chapters : [];
+              const usable = chapters.filter((ch) => ch && ch.id && ch.url);
+              if (usable.length) result.push(key);
+            });
+            return Array.from(new Set(result));
+          }
+
+          function ensureOfflineSourceOptions() {
+            if (!sourceSelectEl) return;
+            const sources = getOfflineSupportedSources();
+            const currentValue = String(sourceSelectEl.value || offlineSource || '');
+            sourceSelectEl.innerHTML = sources
+              .map((k) => `<option value="${String(k)}">${getSourceLabel(k)}</option>`)
+              .join('');
+            const nextValue = (currentValue && sources.includes(currentValue))
+              ? currentValue
+              : (sources[0] || 'comix');
+            sourceSelectEl.value = nextValue;
+            offlineSource = String(nextValue || '');
+          }
+
           async function highlightAlreadyDownloaded() {
             try {
               if (!uid) return;
               if (!window.AryOffline || typeof window.AryOffline.listForUser !== 'function') return;
               const existing = await window.AryOffline.listForUser(uid);
               const set = new Set((existing || []).map((it) => String(it && it.key ? it.key : '')));
+              const sourceKey = String(offlineSource || 'comix');
               const inputs = Array.from(document.querySelectorAll('#offline-chapter-list input[type="checkbox"][data-chapter-id]'));
               inputs.forEach((input) => {
                 const chapterId = input.getAttribute('data-chapter-id') || '';
                 if (!chapterId) return;
                 const key = window.AryOffline && typeof window.AryOffline.makeKey === 'function'
-                  ? window.AryOffline.makeKey(uid, 'comix', chapterId)
-                  : `${String(uid)}|comix|${String(chapterId)}`;
+                  ? window.AryOffline.makeKey(uid, sourceKey, chapterId)
+                  : `${String(uid)}|${String(sourceKey)}|${String(chapterId)}`;
                 if (set.has(String(key))) {
                   input.checked = true;
                   input.disabled = true;
@@ -8261,8 +8309,9 @@ We'll reuse it next time.`,
             if (e.target === modal) closeModal();
           });
 
-          function getComixChapters() {
-            const entry = sourceCache && sourceCache.comix ? sourceCache.comix : null;
+          function getOfflineChapters() {
+            const sourceKey = String(offlineSource || 'comix');
+            const entry = sourceCache && sourceCache[sourceKey] ? sourceCache[sourceKey] : null;
             const chapters = entry && Array.isArray(entry.chapters) ? entry.chapters : [];
             return chapters.filter((ch) => ch && ch.id && ch.url);
           }
@@ -8283,9 +8332,10 @@ We'll reuse it next time.`,
           function renderOfflineChapterPicker() {
             if (!listEl) return;
             if (statusEl) statusEl.textContent = '';
-            const chapters = getComixChapters();
+            ensureOfflineSourceOptions();
+            const chapters = getOfflineChapters();
             if (!chapters.length) {
-              listEl.innerHTML = `<div style="color: var(--muted);">No Comix chapters available yet. Switch the source to Comix and wait for it to load.</div>`;
+              listEl.innerHTML = `<div style="color: var(--muted);">No downloadable chapters found for linked sources yet.</div>`;
               ensureOfflineGroupOptions([]);
               return;
             }
@@ -8307,7 +8357,7 @@ We'll reuse it next time.`,
                     <input type="checkbox" data-chapter-id="${ch.id}" data-chapter-url="${encodeURIComponent(ch.url)}" data-chapter-label="${label}" data-group="${safeGroup}" style="margin-top:4px;" />
                     <div style="flex:1; min-width:0;">
                       <strong>Chapter ${label}</strong>
-                      <span>${group ? group : 'Comix'}</span>
+                      <span>${group ? group : getSourceLabel(String(offlineSource || ''))}</span>
                     </div>
                   </label>
                 `;
@@ -8329,6 +8379,17 @@ We'll reuse it next time.`,
             reorderBtn.addEventListener('click', (e) => {
               try { e.preventDefault(); } catch (_) {}
               offlineSortDesc = !offlineSortDesc;
+              renderOfflineChapterPicker();
+              highlightAlreadyDownloaded();
+            });
+          }
+
+          if (sourceSelectEl && !sourceSelectEl.__aryBound) {
+            sourceSelectEl.__aryBound = true;
+            sourceSelectEl.addEventListener('change', () => {
+              offlineSource = String(sourceSelectEl.value || '');
+              offlineGroup = '';
+              if (groupSelectEl) groupSelectEl.value = '';
               renderOfflineChapterPicker();
               highlightAlreadyDownloaded();
             });
@@ -8411,7 +8472,8 @@ We'll reuse it next time.`,
                 ? CSS.escape(chapterId)
                 : String(chapterId).replace(/"/g, '\\"');
               try {
-                const res = await fetch(`/api/source/comix/chapter-pages?url=${encodeURIComponent(chapterUrl)}`);
+                const sourceKey = String(offlineSource || 'comix');
+                const res = await fetch(`/api/source/${encodeURIComponent(sourceKey)}/chapter-pages?url=${encodeURIComponent(chapterUrl)}`);
                 if (!res.ok) {
                   continue;
                 }
@@ -8420,10 +8482,10 @@ We'll reuse it next time.`,
                 if (!pageUrls.length) {
                   continue;
                 }
-                const readerUrl = buildReaderUrl(chapterId, 'comix', groupName);
+                const readerUrl = buildReaderUrl(chapterId, sourceKey, groupName);
                 await window.AryOffline.downloadChapter({
                   userId: uid,
-                  source: 'comix',
+                  source: sourceKey,
                   chapterId,
                   title: String(heroData?.title || heroData?.name || ''),
                   description: String(heroData?.description || ''),
@@ -8458,8 +8520,10 @@ We'll reuse it next time.`,
     <div class="offline-modal" id="offline-modal" aria-hidden="true">
       <div class="offline-modal-card" role="dialog" aria-modal="true" aria-labelledby="offline-modal-title">
         <div class="offline-modal-header">
-          <h3 id="offline-modal-title" style="display:flex; align-items:center; gap:0.6rem;">
-            <svg class="icon" style="color: var(--accent);" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <h3 id="offline-modal-title">
+            <span class="popup-icon-chip" aria-hidden="true">
+              <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            </span>
             Download chapters
           </h3>
           <button type="button" class="offline-modal-close" id="offline-modal-close" aria-label="Close">✕</button>
@@ -8467,11 +8531,15 @@ We'll reuse it next time.`,
         <div class="offline-modal-body">
           <p>Select the chapters you want to save for offline reading.</p>
           <div class="offline-controls">
-            <div class="offline-search">
+            <div class="offline-search popup-search">
               <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
               <input id="offline-chapter-search" type="search" placeholder="Search chapters or groups..." autocomplete="off" />
             </div>
-            <div class="offline-source-row">
+            <div class="offline-source-row popup-filter-row">
+              <span style="display:inline-flex; align-items:center; gap:0.55rem;">
+                <strong>Source:</strong>
+                <select id="offline-source-select" aria-label="Select source"></select>
+              </span>
               <span style="display:inline-flex; align-items:center; gap:0.55rem;">
                 <strong>Group:</strong>
                 <select id="offline-group-select" aria-label="Select group">
