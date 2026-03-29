@@ -2236,20 +2236,16 @@
         min-width: 0;
       }
 
-      .hero-rating-stars button {
+      .hero-rating-stars .star {
         width: 18px;
         height: 18px;
-        padding: 0;
-        border: 0;
-        background: transparent;
         color: rgba(255, 255, 255, 0.28);
-        cursor: pointer;
         display: inline-flex;
         align-items: center;
         justify-content: center;
       }
 
-      .hero-rating-stars button svg {
+      .hero-rating-stars .star svg {
         width: 18px;
         height: 18px;
         display: block;
@@ -2257,7 +2253,7 @@
         stroke: none;
       }
 
-      .hero-rating-stars button.filled {
+      .hero-rating-stars .star.filled {
         color: #facc15;
       }
 
@@ -2288,6 +2284,77 @@
       .mobile-rating .hero-rating-row {
         justify-content: flex-start;
         gap: 0.6rem;
+      }
+
+      .rating-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 100000;
+        background: rgba(0, 0, 0, 0.6);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 18px;
+      }
+
+      .rating-modal.open {
+        display: flex;
+      }
+
+      .rating-modal-card {
+        width: min(420px, calc(100vw - 36px));
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 16px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+        padding: 14px;
+      }
+
+      .rating-modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 10px;
+      }
+
+      .rating-modal-header h3 {
+        margin: 0;
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: #eef7f1;
+      }
+
+      .rating-modal-close {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.06);
+        color: rgba(255, 255, 255, 0.85);
+        cursor: pointer;
+      }
+
+      .rating-grid {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .rating-btn {
+        height: 40px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.06);
+        color: #eaf2ee;
+        font-weight: 800;
+        cursor: pointer;
+      }
+
+      .rating-btn.active {
+        background: rgba(var(--accent-rgb), 0.22);
+        border-color: rgba(var(--accent-rgb), 0.35);
+        color: #eef7f1;
       }
 
       .chapter-row:hover {
@@ -3271,6 +3338,20 @@
           margin: 0;
         }
 
+        .mobile-title-section .mobile-rating {
+          margin-top: 0.65rem;
+          align-items: center;
+          text-align: center;
+        }
+
+        .mobile-title-section .hero-rating-row {
+          justify-content: center;
+        }
+
+        .mobile-title-section .hero-rating-sub {
+          display: none;
+        }
+
         /* Mobile Tabs - Gray buttons with icons like sidebar */
         .mobile-tabs {
           display: flex;
@@ -3639,6 +3720,14 @@
         <div class="mobile-title-section">
           <h1 id="mobile-title"></h1>
           <p id="mobile-subtitle" class="mobile-title-sub"></p>
+
+          <div class="mobile-rating" id="mobile-rating" hidden>
+            <div class="hero-rating-row">
+              <div class="hero-rating-stars" data-role="stars"></div>
+              <div class="hero-rating-score" data-role="score">—</div>
+            </div>
+            <div class="hero-rating-sub" data-role="sub"></div>
+          </div>
         </div>
 
         <!-- Mobile Action Buttons - Below Title -->
@@ -3661,14 +3750,6 @@
               <line x1="12" y1="15" x2="12" y2="3"></line>
             </svg>
           </button>
-        </div>
-
-        <div class="mobile-rating" id="mobile-rating" hidden>
-          <div class="hero-rating-row">
-            <div class="hero-rating-stars" data-role="stars"></div>
-            <div class="hero-rating-score" data-role="score">—</div>
-          </div>
-          <div class="hero-rating-sub" data-role="sub"></div>
         </div>
 
         <!-- Mobile Tabs -->
@@ -3922,21 +4003,49 @@
         return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17.3l-6.2 3.3 1.2-6.9L2 8.9l7-1L12 1.8l3 6.1 7 1-5 4.8 1.2 6.9z"/></svg>';
       }
 
-      function renderStarButtons(starsEl, currentRating10, onSet) {
+      function renderStarsDisplay(starsEl, currentRating10) {
         if (!starsEl) return;
         starsEl.innerHTML = '';
         const filledCount = Math.max(0, Math.min(5, Math.round(((Number(currentRating10) || 0) / 2) * 2) / 2));
         for (let i = 1; i <= 5; i += 1) {
-          const btn = document.createElement('button');
-          btn.type = 'button';
-          btn.innerHTML = makeStarSvg();
-          btn.classList.toggle('filled', i <= filledCount);
-          btn.addEventListener('click', (e) => {
-            try { e.preventDefault(); } catch (_) {}
-            if (typeof onSet === 'function') onSet(i * 2);
-          });
-          starsEl.appendChild(btn);
+          const star = document.createElement('span');
+          star.className = 'star' + (i <= filledCount ? ' filled' : '');
+          star.innerHTML = makeStarSvg();
+          starsEl.appendChild(star);
         }
+      }
+
+      function ensureRatingModal() {
+        let modal = document.getElementById('rating-modal');
+        if (modal) return modal;
+        modal = document.createElement('div');
+        modal.className = 'rating-modal';
+        modal.id = 'rating-modal';
+        modal.setAttribute('aria-hidden', 'true');
+        modal.innerHTML = `
+          <div class="rating-modal-card" role="dialog" aria-modal="true" aria-labelledby="rating-modal-title">
+            <div class="rating-modal-header">
+              <h3 id="rating-modal-title">Your rating</h3>
+              <button type="button" class="rating-modal-close" id="rating-modal-close" aria-label="Close">✕</button>
+            </div>
+            <div class="rating-grid" id="rating-grid"></div>
+          </div>
+        `;
+        document.body.appendChild(modal);
+        return modal;
+      }
+
+      function openRatingModal() {
+        const modal = ensureRatingModal();
+        modal.classList.add('open');
+        modal.setAttribute('aria-hidden', 'false');
+      }
+
+      function closeRatingModal() {
+        const modal = document.getElementById('rating-modal');
+        if (!modal) return;
+        modal.classList.remove('open');
+        modal.setAttribute('aria-hidden', 'true');
       }
 
       async function getSupabaseUser() {
@@ -4035,18 +4144,61 @@
           const targets = [desktopWrap, mobileWrap].filter(Boolean);
           if (!targets.length) return;
 
+          const modal = ensureRatingModal();
+          const closeBtn = modal.querySelector('#rating-modal-close');
+          if (closeBtn && !closeBtn.__aryBound) {
+            closeBtn.__aryBound = true;
+            closeBtn.addEventListener('click', (e) => {
+              try { e.preventDefault(); } catch (_) {}
+              closeRatingModal();
+            });
+          }
+          if (!modal.__aryOutsideBound) {
+            modal.__aryOutsideBound = true;
+            modal.addEventListener('click', (e) => {
+              if (e.target === modal) closeRatingModal();
+            });
+          }
+
+          const openPicker = async () => {
+            const { user } = await getSupabaseUser();
+            if (!user) {
+              openLoginUi();
+              return;
+            }
+            openRatingModal();
+            const grid = document.getElementById('rating-grid');
+            if (!grid) return;
+            const userRating = await loadUserSeriesRating(seriesKey);
+            grid.innerHTML = Array.from({ length: 10 }, (_, i) => {
+              const v = i + 1;
+              return `<button type="button" class="rating-btn${userRating === v ? ' active' : ''}" data-v="${v}">${v}</button>`;
+            }).join('');
+            if (!grid.__aryBound) {
+              grid.__aryBound = true;
+              grid.addEventListener('click', async (e) => {
+                const btn = e.target && e.target.closest ? e.target.closest('.rating-btn') : null;
+                if (!btn) return;
+                const v = parseInt(String(btn.getAttribute('data-v') || ''), 10);
+                if (!Number.isFinite(v)) return;
+                const ok = await saveUserSeriesRating(seriesKey, heroData, v);
+                if (!ok) return;
+                closeRatingModal();
+                await refresh();
+              });
+            }
+          };
+
           targets.forEach((wrap) => {
             wrap.hidden = false;
-            const starsEl = wrap.querySelector('[data-role="stars"]');
-            renderStarButtons(starsEl, 0, async (val) => {
-              const ok = await saveUserSeriesRating(seriesKey, heroData, val);
-              if (!ok) return;
-              await refresh();
-            });
-            wrap.addEventListener('click', async () => {
-              const { user } = await getSupabaseUser();
-              if (!user) openLoginUi();
-            });
+            wrap.style.cursor = 'pointer';
+            if (!wrap.__aryOpenPickerBound) {
+              wrap.__aryOpenPickerBound = true;
+              wrap.addEventListener('click', (e) => {
+                try { e.preventDefault(); } catch (_) {}
+                openPicker();
+              });
+            }
           });
 
           const refresh = async () => {
@@ -4066,11 +4218,7 @@
               const starsEl = wrap.querySelector('[data-role="stars"]');
               if (scoreEl) scoreEl.textContent = scoreText;
               if (subEl) subEl.textContent = subText;
-              renderStarButtons(starsEl, userRating != null ? userRating : (displayAvg || 0), async (val) => {
-                const ok = await saveUserSeriesRating(seriesKey, heroData, val);
-                if (!ok) return;
-                await refresh();
-              });
+              renderStarsDisplay(starsEl, userRating != null ? userRating : (displayAvg || 0));
             });
           };
 
@@ -5692,7 +5840,7 @@
             { label: 'Rank', value: heroData.follow_rank ? `#${heroData.follow_rank}` : '—', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>' },
             { label: 'Follows', value: heroData.user_follow_count ? Number(heroData.user_follow_count).toLocaleString() : '—', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>' },
             { label: 'Year', value: heroData.year ? String(heroData.year) : '—', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>' },
-            { label: 'Type', value: heroData.type || 'Manga', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>' },
+            { label: 'Bayesian rating', value: heroData.rating ? Number(heroData.rating).toFixed(2) : '—', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>' },
             { label: 'Status', value: heroData.status || 'Unknown', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>' },
             { label: 'Chapters', value: String(chapterTotal || '—'), icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>' },
           ];
