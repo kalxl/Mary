@@ -123,7 +123,7 @@
 
       @media (min-width: 641px) {
         .hero-aside {
-          margin-top: 4.75rem;
+          margin-top: 0;
         }
       }
 
@@ -5105,8 +5105,46 @@
           descriptionToggle.onclick = () => {
             descriptionExpanded = !descriptionExpanded;
             updateDescription();
+            try { alignDesktopHeroAsideToDescription(); } catch (_) {}
           };
         }
+      }
+
+      function alignDesktopHeroAsideToDescription() {
+        const isDesktop = window.matchMedia('(min-width: 641px)').matches;
+        const heroAside = document.querySelector('.hero-aside');
+        const stats = heroAside ? heroAside.querySelector('.hero-inline-stats') : null;
+        const desc = document.getElementById('series-description');
+        if (!isDesktop || !heroAside || !stats || !desc) {
+          if (heroAside) heroAside.style.marginTop = '';
+          return;
+        }
+
+        const descRect = desc.getBoundingClientRect();
+        const statsRect = stats.getBoundingClientRect();
+        if (!descRect || !statsRect) return;
+
+        // Move the aside so the first stat line starts at the same vertical level
+        // as the first line of the description.
+        let delta = Math.round(descRect.top - statsRect.top);
+
+        // Keep the layout stable: clamp to a reasonable range.
+        delta = Math.max(-20, Math.min(140, delta));
+
+        heroAside.style.marginTop = `${delta}px`;
+      }
+
+      if (!window.__aryHeroAsideAlignBound) {
+        window.__aryHeroAsideAlignBound = true;
+        window.addEventListener('resize', () => {
+          try {
+            requestAnimationFrame(() => {
+              try { alignDesktopHeroAsideToDescription(); } catch (_) {}
+            });
+          } catch (_) {
+            try { alignDesktopHeroAsideToDescription(); } catch (_) {}
+          }
+        });
       }
 
       // Mobile Layout Functions
@@ -5563,6 +5601,7 @@
         if (!fullDescription || fullDescription.length <= limit) {
           descriptionEl.textContent = fullDescription;
           if (descriptionControls) descriptionControls.hidden = true;
+          try { requestAnimationFrame(() => alignDesktopHeroAsideToDescription()); } catch (_) { try { alignDesktopHeroAsideToDescription(); } catch (_) {} }
           return;
         }
         if (descriptionControls) descriptionControls.hidden = false;
@@ -5574,6 +5613,8 @@
           descriptionEl.textContent = preview;
           if (descriptionToggle) descriptionToggle.textContent = "Show more";
         }
+
+        try { requestAnimationFrame(() => alignDesktopHeroAsideToDescription()); } catch (_) { try { alignDesktopHeroAsideToDescription(); } catch (_) {} }
       }
 
       groupFilter?.addEventListener("change", () => {
