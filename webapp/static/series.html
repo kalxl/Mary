@@ -3419,7 +3419,7 @@
         /* Mobile Tab Content */
         .mobile-tab-content {
           display: none;
-          padding: 1rem 0;
+          padding: 0.7rem 0;
           animation: fadeIn 0.2s ease;
         }
         .mobile-tab-content.active {
@@ -3608,6 +3608,29 @@
           gap: 0.75rem;
         }
 
+        .reviews-score-row .spacer {
+          flex: 1;
+        }
+
+        .reviews-score-logo {
+          width: 34px;
+          height: 34px;
+          border-radius: 12px;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+
+        .reviews-score-logo img {
+          width: 22px;
+          height: 22px;
+          object-fit: contain;
+          display: block;
+        }
+
         .reviews-score-value {
           font-size: 2rem;
           font-weight: 900;
@@ -3689,9 +3712,9 @@
         .reviews-source-row {
           display: flex;
           align-items: center;
-          justify-content: flex-end;
+          justify-content: flex-start;
           gap: 0.5rem;
-          margin-bottom: 0.6rem;
+          margin-bottom: 0.35rem;
           flex-wrap: wrap;
         }
 
@@ -4330,6 +4353,15 @@
           return;
         }
 
+        const themed = (() => {
+          const b = document.body;
+          if (!b) return false;
+          const dt = (b.getAttribute('data-theme') || '').toLowerCase();
+          if (dt && dt !== 'default' && dt !== 'light') return true;
+          return b.classList.contains('themed') || b.classList.contains('theme') || b.classList.contains('dark-themed');
+        })();
+        const aryLogo = themed ? '/static/img/zoro2.png' : '/static/img/zoro.png';
+
         const avg = Number.isFinite(summary?.avg) ? summary.avg : null;
         const scoreText = avg == null ? '0.0' : (Math.round(avg * 10) / 10).toFixed(1);
         const stars10 = avg == null ? 0 : avg;
@@ -4364,6 +4396,8 @@
                 <div class="reviews-stars">${starsHtml}</div>
                 <div class="reviews-count">${safeCount} rating${safeCount === 1 ? '' : 's'}</div>
               </div>
+              <div class="spacer"></div>
+              <div class="reviews-score-logo"><img src="${aryLogo}" alt="Ary" /></div>
             </div>
           </div>
           <div class="reviews-dist">${rowsHtml}</div>
@@ -4372,6 +4406,7 @@
 
       async function initReviewsSummary(heroData) {
         try {
+          if (window.__aryReviewsSource && window.__aryReviewsSource !== 'ary') return;
           const seriesKey = getSlugStorageKey();
           if (!seriesKey) return;
           const desktopSummary = document.getElementById('desktop-reviews-summary');
@@ -4400,7 +4435,17 @@
           { key: 'comick', label: 'Comick', icon: '/static/img/comick.png' },
         ];
 
+        const saved = (() => {
+          try {
+            return localStorage.getItem('ARY_REVIEWS_SOURCE') || '';
+          } catch (_) {
+            return '';
+          }
+        })();
+
         const setActive = (key) => {
+          window.__aryReviewsSource = key;
+          try { localStorage.setItem('ARY_REVIEWS_SOURCE', key); } catch (_) {}
           containers.forEach((c) => {
             c.querySelectorAll('.source-btn').forEach((btn) => {
               btn.classList.toggle('active', btn.dataset.reviewSource === key);
@@ -4436,7 +4481,7 @@
           });
         });
 
-        setActive('ary');
+        setActive(saved === 'comick' ? 'comick' : 'ary');
       }
 
       async function initRatingUi(heroData) {
