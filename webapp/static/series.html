@@ -151,10 +151,10 @@
       }
 
       .hero-inline-stats .stat-line {
-        display: flex;
+        display: grid;
+        grid-template-columns: 1fr max-content;
         align-items: baseline;
-        justify-content: space-between;
-        gap: 0.75rem;
+        gap: 0.5rem;
         white-space: nowrap;
       }
 
@@ -166,6 +166,9 @@
       .hero-inline-stats .stat-line strong {
         color: #eef7f1;
         font-weight: 650;
+        font-size: 0.82rem;
+        text-align: left;
+        justify-self: end;
       }
 
       .hero-links-inline {
@@ -187,22 +190,45 @@
       }
 
       @media (min-width: 641px) {
+        .hero-links-inline {
+          flex-wrap: nowrap;
+        }
+
+        .hero-links-inline .links-row {
+          flex-wrap: nowrap;
+        }
+      }
+
+      @media (min-width: 641px) {
         .hero-aside .link-btn {
-          width: auto;
-          height: 36px;
-          border-radius: 999px;
-          padding: 0 0.65rem;
+          width: 44px;
+          height: 44px;
+          border-radius: 12px;
+          padding: 0;
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          gap: 0.45rem;
-          font-size: 0.78rem;
-          line-height: 1;
+          gap: 0;
+          font-size: 0;
+          line-height: 0;
+          background: rgba(255, 255, 255, 0.06);
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          transition: all 0.15s ease;
+        }
+
+        .hero-aside .link-btn:hover {
+          background: rgba(255, 255, 255, 0.12);
+          border-color: rgba(255, 255, 255, 0.25);
+          transform: translateY(-1px);
+        }
+
+        .hero-aside .link-btn span {
+          display: none;
         }
 
         .hero-aside .link-btn img {
-          width: 16px;
-          height: 16px;
+          width: 18px;
+          height: 18px;
         }
       }
 
@@ -222,7 +248,7 @@
       }
 
       .hero-slug {
-        margin: 0.05rem 0 0;
+        margin: 0;
         color: var(--muted);
         font-size: 0.92rem;
         line-height: 1.25;
@@ -249,6 +275,15 @@
           gap: 0;
         }
 
+        .hero-actions-row #offline-download-btn {
+          font-size: 0;
+          line-height: 0;
+        }
+
+        .hero-actions-row #offline-download-btn span {
+          display: none;
+        }
+
         .hero-actions-row #status-btn:hover,
         .hero-actions-row #offline-download-btn:hover {
           background: rgba(255, 255, 255, 0.12) !important;
@@ -263,6 +298,17 @@
 
         .hero-actions-row #status-label {
           display: none;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .hero-actions-row #offline-download-btn {
+          font-size: 0.95rem;
+          line-height: normal;
+        }
+
+        .hero-actions-row #offline-download-btn span {
+          display: inline;
         }
       }
 
@@ -1167,7 +1213,20 @@
         .desktop-bottom-grid .recommendation-list {
           display: grid;
           grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 0.9rem;
+          gap: 0.55rem;
+        }
+
+        .desktop-bottom-grid .recommendation-card {
+          width: 100%;
+          min-width: 0;
+        }
+
+        .desktop-bottom-grid .recommendation-header h3 {
+          padding-left: 0;
+        }
+
+        .desktop-bottom-grid .recommendation-header h3::before {
+          content: none;
         }
 
         .desktop-bottom-grid .recommendation-list-wrapper {
@@ -1177,26 +1236,41 @@
       }
 
       .chapter-tabs {
-        display: inline-flex;
+        display: flex;
         gap: 0.5rem;
         align-items: center;
+        width: 100%;
       }
 
       .chapter-tab-btn {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
         background: rgba(255, 255, 255, 0.06);
-        border: 1px solid rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.1);
         color: var(--muted);
-        border-radius: 999px;
-        padding: 0.45rem 0.8rem;
-        font-size: 0.82rem;
-        font-weight: 650;
+        border-radius: 14px;
+        padding: 0.75rem;
+        font-size: 0.9rem;
+        font-weight: 700;
         cursor: pointer;
+        transition: background 0.15s ease, color 0.15s ease, transform 0.12s ease;
       }
 
       .chapter-tab-btn.active {
-        background: rgba(var(--accent-rgb), 0.14);
-        border-color: rgba(var(--accent-rgb), 0.34);
-        color: var(--accent);
+        background: rgba(255, 255, 255, 0.12);
+        color: #fff;
+      }
+
+      .chapter-tab-btn:active {
+        transform: scale(0.98);
+      }
+
+      #desktop-chapters-view,
+      #desktop-reviews-view {
+        animation: fadeIn 0.2s ease;
       }
 
       #desktop-reviews-view {
@@ -2900,8 +2974,17 @@
         }
         .mobile-similar-grid {
           display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: 0.5rem;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 0.4rem;
+          width: 100%;
+        }
+        .mobile-similar-card {
+          width: 100%;
+          min-width: 0;
+        }
+        .mobile-similar-card img {
+          width: 100%;
+          display: block;
         }
         .mobile-similar-card {
           display: flex;
@@ -2910,17 +2993,10 @@
           text-decoration: none;
           color: inherit;
           width: 100%;
-          max-width: 150px;
+          min-width: 0;
+          max-width: none;
         }
-        .mobile-similar-card img {
-          width: 100%;
-          aspect-ratio: 2 / 3;
-          max-height: 200px;
-          height: auto;
-          object-fit: cover;
-          object-position: center top;
-          border-radius: 8px;
-        }
+
         .mobile-similar-title {
           font-size: 0.75rem;
           font-weight: 500;
@@ -3199,10 +3275,11 @@
         <div class="desktop-bottom-grid">
           <section class="panel" id="chapter-panel" hidden>
             <div class="chapter-panel-header">
-              <div class="chapter-tabs" role="tablist" aria-label="Series sections">
-                <button type="button" class="chapter-tab-btn active" id="desktop-tab-chapters" aria-controls="desktop-chapters-view" aria-selected="true">Chapters</button>
-                <button type="button" class="chapter-tab-btn" id="desktop-tab-reviews" aria-controls="desktop-reviews-view" aria-selected="false">Reviews</button>
-              </div>
+              <div style="height: 1px;"></div>
+            </div>
+            <div class="chapter-tabs" role="tablist" aria-label="Series sections">
+              <button type="button" class="chapter-tab-btn active" id="desktop-tab-chapters" aria-controls="desktop-chapters-view" aria-selected="true">Chapters</button>
+              <button type="button" class="chapter-tab-btn" id="desktop-tab-reviews" aria-controls="desktop-reviews-view" aria-selected="false">Reviews</button>
             </div>
             <div id="desktop-chapters-view">
             <div class="chapter-controls">
@@ -4553,7 +4630,7 @@
             : "Series");
         const sourceUrl = heroData?.source_url ||
           (sourceKey === "comick"
-            ? `https://comick.io/comic/${heroData?.slug || slug}`
+            ? `https://comick.dev/comic/${heroData?.slug || slug}`
             : sourceKey === "asura"
             ? `https://asuracomic.net/series/${heroData?.slug || ""}`
             : sourceKey === "mangataro"
@@ -4619,7 +4696,12 @@
                 </div>
 
               <button class="btn ghost square offline-download-btn" id="offline-download-btn" type="button" hidden>
-                Download
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                <span>Download</span>
               </button>
             </div>
 
@@ -4646,7 +4728,7 @@
             <div class="hero-links-inline">
               <span class="links-inline-label">Links:</span>
               <div class="links-row">
-                <a href="https://comick.io/comic/${heroData.slug || ''}" target="_blank" rel="noopener" class="link-btn comick-link" title="Comick">
+                <a href="https://comick.dev/comic/${heroData.slug || ''}" target="_blank" rel="noopener" class="link-btn comick-link" title="Comick">
                   <img src="/static/img/comick.png" alt="Comick"/>
                   <span>Comick</span>
                 </a>
@@ -4876,7 +4958,7 @@
         const mobileLinks = document.getElementById('mobile-external-links');
         if (mobileLinks) {
           let linksHtml = '<span class="links-label">Links</span><div class="links-row">';
-          linksHtml += `<a href="https://comick.io/comic/${heroData.slug || ''}" target="_blank" rel="noopener" class="link-btn comick-link" title="Comick">
+          linksHtml += `<a href="https://comick.dev/comic/${heroData.slug || ''}" target="_blank" rel="noopener" class="link-btn comick-link" title="Comick">
             <img src="/static/img/comick.png" alt="Comick"/>
           </a>`;
           if (heroData.al || heroData.links?.al) {
@@ -7213,7 +7295,7 @@ We'll reuse it next time.`,
         const groupParam = groupName ? `&group=${encodeURIComponent(groupName)}` : "";
 
         if (sourceToUse === "comick") {
-          return `https://comick.io/chapter/${chapterId}`;
+          return `https://comick.dev/chapter/${chapterId}`;
         }
         if (sourceToUse === "asura") {
           const slug = sourceCache.asura?.slug || "";
@@ -7362,7 +7444,7 @@ We'll reuse it next time.`,
           links: comic.links || null,
           source: "comick",
           source_label: "Comick",
-          source_url: `https://comick.io/comic/${comic.slug || fallbackSlug}`,
+          source_url: `https://comick.dev/comic/${comic.slug || fallbackSlug}`,
         };
       }
 
@@ -7380,7 +7462,7 @@ We'll reuse it next time.`,
           translated_language: lang,
           scanlation_group: groupName,
           published_at: entry.created_at || entry.updated_at || entry.published_at,
-          url: entry.url || `https://comick.io/chapter/${hid}`,
+          url: entry.url || `https://comick.dev/chapter/${hid}`,
         };
       }
 
