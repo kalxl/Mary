@@ -317,7 +317,7 @@
         }
 
         .hero-actions-row #offline-download-btn {
-          color: #eaf2ee;
+          color: rgba(255, 255, 255, 0.6);
         }
 
         .hero-actions-row #read-btn {
@@ -2163,7 +2163,7 @@
       .chapter-menu-popup {
         position: fixed;
         z-index: 5000;
-        min-width: 160px;
+        min-width: 140px;
         background: rgba(16, 18, 20, 0.98);
         border-radius: 12px;
         border: 1px solid rgba(255, 255, 255, 0.08);
@@ -2179,13 +2179,24 @@
       .chapter-menu-item {
         width: 100%;
         text-align: left;
-        padding: 0.55rem 0.9rem;
+        padding: 0.48rem 0.75rem;
         background: transparent;
         border: none;
-        color: #d4d9d6;
-        font-size: 0.9rem;
+        color: #cfd3d8;
+        font-size: 0.86rem;
         cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
         transition: background 0.12s ease, color 0.12s ease;
+      }
+
+      .chapter-menu-item svg {
+        width: 16px;
+        height: 16px;
+        flex: 0 0 auto;
+        display: block;
+        stroke: currentColor;
       }
 
       .chapter-menu-item:hover {
@@ -2749,13 +2760,17 @@
         width: 18px;
         height: 18px;
         flex: 0 0 auto;
-        color: var(--accent);
+        fill: none;
         stroke: currentColor;
       }
 
-      #popup-chapter-list .chapter-row:hover {
-        background: rgba(255, 255, 255, 0.06);
-        border-color: rgba(var(--accent-rgb), 0.35);
+      .popup-chapter-leading .source-icon {
+        width: 18px;
+        height: 18px;
+        flex: 0 0 auto;
+        border-radius: 5px;
+        object-fit: cover;
+        display: block;
       }
 
       #popup-chapter-list .chapter-row .icon {
@@ -6001,10 +6016,22 @@
         chapterMenuPopupEl = document.createElement('div');
         chapterMenuPopupEl.className = 'chapter-menu-popup';
         chapterMenuPopupEl.innerHTML = `
-          <button type="button" class="chapter-menu-item" data-action="mark-read">Mark as read</button>
-          <button type="button" class="chapter-menu-item" data-action="mark-unread">Mark as unread</button>
-          <button type="button" class="chapter-menu-item" data-action="mark-all-read">Mark all read</button>
-          <button type="button" class="chapter-menu-item" data-action="mark-all-unread">Mark all unread</button>
+          <button type="button" class="chapter-menu-item" data-action="mark-read">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            Mark as read
+          </button>
+          <button type="button" class="chapter-menu-item" data-action="mark-unread">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
+            Mark as unread
+          </button>
+          <button type="button" class="chapter-menu-item" data-action="mark-all-read">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/><path d="M20 12 12 20l-4-4"/></svg>
+            Mark all read
+          </button>
+          <button type="button" class="chapter-menu-item" data-action="mark-all-unread">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/><path d="M21 6l-2 2"/></svg>
+            Mark all unread
+          </button>
         `;
         document.body.appendChild(chapterMenuPopupEl);
 
@@ -7556,10 +7583,11 @@
                 const groupName = ch.scanlation_group || ch.group_name || "";
                 const readerHref = buildReaderUrl(ch.id, sourceKey, groupName);
                 const chapterLabel = ch.chapter ?? "?";
+                const srcIcon = getSourceIcon(sourceKey);
                 return `
                   <a class="chapter-row" href="${readerHref}" data-chapter-number="${escapeHtml(chapterLabel)}" data-chapter-id="${escapeHtml(ch.id)}" data-source="${escapeHtml(sourceKey)}" data-group="${escapeHtml(groupName)}">
                     <div class="popup-chapter-leading">
-                      <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>
+                      ${srcIcon ? `<img class="source-icon" src="${escapeHtml(srcIcon)}" alt="" />` : `<span class="icon">•</span>`}
                       <div>
                         <strong>${escapeHtml(sourceLabel)}: Chapter ${escapeHtml(chapterLabel)}</strong>
                         ${ch.title ? `<div>${escapeHtml(ch.title)}</div>` : ''}
