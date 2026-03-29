@@ -117,14 +117,28 @@
         display: flex;
         flex-direction: column;
         gap: 0.75rem;
-        padding: 1rem;
-        border: 1px solid rgba(255, 255, 255, 0.06);
-        border-radius: 18px;
-        background: rgba(255, 255, 255, 0.02);
+        padding: 0;
+        border: none;
+        border-radius: 0;
+        background: transparent;
       }
 
       .hero-aside .links-label {
         margin: 0;
+      }
+
+      @media (min-width: 641px) {
+        .hero-aside .links-label {
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          padding: 0;
+          margin: -1px;
+          overflow: hidden;
+          clip: rect(0, 0, 0, 0);
+          white-space: nowrap;
+          border: 0;
+        }
       }
 
       .hero-inline-stats {
@@ -144,9 +158,52 @@
         white-space: nowrap;
       }
 
+      .hero-inline-stats .stat-line span:first-child::after {
+        content: ":";
+        margin-left: 0.25rem;
+      }
+
       .hero-inline-stats .stat-line strong {
         color: #eef7f1;
         font-weight: 650;
+      }
+
+      .hero-links-inline {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+      }
+
+      .hero-links-inline .links-inline-label {
+        color: var(--muted);
+        font-size: 0.82rem;
+        white-space: nowrap;
+      }
+
+      .hero-links-inline .links-row {
+        gap: 0.5rem;
+        flex-wrap: wrap;
+      }
+
+      @media (min-width: 641px) {
+        .hero-aside .link-btn {
+          width: auto;
+          height: 36px;
+          border-radius: 999px;
+          padding: 0 0.65rem;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.45rem;
+          font-size: 0.78rem;
+          line-height: 1;
+        }
+
+        .hero-aside .link-btn img {
+          width: 16px;
+          height: 16px;
+        }
       }
 
       .hero-actions-row {
@@ -165,10 +222,48 @@
       }
 
       .hero-slug {
-        margin: -0.15rem 0 0;
+        margin: 0.05rem 0 0;
         color: var(--muted);
         font-size: 0.92rem;
         line-height: 1.25;
+      }
+
+      .hero-main h1 {
+        margin-bottom: 0;
+      }
+
+      @media (min-width: 641px) {
+        .hero-actions-row #status-btn,
+        .hero-actions-row #offline-download-btn {
+          width: 46px;
+          height: 46px;
+          min-width: 46px;
+          padding: 0;
+          border-radius: 12px;
+          background: rgba(255, 255, 255, 0.06) !important;
+          border: 1px solid rgba(255, 255, 255, 0.12) !important;
+          color: var(--muted) !important;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0;
+        }
+
+        .hero-actions-row #status-btn:hover,
+        .hero-actions-row #offline-download-btn:hover {
+          background: rgba(255, 255, 255, 0.12) !important;
+          border-color: rgba(255, 255, 255, 0.25) !important;
+        }
+
+        .hero-actions-row #status-btn svg,
+        .hero-actions-row #offline-download-btn svg {
+          width: 18px;
+          height: 18px;
+        }
+
+        .hero-actions-row #status-label {
+          display: none;
+        }
       }
 
       .hero-actions-row .status-wrapper {
@@ -1054,36 +1149,75 @@
       }
 
       @media (min-width: 641px) {
+        .desktop-bottom-grid #recommendation-panel {
+          background: transparent;
+          border: none;
+          box-shadow: none;
+          padding: 0;
+        }
+
+        .desktop-bottom-grid .recommendation-header p {
+          display: none;
+        }
+
+        .desktop-bottom-grid #recommendation-next {
+          display: none !important;
+        }
+
+        .desktop-bottom-grid .recommendation-list {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 0.9rem;
+        }
+
         .desktop-bottom-grid .recommendation-list-wrapper {
           overflow: hidden;
           padding-bottom: 0;
         }
+      }
 
-        .desktop-bottom-grid .recommendation-list {
-          display: flex;
-          flex-direction: column;
-          gap: 0.75rem;
-        }
+      .chapter-tabs {
+        display: inline-flex;
+        gap: 0.5rem;
+        align-items: center;
+      }
 
-        .desktop-bottom-grid .recommendation-card {
-          width: 100%;
-          padding: 0.65rem;
-          border-radius: 14px;
-        }
+      .chapter-tab-btn {
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        color: var(--muted);
+        border-radius: 999px;
+        padding: 0.45rem 0.8rem;
+        font-size: 0.82rem;
+        font-weight: 650;
+        cursor: pointer;
+      }
 
-        .desktop-bottom-grid .recommendation-card img {
-          width: 58px;
-          height: 84px;
-          border-radius: 10px;
-        }
+      .chapter-tab-btn.active {
+        background: rgba(var(--accent-rgb), 0.14);
+        border-color: rgba(var(--accent-rgb), 0.34);
+        color: var(--accent);
+      }
 
-        .desktop-bottom-grid .recommendation-body h4 {
-          font-size: 0.9rem;
-        }
+      #desktop-reviews-view {
+        margin-top: 0.5rem;
+      }
 
-        .desktop-bottom-grid .recommendation-meta {
-          font-size: 0.75rem;
-        }
+      #desktop-reviews-view .mobile-reviews-empty {
+        text-align: left;
+        padding: 1.2rem 0.25rem;
+      }
+
+      #desktop-reviews-view .mobile-reviews-header {
+        margin-bottom: 0.85rem;
+      }
+
+      #desktop-reviews-view .mobile-reviews-header h3 {
+        font-size: 0.9rem;
+      }
+
+      #desktop-reviews-view .mobile-reviews-header a {
+        font-size: 0.8rem;
       }
 
       .recommendation-card {
@@ -3065,8 +3199,12 @@
         <div class="desktop-bottom-grid">
           <section class="panel" id="chapter-panel" hidden>
             <div class="chapter-panel-header">
-              <h2>Chapters</h2>
+              <div class="chapter-tabs" role="tablist" aria-label="Series sections">
+                <button type="button" class="chapter-tab-btn active" id="desktop-tab-chapters" aria-controls="desktop-chapters-view" aria-selected="true">Chapters</button>
+                <button type="button" class="chapter-tab-btn" id="desktop-tab-reviews" aria-controls="desktop-reviews-view" aria-selected="false">Reviews</button>
+              </div>
             </div>
+            <div id="desktop-chapters-view">
             <div class="chapter-controls">
               <div class="chapter-filter-row">
                 <div class="chapter-search-wrapper">
@@ -3101,6 +3239,18 @@
                 <button id="chapter-next" type="button">›</button>
               </div>
             </div>
+            </div>
+
+            <div id="desktop-reviews-view" hidden>
+              <div class="mobile-reviews-header">
+                <h3>Reviews</h3>
+                <a href="#" id="desktop-reviews-see-all">See all</a>
+              </div>
+              <div class="mobile-reviews-empty" id="desktop-reviews-empty">
+                No reviews yet. Be the first to write a review!
+              </div>
+              <div id="desktop-reviews-list" hidden></div>
+            </div>
           </section>
           <section class="panel recommendation-panel" id="recommendation-panel" hidden>
             <div class="recommendation-header">
@@ -3108,9 +3258,7 @@
                 <h3>Similar</h3>
                 <p>Other series you may like</p>
               </div>
-              <button type="button" id="recommendation-next" class="recommendation-next" aria-label="Next recommendations" hidden>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
-              </button>
+              <button type="button" id="recommendation-next" class="recommendation-next" aria-label="Next recommendations" hidden></button>
             </div>
             <div class="recommendation-list-wrapper">
               <div id="recommendation-list" class="recommendation-list"></div>
@@ -3493,6 +3641,36 @@
         });
       }
 
+      function bindDesktopTabs() {
+        const tabChapters = document.getElementById('desktop-tab-chapters');
+        const tabReviews = document.getElementById('desktop-tab-reviews');
+        const chaptersView = document.getElementById('desktop-chapters-view');
+        const reviewsView = document.getElementById('desktop-reviews-view');
+        if (!tabChapters || !tabReviews || !chaptersView || !reviewsView) return;
+        if (tabChapters._bound) return;
+        tabChapters._bound = true;
+        tabReviews._bound = true;
+
+        const setActive = (key) => {
+          const isChapters = key === 'chapters';
+          tabChapters.classList.toggle('active', isChapters);
+          tabReviews.classList.toggle('active', !isChapters);
+          tabChapters.setAttribute('aria-selected', isChapters ? 'true' : 'false');
+          tabReviews.setAttribute('aria-selected', !isChapters ? 'true' : 'false');
+          chaptersView.hidden = !isChapters;
+          reviewsView.hidden = isChapters;
+        };
+
+        tabChapters.addEventListener('click', () => setActive('chapters'));
+        tabReviews.addEventListener('click', () => setActive('reviews'));
+
+        document.getElementById('desktop-reviews-see-all')?.addEventListener('click', (e) => {
+          e.preventDefault();
+        });
+
+        setActive('chapters');
+      }
+
       // Source tab click handlers
       sourceTabs.forEach(tab => {
         tab.addEventListener('click', () => {
@@ -3869,6 +4047,7 @@
       }
 
       function init() {
+        try { bindDesktopTabs(); } catch (_) {}
         if (!comickSlug) {
           hero.innerHTML = `<p style="color: var(--muted);">Missing series slug. Open this series from Home or Browse.</p>`;
           hero.hidden = false;
@@ -4455,7 +4634,6 @@
           </div>
 
           <aside class="hero-aside">
-            <span class="links-label">Stats</span>
             <div class="hero-inline-stats">
               <div class="stat-line"><span>Rank</span><strong>${heroData.follow_rank ? `#${heroData.follow_rank}` : '—'}</strong></div>
               <div class="stat-line"><span>Follows</span><strong>${heroData.user_follow_count ? Number(heroData.user_follow_count).toLocaleString() : (heroData.followers ? Number(heroData.followers).toLocaleString() : '—')}</strong></div>
@@ -4465,20 +4643,24 @@
               <div class="stat-line"><span>Chapters</span><strong>${heroChapterTotal || '—'}</strong></div>
             </div>
 
-            <div class="external-links">
-              <span class="links-label">Links</span>
+            <div class="hero-links-inline">
+              <span class="links-inline-label">Links:</span>
               <div class="links-row">
                 <a href="https://comick.io/comic/${heroData.slug || ''}" target="_blank" rel="noopener" class="link-btn comick-link" title="Comick">
                   <img src="/static/img/comick.png" alt="Comick"/>
+                  <span>Comick</span>
                 </a>
                 ${heroData.al ? `<a href="https://anilist.co/manga/${heroData.al}" target="_blank" rel="noopener" class="link-btn anilist-link" title="AniList">
                   <img src="/static/img/anilist.png" alt="AniList"/>
+                  <span>AniList</span>
                 </a>` : ''}
                 ${heroData.mu ? `<a href="https://www.mangaupdates.com/series/${heroData.mu}" target="_blank" rel="noopener" class="link-btn mangaupdates-link" title="MangaUpdates">
                   <img src="/static/img/mangaupdate.png" alt="MangaUpdates"/>
+                  <span>MU</span>
                 </a>` : ''}
                 ${heroData.mal ? `<a href="https://myanimelist.net/manga/${heroData.mal}" target="_blank" rel="noopener" class="link-btn mal-link" title="MyAnimeList">
                   <img src="/static/img/myanimelist.png" alt="MyAnimeList"/>
+                  <span>MAL</span>
                 </a>` : ''}
               </div>
             </div>
