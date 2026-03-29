@@ -160,7 +160,7 @@
 
       .hero-inline-stats .stat-line span:first-child::after {
         content: ":";
-        margin-left: 0.25rem;
+        margin-left: 0;
       }
 
       .hero-inline-stats .stat-line strong {
@@ -285,6 +285,12 @@
       }
 
       @media (min-width: 641px) {
+        .hero-main h1 {
+          font-size: 1.8rem;
+          line-height: 1.12;
+          letter-spacing: -0.02em;
+        }
+
         .hero-actions-row #status-btn,
         .hero-actions-row #offline-download-btn {
           width: 46px;
@@ -292,14 +298,8 @@
           min-width: 46px;
           padding: 0;
           border-radius: 12px;
-          background: rgba(255, 255, 255, 0.06) !important;
-          border: 1px solid rgba(255, 255, 255, 0.12) !important;
-          color: var(--muted) !important;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          gap: 0;
         }
+        .hero-actions-row #status-btn,
 
         .hero-actions-row #offline-download-btn {
           font-size: 0;
@@ -4802,6 +4802,8 @@
             </div>
           </aside>
         `;
+
+        try { bindDesktopTabs(); } catch (_) {}
 
         ensureMobileDescriptionMount();
         placeDescriptionBlock();
