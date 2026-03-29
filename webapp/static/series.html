@@ -316,6 +316,10 @@
           border-radius: 12px;
         }
 
+        .hero-actions-row #offline-download-btn {
+          color: #eaf2ee;
+        }
+
         .hero-actions-row #read-btn {
           height: 46px;
           min-height: 46px;
@@ -345,6 +349,8 @@
         .hero-actions-row #offline-download-btn svg {
           width: 20px;
           height: 20px;
+          display: block;
+          flex: 0 0 auto;
         }
 
         .hero-actions-row #read-btn svg {
@@ -7645,7 +7651,17 @@
         }
 
         if (readBtn) {
-          readBtn.textContent = label;
+          const span = readBtn.querySelector('span');
+          if (span) {
+            span.textContent = label;
+          } else {
+            const svg = readBtn.querySelector('svg');
+            readBtn.innerHTML = '';
+            if (svg) readBtn.appendChild(svg);
+            const newSpan = document.createElement('span');
+            newSpan.textContent = label;
+            readBtn.appendChild(newSpan);
+          }
           readBtn.disabled = false;
           readBtn.dataset.mode = mode;
         }
