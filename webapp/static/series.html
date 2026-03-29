@@ -1015,9 +1015,9 @@
         right: 0;
         left: auto;
         width: 140px;
-        background: #2a2f33;
+        background: #1f2428;
         border-radius: 12px;
-        border: 1px solid #3a4046;
+        border: 1px solid #2c3339;
         box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
         overflow: hidden;
         z-index: 9999;
@@ -1041,7 +1041,7 @@
         width: 100%;
         text-align: left;
         padding: 0.48rem 0.75rem;
-        background: #2a2f33;
+        background: #1f2428;
         border: none;
         color: #cfd3d8;
         font-size: 0.86rem;
@@ -1060,34 +1060,34 @@
         stroke: currentColor;
       }
       .status-option:hover {
-        background: #343a3f;
+        background: #2a3137;
       }
       .status-option[data-status="Reading"]:hover {
-        background: #343a3f;
+        background: #2a3137;
         color: #cfd3d8;
       }
       .status-option[data-status="Completed"]:hover {
-        background: #343a3f;
+        background: #2a3137;
         color: #cfd3d8;
       }
       .status-option[data-status="On Hold"]:hover {
-        background: #343a3f;
+        background: #2a3137;
         color: #cfd3d8;
       }
       .status-option[data-status="Dropped"]:hover {
-        background: #343a3f;
+        background: #2a3137;
         color: #cfd3d8;
       }
       .status-option[data-status="Plan to Read"]:hover {
-        background: #343a3f;
+        background: #2a3137;
         color: #cfd3d8;
       }
       .status-option.status-clear {
         color: #f06060;
-        border-top: 1px solid #3a4046;
+        border-top: 1px solid #2c3339;
       }
       .status-option.status-clear:hover {
-        background: #343a3f;
+        background: #2a3137;
         color: #fee2e2;
       }
 
@@ -2175,9 +2175,9 @@
         position: fixed;
         z-index: 5000;
         min-width: 140px;
-        background: #2a2f33;
+        background: #1f2428;
         border-radius: 12px;
-        border: 1px solid #3a4046;
+        border: 1px solid #2c3339;
         box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
         overflow: hidden;
         display: none;
@@ -2191,7 +2191,7 @@
         width: 100%;
         text-align: left;
         padding: 0.48rem 0.75rem;
-        background: #2a2f33;
+        background: #1f2428;
         border: none;
         color: #cfd3d8;
         font-size: 0.86rem;
@@ -2211,7 +2211,7 @@
       }
 
       .chapter-menu-item:hover {
-        background: #343a3f;
+        background: #2a3137;
       }
 
       .hero-rating {
@@ -2325,8 +2325,8 @@
 
       .rating-modal-card {
         width: min(420px, calc(100vw - 36px));
-        background: #2a2f33;
-        border: 1px solid #3a4046;
+        background: #1f2428;
+        border: 1px solid #2c3339;
         border-radius: 16px;
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
         padding: 14px;
@@ -2345,6 +2345,9 @@
         font-size: 0.95rem;
         font-weight: 700;
         color: #eef7f1;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
       }
 
       .rating-modal-close {
@@ -2352,7 +2355,7 @@
         height: 34px;
         border-radius: 10px;
         border: 1px solid #3a4046;
-        background: #343a3f;
+        background: #2a3137;
         color: rgba(255, 255, 255, 0.85);
         cursor: pointer;
       }
@@ -2367,7 +2370,7 @@
         height: 40px;
         border-radius: 12px;
         border: 1px solid #3a4046;
-        background: #343a3f;
+        background: #2a3137;
         color: #eaf2ee;
         font-weight: 800;
         cursor: pointer;
@@ -2607,9 +2610,9 @@
         width: 34px;
         height: 34px;
         border-radius: 12px;
-        border: 1px solid #3a4046;
-        background: #343a3f;
-        color: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(var(--accent-rgb), 0.18);
+        background: rgba(var(--accent-rgb), 0.10);
+        color: color-mix(in srgb, var(--accent) 72%, white);
         display: inline-flex;
         align-items: center;
         justify-content: center;
