@@ -1015,7 +1015,7 @@
         right: 0;
         left: auto;
         width: 140px;
-        background: rgba(255, 255, 255, 0.06);
+        background: rgba(255, 255, 255, 0.12);
         border-radius: 12px;
         border: 1px solid rgba(255, 255, 255, 0.12);
         box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
@@ -2175,7 +2175,7 @@
         position: fixed;
         z-index: 5000;
         min-width: 140px;
-        background: rgba(255, 255, 255, 0.06);
+        background: rgba(255, 255, 255, 0.12);
         border-radius: 12px;
         border: 1px solid rgba(255, 255, 255, 0.12);
         box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
@@ -2221,6 +2221,27 @@
         margin-bottom: 0.9rem;
       }
 
+      .rating-icon-chip {
+        width: 34px;
+        height: 34px;
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: rgba(255, 255, 255, 0.85);
+        flex: 0 0 auto;
+      }
+
+      .rating-icon-chip .icon {
+        width: 18px;
+        height: 18px;
+        display: block;
+        fill: currentColor;
+        stroke: none;
+      }
+
       .hero-rating-row {
         display: flex;
         align-items: center;
@@ -2258,13 +2279,14 @@
       }
 
       .hero-rating-score {
-        background: rgba(255, 255, 255, 0.06);
+        background: rgba(255, 255, 255, 0.08);
         border: 1px solid rgba(255, 255, 255, 0.12);
         color: #eaf2ee;
         border-radius: 10px;
         padding: 0.25rem 0.5rem;
         font-weight: 800;
         font-size: 0.86rem;
+        margin-left: auto;
         flex: 0 0 auto;
       }
 
@@ -2303,7 +2325,7 @@
 
       .rating-modal-card {
         width: min(420px, calc(100vw - 36px));
-        background: rgba(255, 255, 255, 0.06);
+        background: rgba(255, 255, 255, 0.12);
         border: 1px solid rgba(255, 255, 255, 0.12);
         border-radius: 16px;
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
@@ -2330,7 +2352,7 @@
         height: 34px;
         border-radius: 10px;
         border: 1px solid rgba(255, 255, 255, 0.12);
-        background: rgba(255, 255, 255, 0.06);
+        background: rgba(255, 255, 255, 0.12);
         color: rgba(255, 255, 255, 0.85);
         cursor: pointer;
       }
@@ -2345,7 +2367,7 @@
         height: 40px;
         border-radius: 12px;
         border: 1px solid rgba(255, 255, 255, 0.12);
-        background: rgba(255, 255, 255, 0.06);
+        background: rgba(255, 255, 255, 0.12);
         color: #eaf2ee;
         font-weight: 800;
         cursor: pointer;
@@ -3723,8 +3745,9 @@
 
           <div class="mobile-rating" id="mobile-rating" hidden>
             <div class="hero-rating-row">
+              <span class="rating-icon-chip" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M12 17.3l-6.2 3.3 1.2-6.9L2 8.9l7-1L12 1.8l3 6.1 7 1-5 4.8 1.2 6.9z"/></svg></span>
               <div class="hero-rating-stars" data-role="stars"></div>
-              <div class="hero-rating-score" data-role="score">—</div>
+              <div class="hero-rating-score" data-role="score">0</div>
             </div>
             <div class="hero-rating-sub" data-role="sub"></div>
           </div>
@@ -4207,7 +4230,7 @@
               loadUserSeriesRating(seriesKey),
             ]);
             const displayAvg = Number.isFinite(avg) ? avg : null;
-            const scoreText = displayAvg == null ? '—' : (Math.round(displayAvg * 10) / 10).toFixed(1);
+            const scoreText = displayAvg == null ? '0' : (Math.round(displayAvg * 10) / 10).toFixed(1);
             const subText = (displayAvg == null || !count)
               ? ''
               : `Score: ${scoreText} by ${count} user${count === 1 ? '' : 's'}`;
@@ -5593,8 +5616,9 @@
           <aside class="hero-aside">
             <div class="hero-rating" id="hero-rating" hidden>
               <div class="hero-rating-row">
+                <span class="rating-icon-chip" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M12 17.3l-6.2 3.3 1.2-6.9L2 8.9l7-1L12 1.8l3 6.1 7 1-5 4.8 1.2 6.9z"/></svg></span>
                 <div class="hero-rating-stars" data-role="stars"></div>
-                <div class="hero-rating-score" data-role="score">—</div>
+                <div class="hero-rating-score" data-role="score">0</div>
               </div>
               <div class="hero-rating-sub" data-role="sub"></div>
             </div>
