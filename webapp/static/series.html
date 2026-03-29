@@ -1318,6 +1318,10 @@
         margin-top: 0.5rem;
       }
 
+      #desktop-reviews-view .mobile-reviews-header {
+        display: none;
+      }
+
       #desktop-reviews-view .mobile-reviews-empty {
         text-align: left;
         padding: 1.2rem 0.25rem;
@@ -3306,7 +3310,6 @@
         <div class="mobile-tab-content" id="mobile-tab-reviews">
           <div class="mobile-reviews-header">
             <h3>Reviews</h3>
-            <a href="#" id="mobile-reviews-see-all">See all</a>
           </div>
           <div class="mobile-reviews-empty" id="mobile-reviews-empty">
             No reviews yet. Be the first to write a review!
@@ -3361,8 +3364,7 @@
 
             <div id="desktop-reviews-view" hidden>
               <div class="mobile-reviews-header">
-                <h3>Reviews</h3>
-                <a href="#" id="desktop-reviews-see-all">See all</a>
+                <h3></h3>
               </div>
               <div class="mobile-reviews-empty" id="desktop-reviews-empty">
                 No reviews yet. Be the first to write a review!
@@ -4986,7 +4988,7 @@
           const statsLabel = document.createElement('span');
           statsLabel.className = 'links-label';
           statsLabel.style.marginTop = '0.5rem';
-          statsLabel.style.marginBottom = '0.75rem';
+          statsLabel.style.marginBottom = '0.5rem';
           statsLabel.style.display = 'block';
           statsLabel.textContent = 'Stats';
           detailsGrid.parentNode.insertBefore(statsLabel, detailsGrid);
@@ -5990,17 +5992,14 @@
       }
 
       function updateChapterSortUI() {
-        const arrow = chapterOrderToggle?.querySelector('svg');
-        if (arrow) {
-          // Change arrow direction based on sort order
+        document.querySelectorAll('#chapter-order-toggle svg').forEach((arrow) => {
+          if (!arrow) return;
           if (chapterSortDescending) {
-            // Descending: show down arrow
             arrow.innerHTML = '<path d="M12 5v14"/><path d="m19 12-7 7-7-7"/>';
           } else {
-            // Ascending: show up arrow
             arrow.innerHTML = '<path d="M12 19V5"/><path d="m5 12 7-7 7 7"/>';
           }
-        }
+        });
       }
 
       chapterSearchInput?.addEventListener('input', debounce((e) => {
