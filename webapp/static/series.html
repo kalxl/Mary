@@ -4430,8 +4430,17 @@
         const desktopEmpty = document.getElementById('desktop-reviews-comick-empty');
         const mobileEmpty = document.getElementById('mobile-reviews-comick-empty');
 
+        const themed = (() => {
+          const b = document.body;
+          if (!b) return false;
+          const dt = (b.getAttribute('data-theme') || '').toLowerCase();
+          if (dt && dt !== 'default' && dt !== 'light') return true;
+          return b.classList.contains('themed') || b.classList.contains('theme') || b.classList.contains('dark-themed');
+        })();
+        const aryIcon = themed ? '/static/img/zoro2.png' : '/static/img/zoro.png';
+
         const sources = [
-          { key: 'ary', label: 'Ary', icon: '/static/img/zoro.png' },
+          { key: 'ary', label: 'Ary', icon: aryIcon },
           { key: 'comick', label: 'Comick', icon: '/static/img/comick.png' },
         ];
 
