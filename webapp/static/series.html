@@ -123,7 +123,7 @@
 
       @media (min-width: 641px) {
         .hero-aside {
-          margin-top: 0.85rem;
+          margin-top: 4.75rem;
         }
       }
 
@@ -156,7 +156,7 @@
 
       @media (min-width: 641px) {
         .hero-inline-stats {
-          margin-top: 0.45rem;
+          margin-top: 0;
         }
       }
 
@@ -2048,13 +2048,16 @@
         margin-top: 0;
       }
       #description-toggle {
+        background: none;
         border: none;
-        background: rgba(255, 255, 255, 0.08);
-        color: #f1f5f2;
-        border-radius: 999px;
-        padding: 0.35rem 0.9rem;
-        cursor: pointer;
+        color: var(--accent);
         font-size: 0.85rem;
+        font-weight: 500;
+        cursor: pointer;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
       }
       #description-toggle:focus-visible {
         outline: 2px solid var(--accent);
@@ -2410,6 +2413,126 @@
         display: flex;
         flex-direction: column;
         gap: 0.65rem;
+      }
+
+      .popup-filter-row {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        padding: 0.6rem;
+        min-height: 40px;
+      }
+
+      .popup-dropdown {
+        position: relative;
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .popup-dropdown-label {
+        color: rgba(148, 163, 154, 0.9);
+        font-weight: 650;
+        font-size: 0.85rem;
+        white-space: nowrap;
+      }
+
+      .popup-dropdown-btn {
+        flex: 1;
+        min-width: 0;
+        height: 40px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.06);
+        color: #f1f5f2;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.55rem;
+        padding: 0 0.75rem;
+        cursor: pointer;
+        text-align: left;
+        transition: background 0.12s ease, border-color 0.12s ease, transform 0.12s ease;
+        white-space: nowrap;
+        overflow: hidden;
+      }
+
+      .popup-dropdown-btn:active {
+        transform: scale(0.98);
+      }
+
+      .popup-dropdown-btn:hover {
+        background: rgba(255, 255, 255, 0.09);
+        border-color: rgba(var(--accent-rgb), 0.28);
+      }
+
+      .popup-dropdown-btn img {
+        width: 18px;
+        height: 18px;
+        border-radius: 4px;
+        object-fit: contain;
+        flex-shrink: 0;
+      }
+
+      .popup-dropdown-btn .value {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .popup-dropdown-btn svg {
+        width: 16px;
+        height: 16px;
+        flex-shrink: 0;
+        opacity: 0.8;
+      }
+
+      .popup-dropdown-menu {
+        position: absolute;
+        top: calc(100% + 8px);
+        left: 0;
+        right: 0;
+        background: rgba(18, 24, 21, 0.96);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 14px;
+        padding: 0.35rem;
+        display: none;
+        z-index: 6000;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+      }
+
+      .popup-dropdown-menu.open {
+        display: block;
+      }
+
+      .popup-dropdown-item {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.55rem 0.7rem;
+        border-radius: 12px;
+        background: transparent;
+        border: none;
+        color: #eaf2ee;
+        cursor: pointer;
+        font: inherit;
+        text-align: left;
+      }
+
+      .popup-dropdown-item:hover {
+        background: rgba(255, 255, 255, 0.06);
+      }
+
+      .popup-dropdown-item img {
+        width: 18px;
+        height: 18px;
+        border-radius: 4px;
+        object-fit: contain;
+        flex-shrink: 0;
       }
 
       .popup-search {
@@ -3482,23 +3605,35 @@
               <input id="popup-chapter-search" type="search" placeholder="Search chapters or groups..." autocomplete="off" />
             </div>
             <div class="popup-filter-row">
-              <span style="display:inline-flex; align-items:center; gap:0.55rem;">
-                <strong>Source:</strong>
-                <select id="popup-source-select" aria-label="Select source">
+              <div class="popup-dropdown" data-popup-dd="source">
+                <span class="popup-dropdown-label">Source:</span>
+                <button type="button" class="popup-dropdown-btn" id="popup-source-btn" aria-haspopup="true" aria-expanded="false">
+                  <img id="popup-source-icon" src="" alt="" hidden />
+                  <span class="value" id="popup-source-value">All</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                </button>
+                <div class="popup-dropdown-menu" id="popup-source-menu" role="menu"></div>
+                <select id="popup-source-select" aria-label="Select source" hidden>
                   <option value="">All</option>
                   <option value="asura">Asura</option>
                   <option value="mangataro">Mangataro</option>
                 </select>
-              </span>
-              <span style="display:inline-flex; align-items:center; gap:0.55rem;">
-                <strong>Group:</strong>
-                <select id="popup-group-select" aria-label="Select group">
+              </div>
+
+              <div class="popup-dropdown" data-popup-dd="group">
+                <span class="popup-dropdown-label">Group:</span>
+                <button type="button" class="popup-dropdown-btn" id="popup-group-btn" aria-haspopup="true" aria-expanded="false">
+                  <span class="value" id="popup-group-value">All</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                </button>
+                <div class="popup-dropdown-menu" id="popup-group-menu" role="menu"></div>
+                <select id="popup-group-select" aria-label="Select group" hidden>
                   <option value="">All</option>
                 </select>
-              </span>
-              <button type="button" class="btn ghost square" id="popup-reorder-btn">
-                <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M7 12h14"/><path d="M11 18h10"/></svg>
-                Reorder
+              </div>
+
+              <button type="button" class="chapter-action-btn" id="popup-reorder-btn" title="Reorder">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>
               </button>
             </div>
           </div>
@@ -5433,11 +5568,11 @@
         if (descriptionControls) descriptionControls.hidden = false;
         if (descriptionExpanded) {
           descriptionEl.textContent = fullDescription;
-          if (descriptionToggle) descriptionToggle.textContent = "Less";
+          if (descriptionToggle) descriptionToggle.textContent = "Show less";
         } else {
           const preview = fullDescription.slice(0, limit).trimEnd() + "…";
           descriptionEl.textContent = preview;
-          if (descriptionToggle) descriptionToggle.textContent = "More";
+          if (descriptionToggle) descriptionToggle.textContent = "Show more";
         }
       }
 
@@ -6862,6 +6997,10 @@
           popupGroupSelectEl.value = popupGroupFilter || '';
         }
 
+        try {
+          syncPopupDropdownButtons();
+        } catch (_) {}
+
         const seriesId = getSlugStorageKey();
         const asuraMap = loadAsuraSlugMap();
         const mangataroMap = loadMangataroSlugMap();
@@ -6964,6 +7103,108 @@
         const reorderBtn = document.getElementById('popup-reorder-btn');
         const sourceSelectEl = document.getElementById('popup-source-select');
 
+        function closeAllPopupDropdowns(exceptKey = null) {
+          document.querySelectorAll('#chapter-select-popup .popup-dropdown').forEach((dd) => {
+            const key = dd.getAttribute('data-popup-dd') || '';
+            if (exceptKey && exceptKey === key) return;
+            const menu = dd.querySelector('.popup-dropdown-menu');
+            const btn = dd.querySelector('.popup-dropdown-btn');
+            if (menu) menu.classList.remove('open');
+            if (btn) btn.setAttribute('aria-expanded', 'false');
+          });
+        }
+
+        function buildPopupDropdownMenu(kind) {
+          const dd = document.querySelector(`#chapter-select-popup .popup-dropdown[data-popup-dd="${kind}"]`);
+          if (!dd) return;
+          const menu = dd.querySelector('.popup-dropdown-menu');
+          const selectEl = document.getElementById(kind === 'source' ? 'popup-source-select' : 'popup-group-select');
+          if (!menu || !selectEl) return;
+
+          function escapeHtml(text) {
+            return String(text || '')
+              .replace(/&/g, '&amp;')
+              .replace(/</g, '&lt;')
+              .replace(/>/g, '&gt;')
+              .replace(/"/g, '&quot;')
+              .replace(/'/g, '&#039;');
+          }
+
+          const options = Array.from(selectEl.options || []);
+          menu.innerHTML = options.map((opt) => {
+            const value = String(opt.value || '');
+            const label = String(opt.textContent || opt.label || value || '');
+            const icon = (kind === 'source' && value) ? getSourceIcon(value) : '';
+            return `
+              <button type="button" class="popup-dropdown-item" role="menuitem" data-value="${escapeHtml(value)}">
+                ${icon ? `<img src="${escapeHtml(icon)}" alt=""/>` : ''}
+                <span>${escapeHtml(label || 'All')}</span>
+              </button>
+            `;
+          }).join('');
+
+          if (menu.__aryBound) return;
+          menu.__aryBound = true;
+          menu.addEventListener('click', (e) => {
+            const item = e.target && e.target.closest ? e.target.closest('.popup-dropdown-item') : null;
+            if (!item) return;
+            const value = item.getAttribute('data-value') || '';
+            try {
+              selectEl.value = value;
+              selectEl.dispatchEvent(new Event('change', { bubbles: true }));
+            } catch (_) {}
+            closeAllPopupDropdowns();
+            try { syncPopupDropdownButtons(); } catch (_) {}
+          });
+        }
+
+        if (!window.__aryPopupDropdownGlobalBound) {
+          window.__aryPopupDropdownGlobalBound = true;
+          document.addEventListener('click', (e) => {
+            const inPopup = e.target && e.target.closest ? e.target.closest('#chapter-select-popup') : null;
+            if (!inPopup) return;
+            const btn = e.target.closest ? e.target.closest('#popup-source-btn, #popup-group-btn') : null;
+            if (btn) return;
+            const menuItem = e.target.closest ? e.target.closest('.popup-dropdown-menu') : null;
+            if (menuItem) return;
+            closeAllPopupDropdowns();
+          });
+          document.addEventListener('keydown', (e) => {
+            try {
+              if (e.key === 'Escape') closeAllPopupDropdowns();
+            } catch (_) {}
+          });
+        }
+
+        const sourceBtn = document.getElementById('popup-source-btn');
+        const groupBtn = document.getElementById('popup-group-btn');
+
+        if (sourceBtn && !sourceBtn.__aryBound) {
+          sourceBtn.__aryBound = true;
+          sourceBtn.addEventListener('click', (e) => {
+            try { e.preventDefault(); } catch (_) {}
+            const menu = document.getElementById('popup-source-menu');
+            const isOpen = Boolean(menu && menu.classList.contains('open'));
+            closeAllPopupDropdowns(isOpen ? null : 'source');
+            buildPopupDropdownMenu('source');
+            if (menu) menu.classList.toggle('open', !isOpen);
+            sourceBtn.setAttribute('aria-expanded', (!isOpen).toString());
+          });
+        }
+
+        if (groupBtn && !groupBtn.__aryBound) {
+          groupBtn.__aryBound = true;
+          groupBtn.addEventListener('click', (e) => {
+            try { e.preventDefault(); } catch (_) {}
+            const menu = document.getElementById('popup-group-menu');
+            const isOpen = Boolean(menu && menu.classList.contains('open'));
+            closeAllPopupDropdowns(isOpen ? null : 'group');
+            buildPopupDropdownMenu('group');
+            if (menu) menu.classList.toggle('open', !isOpen);
+            groupBtn.setAttribute('aria-expanded', (!isOpen).toString());
+          });
+        }
+
         if (searchEl && !searchEl.__aryBound) {
           searchEl.__aryBound = true;
           searchEl.addEventListener('input', () => {
@@ -6993,8 +7234,41 @@
           sourceSelectEl.__aryBound = true;
           sourceSelectEl.addEventListener('change', () => {
             popupSourceFilter = String(sourceSelectEl.value || '');
+            try { syncPopupDropdownButtons(); } catch (_) {}
             renderPopupList();
           });
+        }
+
+        try {
+          buildPopupDropdownMenu('source');
+          buildPopupDropdownMenu('group');
+          syncPopupDropdownButtons();
+        } catch (_) {}
+      }
+
+      function syncPopupDropdownButtons() {
+        const sourceSelectEl = document.getElementById('popup-source-select');
+        const groupSelectEl = document.getElementById('popup-group-select');
+        const sourceValueEl = document.getElementById('popup-source-value');
+        const groupValueEl = document.getElementById('popup-group-value');
+        const sourceIconEl = document.getElementById('popup-source-icon');
+        if (sourceSelectEl && sourceValueEl) {
+          const selected = sourceSelectEl.options[sourceSelectEl.selectedIndex];
+          sourceValueEl.textContent = String(selected ? (selected.textContent || selected.label || 'All') : 'All').trim() || 'All';
+          const value = String(sourceSelectEl.value || '').trim();
+          if (sourceIconEl) {
+            if (value) {
+              sourceIconEl.src = getSourceIcon(value);
+              sourceIconEl.hidden = false;
+            } else {
+              sourceIconEl.hidden = true;
+              sourceIconEl.removeAttribute('src');
+            }
+          }
+        }
+        if (groupSelectEl && groupValueEl) {
+          const selected = groupSelectEl.options[groupSelectEl.selectedIndex];
+          groupValueEl.textContent = String(selected ? (selected.textContent || selected.label || 'All') : 'All').trim() || 'All';
         }
       }
 
@@ -7023,6 +7297,10 @@
           groups.map((g) => `<option value="${escapeHtml(g)}">${escapeHtml(g)}</option>`).join('');
         groupSelectEl.value = currentValue;
         popupGroupFilter = String(groupSelectEl.value || '');
+
+        try {
+          syncPopupDropdownButtons();
+        } catch (_) {}
       }
 
       function applyPopupFilters(chapters) {
