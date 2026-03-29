@@ -3743,10 +3743,16 @@
           <h1 id="mobile-title"></h1>
           <p id="mobile-subtitle" class="mobile-title-sub"></p>
 
-          <div class="mobile-rating" id="mobile-rating" hidden>
+          <div class="mobile-rating" id="mobile-rating">
             <div class="hero-rating-row">
               <span class="rating-icon-chip" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M12 17.3l-6.2 3.3 1.2-6.9L2 8.9l7-1L12 1.8l3 6.1 7 1-5 4.8 1.2 6.9z"/></svg></span>
-              <div class="hero-rating-stars" data-role="stars"></div>
+              <div class="hero-rating-stars" data-role="stars">
+                <span class="star"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17.3l-6.2 3.3 1.2-6.9L2 8.9l7-1L12 1.8l3 6.1 7 1-5 4.8 1.2 6.9z"/></svg></span>
+                <span class="star"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17.3l-6.2 3.3 1.2-6.9L2 8.9l7-1L12 1.8l3 6.1 7 1-5 4.8 1.2 6.9z"/></svg></span>
+                <span class="star"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17.3l-6.2 3.3 1.2-6.9L2 8.9l7-1L12 1.8l3 6.1 7 1-5 4.8 1.2 6.9z"/></svg></span>
+                <span class="star"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17.3l-6.2 3.3 1.2-6.9L2 8.9l7-1L12 1.8l3 6.1 7 1-5 4.8 1.2 6.9z"/></svg></span>
+                <span class="star"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17.3l-6.2 3.3 1.2-6.9L2 8.9l7-1L12 1.8l3 6.1 7 1-5 4.8 1.2 6.9z"/></svg></span>
+              </div>
               <div class="hero-rating-score" data-role="score">0</div>
             </div>
             <div class="hero-rating-sub" data-role="sub"></div>
@@ -4231,9 +4237,9 @@
             ]);
             const displayAvg = Number.isFinite(avg) ? avg : null;
             const scoreText = displayAvg == null ? '0' : (Math.round(displayAvg * 10) / 10).toFixed(1);
-            const subText = (displayAvg == null || !count)
-              ? ''
-              : `Score: ${scoreText} by ${count} user${count === 1 ? '' : 's'}`;
+            const lineScoreText = displayAvg == null ? '0.0' : (Math.round(displayAvg * 10) / 10).toFixed(1);
+            const safeCount = Number.isFinite(count) ? count : 0;
+            const subText = `Score: ${lineScoreText} by ${safeCount} user${safeCount === 1 ? '' : 's'}`;
 
             targets.forEach((wrap) => {
               const scoreEl = wrap.querySelector('[data-role="score"]');
@@ -5614,13 +5620,19 @@
           </div>
 
           <aside class="hero-aside">
-            <div class="hero-rating" id="hero-rating" hidden>
+            <div class="hero-rating" id="hero-rating">
               <div class="hero-rating-row">
                 <span class="rating-icon-chip" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M12 17.3l-6.2 3.3 1.2-6.9L2 8.9l7-1L12 1.8l3 6.1 7 1-5 4.8 1.2 6.9z"/></svg></span>
-                <div class="hero-rating-stars" data-role="stars"></div>
+                <div class="hero-rating-stars" data-role="stars">
+                  <span class="star"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17.3l-6.2 3.3 1.2-6.9L2 8.9l7-1L12 1.8l3 6.1 7 1-5 4.8 1.2 6.9z"/></svg></span>
+                  <span class="star"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17.3l-6.2 3.3 1.2-6.9L2 8.9l7-1L12 1.8l3 6.1 7 1-5 4.8 1.2 6.9z"/></svg></span>
+                  <span class="star"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17.3l-6.2 3.3 1.2-6.9L2 8.9l7-1L12 1.8l3 6.1 7 1-5 4.8 1.2 6.9z"/></svg></span>
+                  <span class="star"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17.3l-6.2 3.3 1.2-6.9L2 8.9l7-1L12 1.8l3 6.1 7 1-5 4.8 1.2 6.9z"/></svg></span>
+                  <span class="star"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17.3l-6.2 3.3 1.2-6.9L2 8.9l7-1L12 1.8l3 6.1 7 1-5 4.8 1.2 6.9z"/></svg></span>
+                </div>
                 <div class="hero-rating-score" data-role="score">0</div>
               </div>
-              <div class="hero-rating-sub" data-role="sub"></div>
+              <div class="hero-rating-sub" data-role="sub">Score: 0.0 by 0 users</div>
             </div>
             <div class="hero-inline-stats">
               <div class="stat-line"><span>Rank</span><strong>${heroData.follow_rank ? `#${heroData.follow_rank}` : '—'}</strong></div>
