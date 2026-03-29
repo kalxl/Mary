@@ -201,8 +201,8 @@
 
       @media (min-width: 641px) {
         .hero-aside .link-btn {
-          width: 44px;
-          height: 44px;
+          width: 38px;
+          height: 38px;
           border-radius: 12px;
           padding: 0;
           display: inline-flex;
@@ -227,8 +227,8 @@
         }
 
         .hero-aside .link-btn img {
-          width: 18px;
-          height: 18px;
+          width: 16px;
+          height: 16px;
         }
       }
 
@@ -256,6 +256,32 @@
 
       .hero-main h1 {
         margin-bottom: 0;
+      }
+
+      .hero-title-row {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 0.75rem;
+      }
+
+      .hero-title-row h1 {
+        flex: 1;
+      }
+
+      .hero-rank {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 0.35rem;
+        color: var(--muted);
+        font-size: 0.82rem;
+        white-space: nowrap;
+      }
+
+      .hero-rank strong {
+        color: #eef7f1;
+        font-weight: 650;
+        font-size: 0.86rem;
       }
 
       @media (min-width: 641px) {
@@ -791,7 +817,7 @@
       }
 
       .offline-source-row option {
-        background: #0f1316;
+        background: #0f1512;
         color: #f1f5f2;
       }
 
@@ -1127,8 +1153,8 @@
       }
       .recommendation-header h3 {
         margin: 0;
-        position: relative;
-        padding-left: 2.1rem;
+        font-size: 1.05rem;
+        letter-spacing: -0.01em;
       }
       .recommendation-header h3::before {
         content: '';
@@ -1242,21 +1268,36 @@
         width: 100%;
       }
 
+      .desktop-cover-tabs {
+        margin-top: 0.65rem;
+      }
+
+      @media (max-width: 640px) {
+        .desktop-cover-tabs {
+          display: none;
+        }
+      }
+
       .chapter-tab-btn {
         flex: 1;
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 0.5rem;
+        gap: 0.45rem;
         background: rgba(255, 255, 255, 0.06);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.12);
         color: var(--muted);
-        border-radius: 14px;
-        padding: 0.75rem;
-        font-size: 0.9rem;
-        font-weight: 700;
+        font-size: 0.92rem;
+        padding: 0.65rem 0.85rem;
+        border-radius: 12px;
         cursor: pointer;
         transition: background 0.15s ease, color 0.15s ease, transform 0.12s ease;
+      }
+
+      .chapter-tab-btn svg {
+        width: 18px;
+        height: 18px;
+        flex-shrink: 0;
       }
 
       .chapter-tab-btn.active {
@@ -2963,7 +3004,7 @@
           margin-bottom: 0.75rem;
         }
         .mobile-similar-header h3 {
-          font-size: 0.9rem;
+          font-size: 0.95rem;
           font-weight: 700;
           margin: 0;
         }
@@ -2984,6 +3025,10 @@
         }
         .mobile-similar-card img {
           width: 100%;
+          aspect-ratio: 2 / 3;
+          height: auto;
+          object-fit: cover;
+          border-radius: 12px;
           display: block;
         }
         .mobile-similar-card {
@@ -3276,10 +3321,6 @@
           <section class="panel" id="chapter-panel" hidden>
             <div class="chapter-panel-header">
               <div style="height: 1px;"></div>
-            </div>
-            <div class="chapter-tabs" role="tablist" aria-label="Series sections">
-              <button type="button" class="chapter-tab-btn active" id="desktop-tab-chapters" aria-controls="desktop-chapters-view" aria-selected="true">Chapters</button>
-              <button type="button" class="chapter-tab-btn" id="desktop-tab-reviews" aria-controls="desktop-reviews-view" aria-selected="false">Reviews</button>
             </div>
             <div id="desktop-chapters-view">
             <div class="chapter-controls">
@@ -4671,10 +4712,24 @@
         hero.innerHTML = `
           <div class="cover-stack">
             <img src="${heroData.cover_url || "https://placehold.co/400x600?text=No+Cover"}" alt="${heroData.title}" />
+
+            <div class="chapter-tabs desktop-cover-tabs" role="tablist" aria-label="Series sections">
+              <button type="button" class="chapter-tab-btn active" id="desktop-tab-chapters" aria-controls="desktop-chapters-view" aria-selected="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                Chapters
+              </button>
+              <button type="button" class="chapter-tab-btn" id="desktop-tab-reviews" aria-controls="desktop-reviews-view" aria-selected="false">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                Reviews
+              </button>
+            </div>
           </div>
 
           <div class="hero-main meta-block">
-            <h1>${heroData.title}</h1>
+            <div class="hero-title-row">
+              <h1>${heroData.title}</h1>
+              <div class="hero-rank"><span>Rank</span><strong>${heroData.follow_rank ? `#${heroData.follow_rank}` : '—'}</strong></div>
+            </div>
             <p class="hero-slug">${formattedSlug || 'Unknown'}</p>
 
             <div class="hero-actions-row">
@@ -4717,7 +4772,6 @@
 
           <aside class="hero-aside">
             <div class="hero-inline-stats">
-              <div class="stat-line"><span>Rank</span><strong>${heroData.follow_rank ? `#${heroData.follow_rank}` : '—'}</strong></div>
               <div class="stat-line"><span>Follows</span><strong>${heroData.user_follow_count ? Number(heroData.user_follow_count).toLocaleString() : (heroData.followers ? Number(heroData.followers).toLocaleString() : '—')}</strong></div>
               <div class="stat-line"><span>Year</span><strong>${heroData.year || '—'}</strong></div>
               <div class="stat-line"><span>Type</span><strong>${heroData.type || 'Manga'}</strong></div>
