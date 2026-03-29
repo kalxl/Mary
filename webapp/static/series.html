@@ -2562,14 +2562,24 @@
         display: flex;
         align-items: center;
         gap: 0.6rem;
-        padding: 0.55rem 0.7rem;
-        border-radius: 12px;
+        border: 0;
         background: transparent;
-        border: none;
-        color: #eaf2ee;
+        color: rgba(240, 245, 242, 0.92);
+        padding: 0.6rem 0.75rem;
+        border-radius: 12px;
         cursor: pointer;
         font: inherit;
-        text-align: left;
+        min-width: 0;
+      }
+
+      .popup-dropdown-item span {
+        flex: 1;
+        min-width: 0;
+        max-width: 100%;
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
 
       .popup-dropdown-item:hover {
