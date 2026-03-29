@@ -343,8 +343,15 @@
 
         .hero-actions-row #status-btn svg,
         .hero-actions-row #offline-download-btn svg {
+          width: 20px;
+          height: 20px;
+        }
+
+        .hero-actions-row #read-btn svg {
           width: 18px;
           height: 18px;
+          display: block;
+          flex: 0 0 auto;
         }
 
         .hero-actions-row #status-label {
@@ -3788,6 +3795,7 @@
       const popupChapterList = document.getElementById('popup-chapter-list');
 
       let pendingOpenStartReadingPopup = false;
+      let pendingOpenOfflineDownloadsModal = false;
 
       const SOURCE_OPTIONS = [];
       if (isComickMode) {
@@ -4151,6 +4159,18 @@
         if (pendingOpenStartReadingPopup) {
           pendingOpenStartReadingPopup = false;
           try { openChapterSelectPopup(); } catch (_) {}
+        }
+
+        if (pendingOpenOfflineDownloadsModal) {
+          pendingOpenOfflineDownloadsModal = false;
+          try {
+            const offlineBtn = document.getElementById('offline-download-btn');
+            if (offlineBtn) {
+              setTimeout(() => {
+                try { offlineBtn.click(); } catch (_) {}
+              }, 120);
+            }
+          } catch (_) {}
         }
       });
 
@@ -5380,17 +5400,7 @@
           mobileReadBtn.onclick = () => handlePrimaryReadAction();
         }
 
-        // Mobile download button - opens offline download modal
-        const mobileDownloadBtn = document.getElementById('mobile-download-btn');
-        if (mobileDownloadBtn) {
-          mobileDownloadBtn.onclick = () => {
-            const offlineModal = document.getElementById('offline-modal');
-            if (offlineModal) {
-              offlineModal.classList.add('open');
-              document.body.classList.add('nav-locked');
-            }
-          };
-        }
+        // Mobile download button binding is handled by initOfflineDownloads (needs auth checks)
 
         // Mobile bookmark button - opens status menu or login UI
         const mobileBookmarkBtn = document.getElementById('mobile-bookmark-btn');
@@ -8170,13 +8180,16 @@ We'll reuse it next time.`,
 
           if (!isStandalone()) return;
           if (!window.AryOffline || typeof window.AryOffline.downloadChapter !== 'function') return;
-          if (typeof getSupabaseClient !== 'function') return;
-          const client = getSupabaseClient();
-          if (!client) return;
 
-          const { data } = await client.auth.getUser();
-          const uid = data && data.user && data.user.id ? String(data.user.id) : null;
-          if (!uid) return;
+          const client = (typeof getSupabaseClient === 'function') ? getSupabaseClient() : null;
+          const getUid = async () => {
+            try {
+              const { data } = client ? await client.auth.getUser() : { data: null };
+              return data && data.user && data.user.id ? String(data.user.id) : null;
+            } catch (_) {
+              return null;
+            }
+          };
 
           btn.hidden = false;
           btn.disabled = false;
@@ -8197,6 +8210,112 @@ We'll reuse it next time.`,
           let offlineGroup = '';
           let offlineSource = '';
 
+          function closeAllOfflineDropdowns(exceptKey = null) {
+            document.querySelectorAll('#offline-modal .popup-dropdown').forEach((dd) => {
+              const key = dd.getAttribute('data-offline-dd') || '';
+              if (exceptKey && exceptKey === key) return;
+              const menu = dd.querySelector('.popup-dropdown-menu');
+              const btn = dd.querySelector('.popup-dropdown-btn');
+              if (menu) menu.classList.remove('open');
+              if (btn) btn.setAttribute('aria-expanded', 'false');
+            });
+          }
+
+          function syncOfflineDropdownBtn(kind) {
+            const selectEl = document.getElementById(kind === 'source' ? 'offline-source-select' : 'offline-group-select');
+            const valueEl = document.getElementById(kind === 'source' ? 'offline-source-value' : 'offline-group-value');
+            const iconEl = kind === 'source' ? document.getElementById('offline-source-icon') : null;
+            if (!selectEl || !valueEl) return;
+            const value = String(selectEl.value || '').trim();
+            const opt = Array.from(selectEl.options || []).find((o) => String(o.value) === value);
+            const label = opt ? String(opt.textContent || opt.label || value || '') : (value ? value : 'All');
+            valueEl.textContent = label || (kind === 'source' ? 'Select source' : 'All');
+            if (iconEl) {
+              if (value) {
+                iconEl.src = getSourceIcon(value);
+                iconEl.hidden = false;
+              } else {
+                iconEl.hidden = true;
+              }
+            }
+          }
+
+          function buildOfflineDropdownMenu(kind) {
+            const dd = document.querySelector(`#offline-modal .popup-dropdown[data-offline-dd="${kind}"]`);
+            if (!dd) return;
+            const menu = dd.querySelector('.popup-dropdown-menu');
+            const selectEl = document.getElementById(kind === 'source' ? 'offline-source-select' : 'offline-group-select');
+            if (!menu || !selectEl) return;
+
+            const options = Array.from(selectEl.options || []);
+            menu.innerHTML = options.map((opt) => {
+              const value = String(opt.value || '');
+              const label = String(opt.textContent || opt.label || value || '');
+              const icon = (kind === 'source' && value) ? getSourceIcon(value) : '';
+              return `
+                <button type="button" class="popup-dropdown-item" role="menuitem" data-value="${escapeHtml(value)}">
+                  ${icon ? `<img src="${escapeHtml(icon)}" alt=""/>` : ''}
+                  <span>${escapeHtml(label || 'All')}</span>
+                </button>
+              `;
+            }).join('');
+
+            if (menu.__aryBound) return;
+            menu.__aryBound = true;
+            menu.addEventListener('click', (e) => {
+              const item = e.target && e.target.closest ? e.target.closest('.popup-dropdown-item') : null;
+              if (!item) return;
+              const value = item.getAttribute('data-value') || '';
+              selectEl.value = value;
+              try { selectEl.dispatchEvent(new Event('change', { bubbles: true })); } catch (_) {}
+              closeAllOfflineDropdowns();
+            });
+          }
+
+          const offlineSourceBtn = document.getElementById('offline-source-btn');
+          const offlineGroupBtn = document.getElementById('offline-group-btn');
+
+          if (offlineSourceBtn && !offlineSourceBtn.__aryBound) {
+            offlineSourceBtn.__aryBound = true;
+            offlineSourceBtn.addEventListener('click', (e) => {
+              try { e.preventDefault(); } catch (_) {}
+              const dd = document.querySelector('#offline-modal .popup-dropdown[data-offline-dd="source"]');
+              const menu = dd ? dd.querySelector('.popup-dropdown-menu') : null;
+              if (!menu) return;
+              const isOpen = menu.classList.contains('open');
+              closeAllOfflineDropdowns(isOpen ? null : 'source');
+              menu.classList.toggle('open', !isOpen);
+              offlineSourceBtn.setAttribute('aria-expanded', (!isOpen) ? 'true' : 'false');
+            });
+          }
+
+          if (offlineGroupBtn && !offlineGroupBtn.__aryBound) {
+            offlineGroupBtn.__aryBound = true;
+            offlineGroupBtn.addEventListener('click', (e) => {
+              try { e.preventDefault(); } catch (_) {}
+              const dd = document.querySelector('#offline-modal .popup-dropdown[data-offline-dd="group"]');
+              const menu = dd ? dd.querySelector('.popup-dropdown-menu') : null;
+              if (!menu) return;
+              const isOpen = menu.classList.contains('open');
+              closeAllOfflineDropdowns(isOpen ? null : 'group');
+              menu.classList.toggle('open', !isOpen);
+              offlineGroupBtn.setAttribute('aria-expanded', (!isOpen) ? 'true' : 'false');
+            });
+          }
+
+          if (!document.__aryOfflineDropdownDocBound) {
+            document.__aryOfflineDropdownDocBound = true;
+            document.addEventListener('click', (e) => {
+              const inModal = e.target && e.target.closest ? e.target.closest('#offline-modal') : null;
+              if (!inModal) return;
+              const btn = e.target.closest ? e.target.closest('#offline-source-btn, #offline-group-btn') : null;
+              if (btn) return;
+              const menuItem = e.target.closest ? e.target.closest('#offline-modal .popup-dropdown-menu') : null;
+              if (menuItem) return;
+              closeAllOfflineDropdowns();
+            });
+          }
+
           const openModal = () => {
             if (!modal) return;
             modal.classList.add('open');
@@ -8207,6 +8326,32 @@ We'll reuse it next time.`,
             modal.classList.remove('open');
             modal.setAttribute('aria-hidden', 'true');
           };
+
+          function openLoginUi() {
+            try {
+              if (typeof openLoginModal === 'function') {
+                openLoginModal();
+                return;
+              }
+            } catch (_) {}
+            const loginModal = document.getElementById('login-modal');
+            if (loginModal) {
+              loginModal.classList.add('open');
+              document.body.classList.add('nav-locked');
+            }
+          }
+
+          function hasAnyLinkedSource() {
+            try {
+              const mdId = getSlugStorageKey();
+              const asuraMap = loadAsuraSlugMap();
+              const mangataroMap = loadMangataroSlugMap();
+              const comixMap = loadComixSlugMap();
+              return Boolean((mdId && (asuraMap[mdId] || mangataroMap[mdId] || comixMap[mdId])));
+            } catch (_) {
+              return true;
+            }
+          }
 
           cancelBtn && cancelBtn.addEventListener('click', (e) => {
             try { e.preventDefault(); } catch (_) {}
@@ -8234,6 +8379,9 @@ We'll reuse it next time.`,
             const nextValue = currentValue || offlineGroup || preferred;
             groupSelectEl.value = nextValue;
             offlineGroup = String(groupSelectEl.value || '');
+
+            buildOfflineDropdownMenu('group');
+            syncOfflineDropdownBtn('group');
           }
 
           function getOfflineSupportedSources() {
@@ -8258,13 +8406,17 @@ We'll reuse it next time.`,
               .join('');
             const nextValue = (currentValue && sources.includes(currentValue))
               ? currentValue
-              : (sources[0] || 'comix');
+              : (sources[0] || '');
             sourceSelectEl.value = nextValue;
             offlineSource = String(nextValue || '');
+
+            buildOfflineDropdownMenu('source');
+            syncOfflineDropdownBtn('source');
           }
 
           async function highlightAlreadyDownloaded() {
             try {
+              const uid = await getUid();
               if (!uid) return;
               if (!window.AryOffline || typeof window.AryOffline.listForUser !== 'function') return;
               const existing = await window.AryOffline.listForUser(uid);
@@ -8296,10 +8448,49 @@ We'll reuse it next time.`,
 
           btn.onclick = async (e) => {
             try { e.preventDefault(); } catch (_) {}
+
+            const uid = await getUid();
+
+            if (!uid) {
+              openLoginUi();
+              return;
+            }
+
+            if (!hasAnyLinkedSource()) {
+              pendingOpenOfflineDownloadsModal = true;
+              try { openAsuraSlugModal(); } catch (_) {}
+              return;
+            }
+
             openModal();
             renderOfflineChapterPicker();
             await highlightAlreadyDownloaded();
           };
+
+          const mobileDownloadBtn = document.getElementById('mobile-download-btn');
+          if (mobileDownloadBtn && !mobileDownloadBtn.__aryOfflineBound) {
+            mobileDownloadBtn.__aryOfflineBound = true;
+            mobileDownloadBtn.addEventListener('click', async (e) => {
+              try { e.preventDefault(); } catch (_) {}
+
+              const uid = await getUid();
+
+              if (!uid) {
+                openLoginUi();
+                return;
+              }
+
+              if (!hasAnyLinkedSource()) {
+                pendingOpenOfflineDownloadsModal = true;
+                try { openAsuraSlugModal(); } catch (_) {}
+                return;
+              }
+
+              openModal();
+              renderOfflineChapterPicker();
+              highlightAlreadyDownloaded();
+            });
+          }
 
           closeBtn && closeBtn.addEventListener('click', (e) => {
             try { e.preventDefault(); } catch (_) {}
@@ -8333,6 +8524,13 @@ We'll reuse it next time.`,
             if (!listEl) return;
             if (statusEl) statusEl.textContent = '';
             ensureOfflineSourceOptions();
+
+            const effectiveSource = String(offlineSource || '').trim();
+            if (!effectiveSource) {
+              listEl.innerHTML = `<div style="color: var(--muted);">Select a source to view chapters.</div>`;
+              ensureOfflineGroupOptions([]);
+              return;
+            }
             const chapters = getOfflineChapters();
             if (!chapters.length) {
               listEl.innerHTML = `<div style="color: var(--muted);">No downloadable chapters found for linked sources yet.</div>`;
@@ -8390,6 +8588,7 @@ We'll reuse it next time.`,
               offlineSource = String(sourceSelectEl.value || '');
               offlineGroup = '';
               if (groupSelectEl) groupSelectEl.value = '';
+              syncOfflineDropdownBtn('source');
               renderOfflineChapterPicker();
               highlightAlreadyDownloaded();
             });
@@ -8399,6 +8598,7 @@ We'll reuse it next time.`,
             groupSelectEl.__aryBound = true;
             groupSelectEl.addEventListener('change', () => {
               offlineGroup = String(groupSelectEl.value || '');
+              syncOfflineDropdownBtn('group');
               renderOfflineChapterPicker();
               highlightAlreadyDownloaded();
             });
@@ -8407,6 +8607,12 @@ We'll reuse it next time.`,
           confirmBtn && confirmBtn.addEventListener('click', async (e) => {
             try { e.preventDefault(); } catch (_) {}
             if (!listEl) return;
+
+            const uid = await getUid();
+            if (!uid) {
+              openLoginUi();
+              return;
+            }
             const selected = Array.from(listEl.querySelectorAll('input[type="checkbox"]:checked:not(:disabled)'));
             if (!selected.length) {
               if (statusEl) statusEl.textContent = 'Select at least one chapter.';
@@ -8473,6 +8679,7 @@ We'll reuse it next time.`,
                 : String(chapterId).replace(/"/g, '\\"');
               try {
                 const sourceKey = String(offlineSource || 'comix');
+                if (!sourceKey) continue;
                 const res = await fetch(`/api/source/${encodeURIComponent(sourceKey)}/chapter-pages?url=${encodeURIComponent(chapterUrl)}`);
                 if (!res.ok) {
                   continue;
@@ -8509,6 +8716,24 @@ We'll reuse it next time.`,
             confirmBtn.disabled = false;
             if (statusEl) statusEl.textContent = '';
           });
+
+          if (slugModalDone && !slugModalDone.__aryOfflineOpenBound) {
+            slugModalDone.__aryOfflineOpenBound = true;
+            slugModalDone.addEventListener('click', () => {
+              try {
+                if (!pendingOpenOfflineDownloadsModal) return;
+                pendingOpenOfflineDownloadsModal = false;
+                setTimeout(() => {
+                  try {
+                    if (!uid) return;
+                    openModal();
+                    renderOfflineChapterPicker();
+                    highlightAlreadyDownloaded();
+                  } catch (_) {}
+                }, 80);
+              } catch (_) {}
+            });
+          }
         } catch (err) {
           console.warn('initOfflineDownloads failed', err);
         }
@@ -8536,19 +8761,32 @@ We'll reuse it next time.`,
               <input id="offline-chapter-search" type="search" placeholder="Search chapters or groups..." autocomplete="off" />
             </div>
             <div class="offline-source-row popup-filter-row">
-              <span style="display:inline-flex; align-items:center; gap:0.55rem;">
-                <strong>Source:</strong>
-                <select id="offline-source-select" aria-label="Select source"></select>
-              </span>
-              <span style="display:inline-flex; align-items:center; gap:0.55rem;">
-                <strong>Group:</strong>
-                <select id="offline-group-select" aria-label="Select group">
+              <div class="popup-dropdown" data-offline-dd="source" style="flex:1;">
+                <span class="popup-dropdown-label">Source:</span>
+                <button type="button" class="popup-dropdown-btn" id="offline-source-btn" aria-haspopup="true" aria-expanded="false">
+                  <img id="offline-source-icon" src="" alt="" hidden />
+                  <span class="value" id="offline-source-value">All</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                </button>
+                <div class="popup-dropdown-menu" id="offline-source-menu" role="menu"></div>
+                <select id="offline-source-select" aria-label="Select source" hidden>
+                </select>
+              </div>
+
+              <div class="popup-dropdown" data-offline-dd="group" style="flex:1;">
+                <span class="popup-dropdown-label">Group:</span>
+                <button type="button" class="popup-dropdown-btn" id="offline-group-btn" aria-haspopup="true" aria-expanded="false">
+                  <span class="value" id="offline-group-value">All</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                </button>
+                <div class="popup-dropdown-menu" id="offline-group-menu" role="menu"></div>
+                <select id="offline-group-select" aria-label="Select group" hidden>
                   <option value="">All</option>
                 </select>
-              </span>
-              <button type="button" class="btn ghost square" id="offline-reorder-btn">
-                <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M7 12h14"/><path d="M11 18h10"/></svg>
-                Reorder
+              </div>
+
+              <button type="button" class="chapter-action-btn" id="offline-reorder-btn" title="Reorder" aria-label="Reorder">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>
               </button>
             </div>
           </div>
